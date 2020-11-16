@@ -36,7 +36,7 @@
     (Files/walkFileTree base-path
                         (reify FileVisitor
                           (preVisitDirectory [_ dir attrs]
-                            (if-not (str/starts-with? (.getFileName ^Path dir) ".")
+                            (if-not (.isHidden (.toFile ^Path dir))
                               fvr:continue
                               fvr:skip-subtree))
                           (postVisitDirectory [_ dir attrs]
