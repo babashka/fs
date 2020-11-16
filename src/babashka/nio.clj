@@ -1,4 +1,4 @@
-(ns babashka.io
+(ns babashka.nio
   (:require [clojure.java.io :as io])
   (:import [java.nio.file Files FileSystems FileVisitResult
             LinkOption Path
