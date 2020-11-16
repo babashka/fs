@@ -49,7 +49,7 @@
                             post-visit-dir continue
                             visit-file continue
                             visit-file-failed continue}}]
-  (Files/walkFileTree path
+  (Files/walkFileTree (as-path path)
                       (reify FileVisitor
                         (preVisitDirectory [_ dir attrs]
                           (-> (pre-visit-dir dir attrs)
