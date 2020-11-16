@@ -1,50 +1,90 @@
 (ns babashka.fs
   (:require [clojure.java.io :as io])
-  (:import [java.nio.file Files FileSystems FileVisitResult
+  (:import [java.io File]
+           [java.nio.file Files FileSystems FileVisitResult
             LinkOption Path
             FileVisitor]))
 
 (set! *warn-on-reflection* true)
 
-(def ^:private fvr:continue FileVisitResult/CONTINUE)
-(def ^:private fvr:skip-subtree FileVisitResult/SKIP_SUBTREE)
+(def ^:private keyword->constant
+  {:file-visit-result/continue FileVisitResult/CONTINUE
+   :file-visit-result/skip-subtree FileVisitResult/SKIP_SUBTREE})
 
 (defn- ^Path as-path
-  "Coerces an as-file into a path"
   [path]
   (if (instance? Path path) path
       (.toPath (io/file path))))
 
+(defn ^Path path
+  "Coerces an as-file into a path if it isn't already one."
+  [file]
+  (as-path file))
+
+(defn- ^java.io.File as-file
+  "Coerces a path into a file if it isn't already one."
+  [path]
+  (if (instance? Path path) (.toFile ^Path path)
+      (io/file path)))
+
+(defn ^File file
+  "Coerces a path into a file if it isn't already one."
+  [file]
+  (as-file file))
+
 (defn ^Path real-path [path & link-options]
   (.toRealPath (as-path path) (into-array LinkOption link-options)))
-
-(defn ^Path path [file]
-  (as-path (io/file file)))
 
 (defn ^Path relativize [this other]
   (.relativize (as-path this) (as-path other)))
 
+(defn hidden? [path]
+  (.isHidden (as-file path)))
+
+(def ^:private continue (constantly :file-visit-result/continue))
+
+(defn walk-file-tree [path
+                      {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
+                       :or {pre-visit-dir continue
+                            post-visit-dir continue
+                            visit-file continue
+                            visit-file-failed continue}}]
+  (Files/walkFileTree path
+                      (reify FileVisitor
+                        (preVisitDirectory [_ dir attrs]
+                          (-> (pre-visit-dir dir attrs)
+                              keyword->constant))
+                        (postVisitDirectory [_ dir attrs]
+                          (-> (post-visit-dir dir attrs)
+                              keyword->constant))
+                        (visitFile [_ path attrs]
+                          (-> (visit-file path attrs)
+                              keyword->constant))
+                        (visitFileFailed [_ path attrs]
+                          (-> (visit-file-failed path attrs)
+                              keyword->constant)))))
+
 (defn glob
-  "Given a path and glob pattern, returns matches as vector of java.nio.file Path."
-  [path pattern]
-  (let [base-path (real-path path)
-        matcher (.getPathMatcher
-                 (FileSystems/getDefault)
-                 (str "glob:" pattern))
-        results (atom [])]
-    (Files/walkFileTree base-path
-                        (reify FileVisitor
-                          (preVisitDirectory [_ dir attrs]
-                            (if-not (.isHidden (.toFile ^Path dir))
-                              fvr:continue
-                              fvr:skip-subtree))
-                          (postVisitDirectory [_ dir attrs]
-                            fvr:continue)
-                          (visitFile [_ path attrs]
-                            (let [relative-path (.relativize base-path ^Path path)]
-                              (when (.matches matcher relative-path)
-                                (swap! results conj relative-path)))
-                            fvr:continue)
-                          (visitFileFailed [_ path attrs]
-                            fvr:continue)))
-    @results))
+  "Given a path and glob pattern, returns matches as vector of paths. By
+  default it will not search within hidden directories. This can be
+  overriden by passing an opts map containing
+  `:skip-subtree (constantly false)`."
+  ([path pattern] (glob path pattern nil))
+  ([path pattern {:keys [:pre-visit-dir]
+                  :or {pre-visit-dir (fn [dir _attrs]
+                                       (if (hidden? dir)
+                                         :file-visit-result/skip-subtree
+                                         :file-visit-result/continue))}}]
+   (let [base-path (real-path path)
+         matcher (.getPathMatcher
+                  (FileSystems/getDefault)
+                  (str "glob:" pattern))
+         results (atom [])]
+     (walk-file-tree base-path {:pre-visit-dir (fn [dir attrs]
+                                                 (pre-visit-dir dir attrs))
+                                :visit-file (fn [path _attrs]
+                                              (let [relative-path (.relativize base-path ^Path path)]
+                                                (when (.matches matcher relative-path)
+                                                  (swap! results conj relative-path)))
+                                              :file-visit-result/continue)})
+     @results)))
