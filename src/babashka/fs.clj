@@ -68,6 +68,8 @@
   "Given a path and glob pattern, returns matches as vector of paths. By
   default it will not search within hidden directories. This can be
   overriden by passing an opts map with a different implementation for :pre-visit-dir."
+  ;; TODO: should we match hidden files as well? Like .gitkeep.
+  ;; Maybe make :hidden true / false a setting instead pluggable methods for the file-walker
   ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:pre-visit-dir]
                   :or {pre-visit-dir (fn [dir _attrs]
