@@ -1,6 +1,5 @@
-(ns babashka.fs
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str])
+(ns babashka.io
+  (:require [clojure.java.io :as io])
   (:import [java.nio.file Files FileSystems FileVisitResult
             LinkOption Path
             FileVisitor]))
