@@ -67,8 +67,7 @@
 (defn glob
   "Given a path and glob pattern, returns matches as vector of paths. By
   default it will not search within hidden directories. This can be
-  overriden by passing an opts map containing
-  `:skip-subtree (constantly false)`."
+  overriden by passing an opts map with a different implementation for :pre-visit-dir."
   ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:pre-visit-dir]
                   :or {pre-visit-dir (fn [dir _attrs]
@@ -79,12 +78,14 @@
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
-         results (atom [])]
+         results (atom [])
+         match (fn [path](let [relative-path (.relativize base-path ^Path path)]
+                           (when (.matches matcher relative-path)
+                             (swap! results conj path))))]
      (walk-file-tree base-path {:pre-visit-dir (fn [dir attrs]
+                                                 (match dir)
                                                  (pre-visit-dir dir attrs))
                                 :visit-file (fn [path _attrs]
-                                              (let [relative-path (.relativize base-path ^Path path)]
-                                                (when (.matches matcher relative-path)
-                                                  (swap! results conj relative-path)))
+                                              (match path)
                                               :visit/continue)})
      @results)))
