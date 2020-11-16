@@ -1,7 +1,7 @@
-# babashka.nio
+# babashka.fs
 
-File system utilities for babashka based on `java.nio`. This library isn't part
-of babashka itself yet, but will be. Also can be used from the JVM.
+File system utilities for babashka. This library isn't part of babashka itself
+yet, but will be. Also can be used from the JVM.
 
 ## Status
 
@@ -23,19 +23,19 @@ not guarantee any compatibility with the `clj-commons` library. We might give
 ## Usage
 
 ``` clojure
-(require '[babashka.nio :as nio])
+(require '[babashka.fs :as fs])
 ```
 
 ### glob
 
 ``` clojure
-(map str (nio/glob "." "**/*.clj"))
+(map str (fs/glob "." "**/*.clj"))
 ```
 
 Output:
 
 ``` clojure
-("test/babashka/nio_test.clj" "src/babashka/nio.clj")
+("test/babashka/fs_test.clj" "src/babashka/fs.clj")
 ```
 
 ## Test
