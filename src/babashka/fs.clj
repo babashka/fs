@@ -4,32 +4,43 @@
             LinkOption Path
             FileVisitor]))
 
+(set! *warn-on-reflection* true)
+
 (def ^:private fvr:continue FileVisitResult/CONTINUE)
 
 (defn- ^Path as-path
   "Coerces an as-file into a path"
   [path]
-  (.toRealPath (.toPath (io/file path)) (into-array LinkOption [])))
+  (if (instance? Path path) path
+      (.toPath (io/file path))))
 
-(set! *warn-on-reflection* true)
+(defn ^Path real-path [path & link-options]
+  (.toRealPath (as-path path) (into-array LinkOption link-options)))
+
+(defn ^Path path [file]
+  (as-path (io/file file)))
+
+(defn ^Path relativize [this other]
+  (.relativize (as-path this) (as-path other)))
 
 (defn glob
   "Given a path and glob pattern, returns matches as vector of java.nio.file Path."
   [path pattern]
-  (let [base-path (as-path path)
+  (let [base-path (real-path path)
         matcher (.getPathMatcher
                  (FileSystems/getDefault)
                  (str "glob:" pattern))
         results (atom [])]
-    (Files/walkFileTree (as-path path)
+    (Files/walkFileTree base-path
                         (reify FileVisitor
                           (preVisitDirectory [_ dir attrs]
                             fvr:continue)
                           (postVisitDirectory [_ dir attrs]
                             fvr:continue)
                           (visitFile [_ path attrs]
-                            (when (.matches matcher (.relativize base-path ^Path path))
-                              (swap! results conj path))
+                            (let [relative-path (.relativize base-path ^Path path)]
+                              (when (.matches matcher relative-path)
+                                (swap! results conj relative-path)))
                             fvr:continue)
                           (visitFileFailed [_ path attrs]
                             fvr:continue)))
