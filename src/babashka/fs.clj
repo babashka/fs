@@ -8,8 +8,8 @@
 (set! *warn-on-reflection* true)
 
 (def ^:private keyword->constant
-  {:file-visit-result/continue FileVisitResult/CONTINUE
-   :file-visit-result/skip-subtree FileVisitResult/SKIP_SUBTREE})
+  {:visit/continue FileVisitResult/CONTINUE
+   :visit/skip-subtree FileVisitResult/SKIP_SUBTREE})
 
 (defn- ^Path as-path
   [path]
@@ -41,7 +41,7 @@
 (defn hidden? [path]
   (.isHidden (as-file path)))
 
-(def ^:private continue (constantly :file-visit-result/continue))
+(def ^:private continue (constantly :visit/continue))
 
 (defn walk-file-tree [path
                       {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
@@ -73,8 +73,8 @@
   ([path pattern {:keys [:pre-visit-dir]
                   :or {pre-visit-dir (fn [dir _attrs]
                                        (if (hidden? dir)
-                                         :file-visit-result/skip-subtree
-                                         :file-visit-result/continue))}}]
+                                         :visit/skip-subtree
+                                         :visit/continue))}}]
    (let [base-path (real-path path)
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
@@ -86,5 +86,5 @@
                                               (let [relative-path (.relativize base-path ^Path path)]
                                                 (when (.matches matcher relative-path)
                                                   (swap! results conj relative-path)))
-                                              :file-visit-result/continue)})
+                                              :visit/continue)})
      @results)))
