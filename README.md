@@ -23,13 +23,13 @@ not guarantee any compatibility with the `clj-commons` library. We might give
 ## Usage
 
 ``` clojure
-(require '[babashka.io :as io])
+(require '[babashka.io :as bio])
 ```
 
 ### glob
 
 ``` clojure
-(map str (io/glob "." "**/*.clj"))
+(map str (bio/glob "." "**/*.clj"))
 ```
 
 Output:
