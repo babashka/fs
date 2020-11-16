@@ -44,6 +44,13 @@ Output:
 $ clojure -M:test
 ```
 
+## Prior art
+
+- [nate/fs](https://github.com/nate/fs/blob/master/src/nate/fs.clj)
+- [hara.io](https://github.com/zcaudate/hara/blob/master/src/hara/io/file.clj)
+- [clj-commons/fs](https://github.com/clj-commons/fs)
+- [Python pathlib](https://docs.python.org/3/library/pathlib.html)
+
 ## License
 
 Copyright © 2020 Michiel Borkent
