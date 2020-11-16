@@ -1,5 +1,6 @@
 (ns babashka.fs
-  (:require [clojure.java.io :as io])
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str])
   (:import [java.nio.file Files FileSystems FileVisitResult
             LinkOption Path
             FileVisitor]))
@@ -7,6 +8,7 @@
 (set! *warn-on-reflection* true)
 
 (def ^:private fvr:continue FileVisitResult/CONTINUE)
+(def ^:private fvr:skip-subtree FileVisitResult/SKIP_SUBTREE)
 
 (defn- ^Path as-path
   "Coerces an as-file into a path"
@@ -34,7 +36,9 @@
     (Files/walkFileTree base-path
                         (reify FileVisitor
                           (preVisitDirectory [_ dir attrs]
-                            fvr:continue)
+                            (if-not (str/starts-with? (.getFileName ^Path dir) ".")
+                              fvr:continue
+                              fvr:skip-subtree))
                           (postVisitDirectory [_ dir attrs]
                             fvr:continue)
                           (visitFile [_ path attrs]
