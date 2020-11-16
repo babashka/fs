@@ -35,39 +35,47 @@
 (defn ^Path real-path [path & link-options]
   (.toRealPath (as-path path) (into-array LinkOption link-options)))
 
-(defn ^Path relativize [this other]
-  (.relativize (as-path this) (as-path other)))
+(def ^:dynamic *cwd* (real-path "."))
 
-(defn hidden? [path]
-  (.isHidden (as-file path)))
+(defn ^Path relativize
+  ([other] (relativize *cwd* other))
+  ([this other]
+   (.relativize (as-path this) (as-path other))))
+
+(defn hidden?
+  ([] (hidden? *cwd*))
+  ([path] (.isHidden (as-file path))))
 
 (def ^:private continue (constantly :visit/continue))
 
-(defn walk-file-tree [path
-                      {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
-                       :or {pre-visit-dir continue
-                            post-visit-dir continue
-                            visit-file continue
-                            visit-file-failed continue}}]
-  (Files/walkFileTree (as-path path)
-                      (reify FileVisitor
-                        (preVisitDirectory [_ dir attrs]
-                          (-> (pre-visit-dir dir attrs)
-                              keyword->constant))
-                        (postVisitDirectory [_ dir attrs]
-                          (-> (post-visit-dir dir attrs)
-                              keyword->constant))
-                        (visitFile [_ path attrs]
-                          (-> (visit-file path attrs)
-                              keyword->constant))
-                        (visitFileFailed [_ path attrs]
-                          (-> (visit-file-failed path attrs)
-                              keyword->constant)))))
+(defn walk-file-tree
+  ([opts] (walk-file-tree *cwd* opts))
+  ([path
+    {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
+     :or {pre-visit-dir continue
+          post-visit-dir continue
+          visit-file continue
+          visit-file-failed continue}}]
+   (Files/walkFileTree (as-path path)
+                       (reify FileVisitor
+                         (preVisitDirectory [_ dir attrs]
+                           (-> (pre-visit-dir dir attrs)
+                               keyword->constant))
+                         (postVisitDirectory [_ dir attrs]
+                           (-> (post-visit-dir dir attrs)
+                               keyword->constant))
+                         (visitFile [_ path attrs]
+                           (-> (visit-file path attrs)
+                               keyword->constant))
+                         (visitFileFailed [_ path attrs]
+                           (-> (visit-file-failed path attrs)
+                               keyword->constant))))))
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of files. By default
   hidden files are not matched. This can be enabled by setting `:hidden` to
   `true` in `opts`."
+  ([pattern] (glob *cwd* pattern))
   ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
