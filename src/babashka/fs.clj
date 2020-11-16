@@ -65,29 +65,36 @@
                               keyword->constant)))))
 
 (defn glob
-  "Given a path and glob pattern, returns matches as vector of paths. By
-  default it will not search within hidden directories. This can be
-  overriden by passing an opts map with a different implementation for :pre-visit-dir."
-  ;; TODO: should we match hidden files as well? Like .gitkeep.
-  ;; Maybe make :hidden true / false a setting instead pluggable methods for the file-walker
+  "Given a file and glob pattern, returns matches as vector of files. By default
+  hidden files are not matched. This can be enabled by setting `:hidden` to
+  `true` in `opts`."
   ([path pattern] (glob path pattern nil))
-  ([path pattern {:keys [:pre-visit-dir]
-                  :or {pre-visit-dir (fn [dir _attrs]
-                                       (if (hidden? dir)
-                                         :visit/skip-subtree
-                                         :visit/continue))}}]
+  ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
+         skip-hidden? (not hidden)
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
-         results (atom [])
-         match (fn [path](let [relative-path (.relativize base-path ^Path path)]
-                           (when (.matches matcher relative-path)
-                             (swap! results conj path))))]
-     (walk-file-tree base-path {:pre-visit-dir (fn [dir attrs]
-                                                 (match dir)
-                                                 (pre-visit-dir dir attrs))
+         results (atom (transient []))
+         match (fn [^Path path]
+                 (let [relative-path (.relativize base-path path)]
+                   (when (.matches matcher relative-path)
+                     (swap! results conj! (.toFile path)))))]
+     (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
+                                                 (if (and skip-hidden?
+                                                          (hidden? dir))
+                                                   :visit/skip-subtree
+                                                   (do
+                                                     (match dir)
+                                                     :visit/continue)))
                                 :visit-file (fn [path _attrs]
-                                              (match path)
+                                              (when-not (and skip-hidden?
+                                                             (hidden? path))
+                                                (match path))
                                               :visit/continue)})
-     @results)))
+     (let [res (persistent! @results)]
+       (if-let [fst (get res 0)]
+         (if (= fst (.toFile base-path))
+           (subvec res 1)
+           res)
+         res)))))
