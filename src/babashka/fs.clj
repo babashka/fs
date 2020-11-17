@@ -5,11 +5,6 @@
             LinkOption Path
             FileVisitor]))
 
-(import '[java.io File]
-        '[java.nio.file Files FileSystems FileVisitResult
-         LinkOption Path
-         FileVisitor])
-
 (set! *warn-on-reflection* true)
 
 (def ^:private fvr-lookup
@@ -18,7 +13,7 @@
    :skip-siblings FileVisitResult/SKIP_SIBLINGS
    :terminate FileVisitResult/TERMINATE})
 
-(defn file-visit-result
+(defn- file-visit-result
   [x]
   (if (instance? FileVisitResult x) x
       (or (fvr-lookup x)
@@ -30,9 +25,9 @@
       (.toPath (io/file path))))
 
 (defn ^Path path
-  "Coerces an as-file into a path if it isn't already one."
-  [file]
-  (as-path file))
+  "Coerces f into a path if it isn't already one."
+  [f]
+  (as-path f))
 
 (defn- ^java.io.File as-file
   "Coerces a path into a file if it isn't already one."
@@ -41,35 +36,51 @@
       (io/file path)))
 
 (defn ^File file
-  "Coerces a path into a file if it isn't already one."
-  [file]
-  (as-file file))
+  "Coerces f into a file if it isn't already one."
+  [f]
+  (as-file f))
 
-(defn ^Path real-path [path & link-options]
-  (.toRealPath (as-path path) (into-array LinkOption link-options)))
+(defn ^Path real-path
+  "Converts f into real path via .toRealPath."
+  [f & link-options]
+  (.toRealPath (as-path f) (into-array LinkOption link-options)))
 
-(def ^:dynamic *cwd* (real-path "."))
+(def ^{:dynamic true
+       :doc "Current working directory."}
+  *cwd* (real-path "."))
 
 (defn ^Path relativize
+  "Returns relative path by comparing this with other."
   ([other] (relativize *cwd* other))
   ([this other]
    (.relativize (as-path this) (as-path other))))
 
 (defn hidden?
+  "Returns true if f is hidden."
   ([] (hidden? *cwd*))
-  ([path] (.isHidden (as-file path))))
+  ([f] (.isHidden (as-file f))))
+
+(defn file-name
+  "Returns farthest element from the root as string, if any."
+  [x]
+  (.getName (as-file x)))
 
 (def ^:private continue (constantly :continue))
 
 (defn walk-file-tree
+  "Walks f using Files/walkFileTree. Visitor functions: pre-visit-dir,
+  post-visit-dir, visit-file, visit-file-failed. All visitor functions
+  default to (constantly :continue). Supported return
+  values: :continue, :skip-subtree, :skip-siblings, :terminate. A
+  different return value will throw."
   ([opts] (walk-file-tree *cwd* opts))
-  ([path
+  ([f
     {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
      :or {pre-visit-dir continue
           post-visit-dir continue
           visit-file continue
           visit-file-failed continue}}]
-   (Files/walkFileTree (as-path path)
+   (Files/walkFileTree (as-path f)
                        (reify FileVisitor
                          (preVisitDirectory [_ dir attrs]
                            (-> (pre-visit-dir dir attrs)
@@ -86,8 +97,8 @@
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of files. By default
-  hidden files are not matched. This can be enabled by setting `:hidden` to
-  `true` in `opts`."
+  hidden files are not matched. This can be enabled by setting :hidden to
+  true in opts."
   ([pattern] (glob *cwd* pattern))
   ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:hidden]}]

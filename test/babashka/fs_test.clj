@@ -21,3 +21,7 @@
                 (binding [fs/*cwd* "test-resources/foo"]
                   (fs/glob "**")))))))
 
+(deftest file-name-test
+  (is (= "fs" (fs/file-name fs/*cwd*)))
+  (is (= "fs" (fs/file-name (fs/file fs/*cwd*))))
+  (is (= "fs" (fs/file-name (fs/path fs/*cwd*)))))
