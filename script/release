@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+lein codox
+
+cd gh-pages
+git add .
+git commit -m "update doc"
+git push origin gh-pages
