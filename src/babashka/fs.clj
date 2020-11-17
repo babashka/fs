@@ -1,7 +1,8 @@
 (ns babashka.fs
   (:require [clojure.java.io :as io])
   (:import [java.io File]
-           [java.nio.file Files FileSystems FileVisitResult
+           [java.nio.file CopyOption
+            Files FileSystems FileVisitResult StandardCopyOption
             LinkOption Path
             FileVisitor]))
 
@@ -64,8 +65,7 @@
 
 (defn hidden?
   "Returns true if f is hidden."
-  ([] (hidden? *cwd*))
-  ([f] (.isHidden (as-file f))))
+  [f] (.isHidden (as-file f)))
 
 (defn file-name
   "Returns farthest element from the root as string, if any."
@@ -134,3 +134,28 @@
                                                 (match path))
                                               :continue)})
      (persistent! @results))))
+
+(defn directory?
+  ([f] (directory? f nil))
+  ([f {:keys [:nofollow-links]}]
+   (let [opts (cond-> []
+                nofollow-links (conj LinkOption/NOFOLLOW_LINKS))]
+     (Files/isDirectory (as-path f)
+                        ^"[Ljava.nio.file.LinkOption;"
+                        (into-array LinkOption opts)))))
+
+(defn copy
+  ([from to] (copy from to nil))
+  ([from to {:keys [:replace-existing
+                    :copy-attributes
+                    :nofollow-links
+                    :recursive]}]
+   (let [copy-options (cond-> []
+                        replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
+                        copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
+                        nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))]
+     (if recursive
+       ::TODO
+       (Files/copy (as-path from) (as-path to)
+                   ^"[Ljava.nio.file.CopyOption;"
+                   (into-array CopyOption copy-options))))))

@@ -35,3 +35,6 @@
   (let [f (fs/file "foo" "bar" (fs/path "baz"))]
     (is (instance? java.io.File f))
     (is (= "foo/bar/baz" (str f)))))
+
+(deftest copy-test
+  (let [tmp-dir ::TODO]))
