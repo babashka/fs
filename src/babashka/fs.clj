@@ -5,11 +5,24 @@
             LinkOption Path
             FileVisitor]))
 
+(import '[java.io File]
+        '[java.nio.file Files FileSystems FileVisitResult
+         LinkOption Path
+         FileVisitor])
+
 (set! *warn-on-reflection* true)
 
-(def ^:private keyword->constant
-  {:visit/continue FileVisitResult/CONTINUE
-   :visit/skip-subtree FileVisitResult/SKIP_SUBTREE})
+(def ^:private fvr-lookup
+  {:continue FileVisitResult/CONTINUE
+   :skip-subtree FileVisitResult/SKIP_SUBTREE
+   :skip-siblings FileVisitResult/SKIP_SIBLINGS
+   :terminate FileVisitResult/TERMINATE})
+
+(defn file-visit-result
+  [x]
+  (if (instance? FileVisitResult x) x
+      (or (fvr-lookup x)
+          (throw (Exception. "Expected: one of :continue, :skip-subtree, :skip-siblings, :terminate.")))))
 
 (defn- ^Path as-path
   [path]
@@ -46,7 +59,7 @@
   ([] (hidden? *cwd*))
   ([path] (.isHidden (as-file path))))
 
-(def ^:private continue (constantly :visit/continue))
+(def ^:private continue (constantly :continue))
 
 (defn walk-file-tree
   ([opts] (walk-file-tree *cwd* opts))
@@ -60,16 +73,16 @@
                        (reify FileVisitor
                          (preVisitDirectory [_ dir attrs]
                            (-> (pre-visit-dir dir attrs)
-                               keyword->constant))
+                               file-visit-result))
                          (postVisitDirectory [_ dir attrs]
                            (-> (post-visit-dir dir attrs)
-                               keyword->constant))
+                               file-visit-result))
                          (visitFile [_ path attrs]
                            (-> (visit-file path attrs)
-                               keyword->constant))
+                               file-visit-result))
                          (visitFileFailed [_ path attrs]
                            (-> (visit-file-failed path attrs)
-                               keyword->constant))))))
+                               file-visit-result))))))
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of files. By default
@@ -91,15 +104,15 @@
      (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
                                                  (if (and skip-hidden?
                                                           (hidden? dir))
-                                                   :visit/skip-subtree
+                                                   :skip-subtree
                                                    (do
                                                      (match dir)
-                                                     :visit/continue)))
+                                                     :continue)))
                                 :visit-file (fn [path _attrs]
                                               (when-not (and skip-hidden?
                                                              (hidden? path))
                                                 (match path))
-                                              :visit/continue)})
+                                              :continue)})
      (let [res (persistent! @results)]
        (if-let [fst (get res 0)]
          (if (= fst (.toFile base-path))
