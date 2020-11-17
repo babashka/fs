@@ -100,22 +100,19 @@
          match (fn [^Path path]
                  (let [relative-path (.relativize base-path path)]
                    (when (.matches matcher relative-path)
-                     (swap! results conj! (.toFile path)))))]
+                     (swap! results conj! (.toFile path)))))
+         past-root? (volatile! nil)]
      (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
                                                  (if (and skip-hidden?
                                                           (hidden? dir))
                                                    :skip-subtree
                                                    (do
-                                                     (match dir)
+                                                     (if @past-root? (match dir)
+                                                         (vreset! past-root? true))
                                                      :continue)))
                                 :visit-file (fn [path _attrs]
                                               (when-not (and skip-hidden?
                                                              (hidden? path))
                                                 (match path))
                                               :continue)})
-     (let [res (persistent! @results)]
-       (if-let [fst (get res 0)]
-         (if (= fst (.toFile base-path))
-           (subvec res 1)
-           res)
-         res)))))
+     (persistent! @results))))
