@@ -1,6 +1,6 @@
 (ns babashka.fs-test
   (:require [babashka.fs :as fs]
-            #_[clojure.java.io :as io]
+            [clojure.java.io :as io]
             [clojure.set :as set]
             [clojure.test :refer [deftest is testing]]
             #_[me.raynes.fs :as rfs]))
@@ -25,3 +25,13 @@
   (is (= "fs" (fs/file-name fs/*cwd*)))
   (is (= "fs" (fs/file-name (fs/file fs/*cwd*))))
   (is (= "fs" (fs/file-name (fs/path fs/*cwd*)))))
+
+(deftest path-test
+  (let [p (fs/path "foo" "bar" (io/file "baz"))]
+    (is (instance? java.nio.file.Path p))
+    (is (= "foo/bar/baz" (str p)))))
+
+(deftest file-test
+  (let [f (fs/file "foo" "bar" (fs/path "baz"))]
+    (is (instance? java.io.File f))
+    (is (= "foo/bar/baz" (str f)))))

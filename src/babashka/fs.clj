@@ -24,21 +24,28 @@
   (if (instance? Path path) path
       (.toPath (io/file path))))
 
-(defn ^Path path
-  "Coerces f into a path if it isn't already one."
-  [f]
-  (as-path f))
-
 (defn- ^java.io.File as-file
   "Coerces a path into a file if it isn't already one."
   [path]
   (if (instance? Path path) (.toFile ^Path path)
       (io/file path)))
 
+(defn ^Path path
+  "Coerces f into a path. Multiple-arg versions treat the first argument as
+  parent and subsequent args as children relative to the parent."
+  ([f]
+   (as-path f))
+  ([parent child]
+   (as-path (io/file (as-file parent) (as-file child))))
+  ([parent child & more]
+   (reduce path (path parent child) more)))
+
 (defn ^File file
-  "Coerces f into a file if it isn't already one."
-  [f]
-  (as-file f))
+  "Coerces f into a file. Multiple-arg versions treat the first argument
+  as parent and subsequent args as children relative to the parent."
+  ([f] (as-file f))
+  ([f & fs]
+   (apply io/file (map as-file (cons f fs)))))
 
 (defn ^Path real-path
   "Converts f into real path via .toRealPath."
