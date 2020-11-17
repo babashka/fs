@@ -70,3 +70,4 @@ flycheck_*.el
 **/.clj-kondo/.cache
 
 .idea/
+gh-pages/
