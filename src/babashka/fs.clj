@@ -50,8 +50,11 @@
 
 (defn ^Path real-path
   "Converts f into real path via .toRealPath."
-  [f & link-options]
-  (.toRealPath (as-path f) (into-array LinkOption link-options)))
+  ([f] (real-path f nil))
+  ([f {:keys [:nofollow-links]}]
+   (.toRealPath (as-path f)
+                (into-array LinkOption (cond-> []
+                                         nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
 
 (def ^{:dynamic true
        :doc "Current working directory."}
@@ -145,17 +148,45 @@
                         (into-array LinkOption opts)))))
 
 (defn copy
-  ([from to] (copy from to nil))
-  ([from to {:keys [:replace-existing
-                    :copy-attributes
-                    :nofollow-links
-                    :recursive]}]
-   (let [copy-options (cond-> []
-                        replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
-                        copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
-                        nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))]
+  "Copies src file to dest file. Supported options: :recursive (copy
+  file tree), :replace-existing, :copy-attributes
+  and :nofollow-links."
+  ([src dest] (copy src dest nil))
+  ([src dest {:keys [:replace-existing
+                     :copy-attributes
+                     :nofollow-links
+                     :recursive]}]
+   (let [copy-options (into-array CopyOption
+                       (cond-> []
+                         replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
+                         copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
+                         nofollow-links   (conj LinkOption/NOFOLLOW_LINKS)))
+         link-options (into-array LinkOption
+                                  (cond-> []
+                                    nofollow-links (conj LinkOption/NOFOLLOW_LINKS)))]
      (if recursive
-       ::TODO
-       (Files/copy (as-path from) (as-path to)
+       (let [from (real-path src {:nofollow-links nofollow-links})
+             to (real-path dest {:nofollow-links nofollow-links})]
+         (walk-file-tree {:pre-visit-dir (fn [dir _attrs]
+                                           (let [rel (relativize from dir)
+                                                 to-dir (path to rel)]
+                                             (when-not (Files/exists to-dir link-options)
+                                               (Files/copy ^Path dir to-dir
+                                                           ^"[Ljava.nio.file.CopyOption;"
+                                                           copy-options)))
+                                           :continue)
+                          :visit-file (fn [from-path _attrs]
+                                        (let [rel (relativize from from-path)
+                                              to-file (path to rel)]
+                                          (Files/copy ^Path from-path to-file
+                                                      ^"[Ljava.nio.file.CopyOption;"
+                                                      copy-options)
+                                          :continue))}))
+       (Files/copy (as-path src) (as-path dest)
                    ^"[Ljava.nio.file.CopyOption;"
-                   (into-array CopyOption copy-options))))))
+                   copy-options)))))
+
+(defn tmp-dir
+  ([]
+   (Files/createTempDirectory (str (java.util.UUID/randomUUID))
+                              (into-array java.nio.file.attribute.FileAttribute []))))

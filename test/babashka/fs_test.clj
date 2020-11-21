@@ -1,4 +1,5 @@
 (ns babashka.fs-test
+  (:import [java.nio.file Files])
   (:require [babashka.fs :as fs]
             [clojure.java.io :as io]
             [clojure.set :as set]
@@ -37,4 +38,9 @@
     (is (= "foo/bar/baz" (str f)))))
 
 (deftest copy-test
-  (let [tmp-dir ::TODO]))
+  (let [tmp-dir (fs/tmp-dir)]
+    (fs/copy "." tmp-dir #{:recursive})
+    (let [cur-dir-count (count (fs/glob "." "**" #{:hidden}))
+          tmp-dir-count (count (fs/glob tmp-dir "**" #{:hidden}))]
+      (is (pos? cur-dir-count))
+      (is (= cur-dir-count tmp-dir-count)))))
