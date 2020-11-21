@@ -1,5 +1,4 @@
 (ns babashka.fs-test
-  (:import [java.nio.file Files])
   (:require [babashka.fs :as fs]
             [clojure.java.io :as io]
             [clojure.set :as set]
@@ -20,7 +19,9 @@
     (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map (comp str fs/relativize)
                 (binding [fs/*cwd* "test-resources/foo"]
-                  (fs/glob "**")))))))
+                  (fs/glob "**"))))))
+  (testing "cwd with opts"
+    (is (pos? (count (fs/glob "**" #{:hidden}))))))
 
 (deftest file-name-test
   (is (= "fs" (fs/file-name fs/*cwd*)))

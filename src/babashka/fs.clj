@@ -110,7 +110,10 @@
   hidden files are not matched. This can be enabled by setting :hidden to
   true in opts."
   ([pattern] (glob *cwd* pattern))
-  ([path pattern] (glob path pattern nil))
+  ([path pattern] (if (coll? pattern)
+                    ;; path = pattern, pattern = opts
+                    (glob *cwd* path pattern)
+                    (glob path pattern nil)))
   ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
          skip-hidden? (not hidden)
