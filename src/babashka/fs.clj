@@ -56,15 +56,10 @@
                 (into-array LinkOption (cond-> []
                                          nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
 
-(def ^{:dynamic true
-       :doc "Current working directory."}
-  *cwd* (real-path "."))
-
 (defn ^Path relativize
   "Returns relative path by comparing this with other."
-  ([other] (relativize *cwd* other))
-  ([this other]
-   (.relativize (as-path this) (as-path other))))
+  [this other]
+  (.relativize (as-path this) (as-path other)))
 
 (defn hidden?
   "Returns true if f is hidden."
@@ -83,37 +78,32 @@
   default to (constantly :continue). Supported return
   values: :continue, :skip-subtree, :skip-siblings, :terminate. A
   different return value will throw."
-  ([opts] (walk-file-tree *cwd* opts))
-  ([f
-    {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
-     :or {pre-visit-dir continue
-          post-visit-dir continue
-          visit-file continue
-          visit-file-failed continue}}]
-   (Files/walkFileTree (as-path f)
-                       (reify FileVisitor
-                         (preVisitDirectory [_ dir attrs]
-                           (-> (pre-visit-dir dir attrs)
-                               file-visit-result))
-                         (postVisitDirectory [_ dir attrs]
-                           (-> (post-visit-dir dir attrs)
-                               file-visit-result))
-                         (visitFile [_ path attrs]
-                           (-> (visit-file path attrs)
-                               file-visit-result))
-                         (visitFileFailed [_ path attrs]
-                           (-> (visit-file-failed path attrs)
-                               file-visit-result))))))
+  [f
+   {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
+    :or {pre-visit-dir continue
+         post-visit-dir continue
+         visit-file continue
+         visit-file-failed continue}}]
+  (Files/walkFileTree (as-path f)
+                      (reify FileVisitor
+                        (preVisitDirectory [_ dir attrs]
+                          (-> (pre-visit-dir dir attrs)
+                              file-visit-result))
+                        (postVisitDirectory [_ dir attrs]
+                          (-> (post-visit-dir dir attrs)
+                              file-visit-result))
+                        (visitFile [_ path attrs]
+                          (-> (visit-file path attrs)
+                              file-visit-result))
+                        (visitFileFailed [_ path attrs]
+                          (-> (visit-file-failed path attrs)
+                              file-visit-result)))))
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of files. By default
   hidden files are not matched. This can be enabled by setting :hidden to
   true in opts."
-  ([pattern] (glob *cwd* pattern))
-  ([path pattern] (if (coll? pattern)
-                    ;; path = pattern, pattern = opts
-                    (glob *cwd* path pattern)
-                    (glob path pattern nil)))
+  ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
          skip-hidden? (not hidden)
@@ -160,31 +150,31 @@
                      :nofollow-links
                      :recursive]}]
    (let [copy-options (into-array CopyOption
-                       (cond-> []
-                         replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
-                         copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
-                         nofollow-links   (conj LinkOption/NOFOLLOW_LINKS)))
+                                  (cond-> []
+                                    replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
+                                    copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
+                                    nofollow-links   (conj LinkOption/NOFOLLOW_LINKS)))
          link-options (into-array LinkOption
                                   (cond-> []
                                     nofollow-links (conj LinkOption/NOFOLLOW_LINKS)))]
      (if recursive
        (let [from (real-path src {:nofollow-links nofollow-links})
              to (real-path dest {:nofollow-links nofollow-links})]
-         (walk-file-tree {:pre-visit-dir (fn [dir _attrs]
-                                           (let [rel (relativize from dir)
-                                                 to-dir (path to rel)]
-                                             (when-not (Files/exists to-dir link-options)
-                                               (Files/copy ^Path dir to-dir
+         (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+                                                (let [rel (relativize from dir)
+                                                      to-dir (path to rel)]
+                                                  (when-not (Files/exists to-dir link-options)
+                                                    (Files/copy ^Path dir to-dir
+                                                                ^"[Ljava.nio.file.CopyOption;"
+                                                                copy-options)))
+                                                :continue)
+                               :visit-file (fn [from-path _attrs]
+                                             (let [rel (relativize from from-path)
+                                                   to-file (path to rel)]
+                                               (Files/copy ^Path from-path to-file
                                                            ^"[Ljava.nio.file.CopyOption;"
-                                                           copy-options)))
-                                           :continue)
-                          :visit-file (fn [from-path _attrs]
-                                        (let [rel (relativize from from-path)
-                                              to-file (path to rel)]
-                                          (Files/copy ^Path from-path to-file
-                                                      ^"[Ljava.nio.file.CopyOption;"
-                                                      copy-options)
-                                          :continue))}))
+                                                           copy-options)
+                                               :continue))}))
        (Files/copy (as-path src) (as-path dest)
                    ^"[Ljava.nio.file.CopyOption;"
                    copy-options)))))

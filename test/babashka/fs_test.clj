@@ -5,28 +5,26 @@
             [clojure.test :refer [deftest is testing]]
             #_[me.raynes.fs :as rfs]))
 
+(def cwd (fs/real-path "."))
+
+(defn rel [other]
+  (fs/relativize cwd other))
+
 (deftest glob-test
-  (is (= '("README.md") (map (comp str fs/relativize)
+  (is (= '("README.md") (map (comp str rel)
                              (fs/glob "." "README.md"))))
   (is (set/subset? #{"test/babashka/fs_test.clj" "src/babashka/fs.clj"}
-                   (set (map (comp str fs/relativize)
+                   (set (map (comp str rel)
                              (fs/glob "." "**/*.clj")))))
   (testing "glob also matches directories and doesn't return the root directory"
     (is (= '("test-resources/foo/1" "test-resources/foo/foo")
-           (map (comp str fs/relativize)
-                (fs/glob "test-resources/foo" "**")))))
-  (testing "*cwd*"
-    (is (= '("test-resources/foo/1" "test-resources/foo/foo")
-           (map (comp str fs/relativize)
-                (binding [fs/*cwd* "test-resources/foo"]
-                  (fs/glob "**"))))))
-  (testing "cwd with opts"
-    (is (pos? (count (fs/glob "**" #{:hidden}))))))
+           (map (comp str rel)
+                (fs/glob "test-resources/foo" "**"))))))
 
 (deftest file-name-test
-  (is (= "fs" (fs/file-name fs/*cwd*)))
-  (is (= "fs" (fs/file-name (fs/file fs/*cwd*))))
-  (is (= "fs" (fs/file-name (fs/path fs/*cwd*)))))
+  (is (= "fs" (fs/file-name cwd)))
+  (is (= "fs" (fs/file-name (fs/file cwd))))
+  (is (= "fs" (fs/file-name (fs/path cwd)))))
 
 (deftest path-test
   (let [p (fs/path "foo" "bar" (io/file "baz"))]
