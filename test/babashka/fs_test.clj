@@ -8,18 +8,18 @@
 (def cwd (fs/real-path "."))
 
 (defn rel [other]
-  (fs/relativize cwd other))
+  (if (.isAbsolute other) (fs/relativize cwd other) other))
 
 (deftest glob-test
   (is (= '("README.md") (map (comp str rel)
                              (fs/glob "." "README.md"))))
   (is (set/subset? #{"test/babashka/fs_test.clj" "src/babashka/fs.clj"}
                    (set (map (comp str rel)
-                             (fs/glob "." "**/*.clj")))))
+                             (fs/glob "." "**/*.clj" {:recursive true})))))
   (testing "glob also matches directories and doesn't return the root directory"
     (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map (comp str rel)
-                (fs/glob "test-resources/foo" "**"))))))
+                (fs/glob "test-resources/foo" "**" {:recursive true}))))))
 
 (deftest file-name-test
   (is (= "fs" (fs/file-name cwd)))
