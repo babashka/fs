@@ -1,5 +1,6 @@
 (ns babashka.fs
-  (:require [clojure.java.io :as io])
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str])
   (:import [java.io File]
            [java.nio.file CopyOption
             DirectoryStream DirectoryStream$Filter
@@ -100,7 +101,9 @@
                           (-> (visit-file-failed path attrs)
                               file-visit-result)))))
 
-(defn directory-stream
+;; TBD if this will be exposed
+#_:clj-kondo/ignore
+(defn- directory-stream
   (^DirectoryStream [path]
    (Files/newDirectoryStream (as-path path)))
   (^DirectoryStream [path {:keys [:glob :accept]}]
@@ -113,11 +116,12 @@
                                      (accept* entry))))))))
 
 (defn glob
-  "Given a file and glob pattern, returns matches as vector of files. By default
-  hidden files are not matched. This can be enabled by setting :hidden to
-  true in opts."
+  "Given a file and glob pattern, returns matches as vector of files. By
+  default hidden files are not matched. This can be enabled by
+  setting :hidden to true in opts. Patterns starting with **/ will
+  cause a walk over the entire file tree."
   ([path pattern] (glob path pattern nil))
-  ([path pattern {:keys [:hidden :recursive]}]
+  ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
          skip-hidden? (not hidden)
          matcher (.getPathMatcher
@@ -128,27 +132,23 @@
                  (let [relative-path (.relativize base-path path)]
                    (when (.matches matcher relative-path)
                      (swap! results conj! path))))
-         past-root? (volatile! nil)]
-     (if recursive
-       (do
-         (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
-                                                     (if (and skip-hidden?
-                                                              (hidden? dir))
-                                                       :skip-subtree
-                                                       (do
-                                                         (if @past-root? (match dir)
-                                                             (vreset! past-root? true))
-                                                         :continue)))
-                                    :visit-file (fn [path _attrs]
-                                                  (when-not (and skip-hidden?
-                                                                 (hidden? path))
-                                                    (match path))
-                                                  :continue)})
-         (persistent! @results))
-       (with-open [ds (if hidden ;; TODO
-                        (directory-stream base-path {:glob pattern})
-                        (directory-stream base-path {:glob pattern}))]
-         (vec ds))))))
+         past-root? (volatile! nil)
+         recursive (str/starts-with? pattern "**/")]
+     (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
+                                                 (if (or (and @past-root? (not recursive))
+                                                         (and skip-hidden?
+                                                              (hidden? dir)))
+                                                   :skip-subtree
+                                                   (do
+                                                     (if @past-root? (match dir)
+                                                         (vreset! past-root? true))
+                                                     :continue)))
+                                :visit-file (fn [path _attrs]
+                                              (when-not (and skip-hidden?
+                                                             (hidden? path))
+                                                (match path))
+                                              :continue)})
+     (persistent! @results))))
 
 (defn directory?
   ([f] (directory? f nil))
