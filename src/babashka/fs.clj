@@ -142,9 +142,10 @@
      (walk-file-tree
       base-path
       {:pre-visit-dir (fn [dir _attrs]
-                        (if (or (and @past-root? (not recursive))
-                                (and skip-hidden?
-                                     (hidden? dir)))
+                        (if (and @past-root?
+                                 (or (not recursive)
+                                     (and skip-hidden?
+                                          (hidden? dir))))
                           (do
                             nil ;; (prn :skipping dir)
                             :skip-subtree)
