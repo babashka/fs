@@ -1,7 +1,9 @@
 (ns babashka.fs
-  (:require [clojure.java.io :as io])
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str])
   (:import [java.io File]
            [java.nio.file CopyOption
+            DirectoryStream DirectoryStream$Filter
             Files FileSystems FileVisitResult StandardCopyOption
             LinkOption Path
             FileVisitor]))
@@ -99,27 +101,52 @@
                           (-> (visit-file-failed path attrs)
                               file-visit-result)))))
 
+;; TBD if this will be exposed
+#_:clj-kondo/ignore
+(defn- directory-stream
+  (^DirectoryStream [path]
+   (Files/newDirectoryStream (as-path path)))
+  (^DirectoryStream [path {:keys [:glob :accept]}]
+   (if glob
+     (Files/newDirectoryStream (as-path path) (str glob))
+     (let [accept* accept]
+       (Files/newDirectoryStream (as-path path)
+                                 (reify DirectoryStream$Filter
+                                   (accept [_ entry]
+                                     (accept* entry))))))))
+
+(def ^:private file-sep (System/getProperty "file.separator"))
+
 (defn glob
-  "Given a file and glob pattern, returns matches as vector of files. By default
-  hidden files are not matched. This can be enabled by setting :hidden to
-  true in opts."
+  "Given a file and glob pattern, returns matches as vector of files. By
+  default hidden files are not matched. This can be enabled by
+  setting :hidden to true in opts. Patterns starting with **/ will
+  cause a walk over the entire file tree."
   ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
          skip-hidden? (not hidden)
+         results (atom (transient []))
+         past-root? (volatile! nil)
+         recursive (str/starts-with? pattern "**/")
+         pattern (if (str/starts-with? pattern "*")
+                   (str base-path pattern)
+                   (str base-path file-sep pattern))
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
-         results (atom (transient []))
          match (fn [^Path path]
-                 (let [relative-path (.relativize base-path path)]
-                   (when (.matches matcher relative-path)
-                     (swap! results conj! (.toFile path)))))
-         past-root? (volatile! nil)]
+                 ;; (prn :match pattern (str path))
+                 (if (.matches matcher path)
+                   (swap! results conj! path)
+                   nil))]
      (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
-                                                 (if (and skip-hidden?
-                                                          (hidden? dir))
-                                                   :skip-subtree
+                                                 (if (or (and @past-root? (not recursive))
+                                                         (and skip-hidden?
+                                                              (hidden? dir)))
+                                                   (do
+                                                     nil ;; (prn :skipping dir)
+                                                     :skip-subtree)
                                                    (do
                                                      (if @past-root? (match dir)
                                                          (vreset! past-root? true))

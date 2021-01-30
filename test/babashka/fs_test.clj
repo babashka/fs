@@ -8,7 +8,7 @@
 (def cwd (fs/real-path "."))
 
 (defn rel [other]
-  (fs/relativize cwd other))
+  (if (.isAbsolute other) (fs/relativize cwd other) other))
 
 (deftest glob-test
   (is (= '("README.md") (map (comp str rel)
@@ -19,7 +19,7 @@
   (testing "glob also matches directories and doesn't return the root directory"
     (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map (comp str rel)
-                (fs/glob "test-resources/foo" "**"))))))
+                (fs/glob "test-resources/foo" "**/*"))))))
 
 (deftest file-name-test
   (is (= "fs" (fs/file-name cwd)))
