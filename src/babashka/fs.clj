@@ -124,17 +124,19 @@
   ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
          skip-hidden? (not hidden)
+         results (atom (transient []))
+         past-root? (volatile! nil)
+         recursive (str/starts-with? pattern "**/")
+         pattern (str base-path pattern)
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
-         results (atom (transient []))
          match (fn [^Path path]
                  (let [relative-path (.relativize base-path path)]
-                   (if (.matches matcher relative-path)
+                   (if (.matches matcher path #_relative-path)
                      (swap! results conj! path)
-                     (prn :no-match (str pattern) (str relative-path)))))
-         past-root? (volatile! nil)
-         recursive (str/starts-with? pattern "**/")]
+                     nil
+                     #_(prn :no-match (str pattern) (str relative-path)))))]
      (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
                                                  (if (or (and @past-root? (not recursive))
                                                          (and skip-hidden?
