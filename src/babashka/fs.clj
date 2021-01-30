@@ -51,7 +51,7 @@
    (apply io/file (map as-file (cons f fs)))))
 
 (defn ^Path real-path
-  "Converts f into real path via .toRealPath."
+  "Converts f into real path via Path#toRealPath."
   ([f] (real-path f nil))
   ([f {:keys [:nofollow-links]}]
    (.toRealPath (as-path f)
@@ -59,7 +59,7 @@
                                          nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
 
 (defn absolute-path
-  "Returns absolute path of f."
+  "Converts f into an absolute path via Path#toAbsolutePath."
   [f] (.toAbsolutePath (as-path f)))
 
 (defn ^Path relativize
