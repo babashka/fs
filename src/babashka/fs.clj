@@ -119,7 +119,8 @@
   "Given a file and glob pattern, returns matches as vector of
   files. Use :hidden true in opts to match hidden files. Patterns
   containing ** or / will cause a recursive walk over path. Glob
-  interpretation is done using java.nio.file.PathMatcher."
+  interpretation is done using the rules described in
+  https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)."
   ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
@@ -130,7 +131,7 @@
          (let [pattern (str base-path "/" pattern)
                recursive (or (str/includes? pattern "**")
                              (str/includes? pattern "/"))]
-           [base-path pattern recursive #_true #_recursive])
+           [base-path pattern recursive])
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
