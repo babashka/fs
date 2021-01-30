@@ -118,7 +118,7 @@
 #_(def ^:private file-sep (System/getProperty "file.separator"))
 
 (defn- path-and-pattern [base-path pattern]
-  (let [parts (str/split pattern #"/")
+  #_(let [parts (str/split pattern #"/")
         paths (take-while #(not (str/includes? % "*")) parts)
         globs (drop (count paths) parts)
         [paths globs] (if (zero? (count globs))
@@ -129,8 +129,13 @@
         recursive (str/starts-with? pattern "**/")
         pattern (if recursive (str/replace pattern #"^\*\*\/" "**") pattern)
         pattern (str base-path "/" pattern)]
-    ;;(prn :> [base-path pattern recursive])
-    [base-path pattern recursive]))
+    (prn :> [base-path pattern recursive])
+    [base-path pattern recursive])
+  (let [pattern (str base-path "/" pattern)
+        recursive (or (str/includes? pattern "**")
+                      (str/includes? pattern "/"))]
+    ;; (prn :> [base-path pattern recursive])
+    [base-path pattern recursive #_true #_recursive]))
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of files. By

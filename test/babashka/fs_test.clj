@@ -17,14 +17,14 @@
                      "test/babashka/fs_test.clj"
                      "src/babashka/fs.clj"}
                    (set (map (comp str rel)
-                             (fs/glob "." "**/*.clj")))))
+                             (fs/glob "." "**.clj")))))
   (testing "glob also matches directories and doesn't return the root directory"
     (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map (comp str rel)
-                (fs/glob "test-resources/foo" "**/*"))))
+                (fs/glob "test-resources/foo" "**"))))
     (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map (comp str rel)
-                (fs/glob "test-resources" "foo/**/*"))))))
+                (fs/glob "test-resources" "foo/**"))))))
 
 (deftest file-name-test
   (is (= "fs" (fs/file-name cwd)))
