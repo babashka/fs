@@ -151,9 +151,9 @@
 
   - :hidden: match hidden files.
   - :follow-links: follow symlinks."
-  ([path pattern] (glob path pattern nil))
-  ([path pattern {:keys [hidden follow-links max-depth]}]
-   (let [base-path (absolute-path path)
+  ([root pattern] (glob root pattern nil))
+  ([root pattern {:keys [hidden follow-links max-depth]}]
+   (let [base-path (absolute-path root)
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
@@ -191,7 +191,7 @@
                        (match path))
                      :continue)})
      (let [results (persistent! @results)]
-       (if (relative? path)
+       (if (relative? root)
          (mapv #(relativize (real-path ".") %)
                results)
          results)))))
