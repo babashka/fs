@@ -115,40 +115,22 @@
                                    (accept [_ entry]
                                      (accept* entry))))))))
 
-#_(def ^:private file-sep (System/getProperty "file.separator"))
-
-(defn- path-and-pattern [base-path pattern]
-  #_(let [parts (str/split pattern #"/")
-        paths (take-while #(not (str/includes? % "*")) parts)
-        globs (drop (count paths) parts)
-        [paths globs] (if (zero? (count globs))
-                        [(butlast paths) [(last paths)]]
-                        [paths globs])
-        base-path (apply babashka.fs/path base-path paths)
-        pattern (str/join "/" globs)
-        recursive (str/starts-with? pattern "**/")
-        pattern (if recursive (str/replace pattern #"^\*\*\/" "**") pattern)
-        pattern (str base-path "/" pattern)]
-    (prn :> [base-path pattern recursive])
-    [base-path pattern recursive])
-  (let [pattern (str base-path "/" pattern)
-        recursive (or (str/includes? pattern "**")
-                      (str/includes? pattern "/"))]
-    ;; (prn :> [base-path pattern recursive])
-    [base-path pattern recursive #_true #_recursive]))
-
 (defn glob
-  "Given a file and glob pattern, returns matches as vector of files. By
-  default hidden files are not matched. This can be enabled by
-  setting :hidden to true in opts. Patterns starting with **/ will
-  cause a walk over the entire file tree."
+  "Given a file and glob pattern, returns matches as vector of
+  files. Use :hidden true in opts to match hidden files. Patterns
+  containing ** or / will cause a recursive walk over path. Glob
+  interpretation is done using java.nio.file.PathMatcher."
   ([path pattern] (glob path pattern nil))
   ([path pattern {:keys [:hidden]}]
    (let [base-path (real-path path)
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
-         [base-path pattern recursive] (path-and-pattern base-path pattern)
+         [base-path pattern recursive]
+         (let [pattern (str base-path "/" pattern)
+               recursive (or (str/includes? pattern "**")
+                             (str/includes? pattern "/"))]
+           [base-path pattern recursive #_true #_recursive])
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
@@ -156,22 +138,24 @@
                  (if (.matches matcher path)
                    (swap! results conj! path)
                    nil))]
-     (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
-                                                 (if (or (and @past-root? (not recursive))
-                                                         (and skip-hidden?
-                                                              (hidden? dir)))
-                                                   (do
-                                                     nil ;; (prn :skipping dir)
-                                                     :skip-subtree)
-                                                   (do
-                                                     (if @past-root? (match dir)
-                                                         (vreset! past-root? true))
-                                                     :continue)))
-                                :visit-file (fn [path _attrs]
-                                              (when-not (and skip-hidden?
-                                                             (hidden? path))
-                                                (match path))
-                                              :continue)})
+     (walk-file-tree
+      base-path
+      {:pre-visit-dir (fn [dir _attrs]
+                        (if (or (and @past-root? (not recursive))
+                                (and skip-hidden?
+                                     (hidden? dir)))
+                          (do
+                            nil ;; (prn :skipping dir)
+                            :skip-subtree)
+                          (do
+                            (if @past-root? (match dir)
+                                (vreset! past-root? true))
+                            :continue)))
+       :visit-file (fn [path _attrs]
+                     (when-not (and skip-hidden?
+                                    (hidden? path))
+                       (match path))
+                     :continue)})
      (persistent! @results))))
 
 (defn directory?
