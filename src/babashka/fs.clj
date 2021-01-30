@@ -95,13 +95,12 @@
   [f
    {:keys [pre-visit-dir post-visit-dir
            visit-file visit-file-failed
-           follow-links max-depth]
-    :or {pre-visit-dir continue
-         post-visit-dir continue
-         visit-file continue
-         visit-file-failed continue
-         max-depth Integer/MAX_VALUE}}]
-  (let [visit-opts (set (cond-> []
+           follow-links max-depth]}]
+  (let [pre-visit-dir (or pre-visit-dir continue)
+        post-visit-dir (or post-visit-dir continue)
+        visit-file (or visit-file continue)
+        max-depth (or max-depth Integer/MAX_VALUE)
+        visit-opts (set (cond-> []
                           follow-links (conj FileVisitOption/FOLLOW_LINKS)))]
     (Files/walkFileTree (as-path f)
                         visit-opts
@@ -145,7 +144,7 @@
   - :hidden: match hidden files.
   - :follow-links: follow symlinks."
   ([path pattern] (glob path pattern nil))
-  ([path pattern {:keys [hidden follow-links]}]
+  ([path pattern {:keys [hidden follow-links max-depth]}]
    (let [base-path (absolute-path path)
          skip-hidden? (not hidden)
          results (atom (transient []))
@@ -164,7 +163,8 @@
                    nil))]
      (walk-file-tree
       base-path
-      {:follow-links follow-links
+      {:max-depth max-depth
+       :follow-links follow-links
        :pre-visit-dir (fn [dir _attrs]
                         (if (and @past-root?
                                  (or (not recursive)
