@@ -115,6 +115,8 @@
                                    (accept [_ entry]
                                      (accept* entry))))))))
 
+(def ^:private file-sep (System/getProperty "file.separator"))
+
 (defn glob
   "Given a file and glob pattern, returns matches as vector of files. By
   default hidden files are not matched. This can be enabled by
@@ -127,16 +129,17 @@
          results (atom (transient []))
          past-root? (volatile! nil)
          recursive (str/starts-with? pattern "**/")
-         pattern (str base-path pattern)
+         pattern (if (str/starts-with? pattern "*")
+                   (str base-path pattern)
+                   (str base-path file-sep pattern))
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
          match (fn [^Path path]
-                 (let [relative-path (.relativize base-path path)]
-                   (if (.matches matcher path #_relative-path)
-                     (swap! results conj! path)
-                     nil
-                     #_(prn :no-match (str pattern) (str relative-path)))))]
+                 ;; (prn :match pattern (str path))
+                 (if (.matches matcher path)
+                   (swap! results conj! path)
+                   nil))]
      (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
                                                  (if (or (and @past-root? (not recursive))
                                                          (and skip-hidden?
