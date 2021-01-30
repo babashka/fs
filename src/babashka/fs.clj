@@ -115,7 +115,22 @@
                                    (accept [_ entry]
                                      (accept* entry))))))))
 
-(def ^:private file-sep (System/getProperty "file.separator"))
+#_(def ^:private file-sep (System/getProperty "file.separator"))
+
+(defn- path-and-pattern [base-path pattern]
+  (let [parts (str/split pattern #"/")
+        paths (take-while #(not (str/includes? % "*")) parts)
+        globs (drop (count paths) parts)
+        [paths globs] (if (zero? (count globs))
+                        [(butlast paths) [(last paths)]]
+                        [paths globs])
+        base-path (apply babashka.fs/path base-path paths)
+        pattern (str/join "/" globs)
+        recursive (str/starts-with? pattern "**/")
+        pattern (if recursive (str/replace pattern #"^\*\*\/" "**") pattern)
+        pattern (str base-path "/" pattern)]
+    ;;(prn :> [base-path pattern recursive])
+    [base-path pattern recursive]))
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of files. By
@@ -128,15 +143,11 @@
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
-         recursive (str/starts-with? pattern "**/")
-         pattern (if (str/starts-with? pattern "*")
-                   (str base-path pattern)
-                   (str base-path file-sep pattern))
+         [base-path pattern recursive] (path-and-pattern base-path pattern)
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   (str "glob:" pattern))
          match (fn [^Path path]
-                 ;; (prn :match pattern (str path))
                  (if (.matches matcher path)
                    (swap! results conj! path)
                    nil))]
