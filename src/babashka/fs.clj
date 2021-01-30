@@ -4,7 +4,7 @@
   (:import [java.io File]
            [java.nio.file CopyOption
             ;; DirectoryStream DirectoryStream$Filter
-            Files FileSystems FileVisitResult StandardCopyOption
+            Files FileSystems FileVisitOption FileVisitResult StandardCopyOption
             LinkOption Path
             FileVisitor]))
 
@@ -58,6 +58,10 @@
                 (into-array LinkOption (cond-> []
                                          nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
 
+(defn absolute-path
+  "Returns absolute path of f."
+  [f] (.toAbsolutePath (as-path f)))
+
 (defn ^Path relativize
   "Returns relative path by comparing this with other."
   [this other]
@@ -66,6 +70,14 @@
 (defn hidden?
   "Returns true if f is hidden."
   [f] (.isHidden (as-file f)))
+
+(defn absolute?
+  "Returns true if f is hidden."
+  [f] (.isAbsolute (as-file f)))
+
+(defn relative?
+  "Returns true if f is hidden."
+  [f] (not (absolute? f)))
 
 (defn file-name
   "Returns farthest element from the root as string, if any."
@@ -81,25 +93,32 @@
   values: :continue, :skip-subtree, :skip-siblings, :terminate. A
   different return value will throw."
   [f
-   {:keys [pre-visit-dir post-visit-dir visit-file visit-file-failed]
+   {:keys [pre-visit-dir post-visit-dir
+           visit-file visit-file-failed
+           follow-links max-depth]
     :or {pre-visit-dir continue
          post-visit-dir continue
          visit-file continue
-         visit-file-failed continue}}]
-  (Files/walkFileTree (as-path f)
-                      (reify FileVisitor
-                        (preVisitDirectory [_ dir attrs]
-                          (-> (pre-visit-dir dir attrs)
-                              file-visit-result))
-                        (postVisitDirectory [_ dir attrs]
-                          (-> (post-visit-dir dir attrs)
-                              file-visit-result))
-                        (visitFile [_ path attrs]
-                          (-> (visit-file path attrs)
-                              file-visit-result))
-                        (visitFileFailed [_ path attrs]
-                          (-> (visit-file-failed path attrs)
-                              file-visit-result)))))
+         visit-file-failed continue
+         max-depth Integer/MAX_VALUE}}]
+  (let [visit-opts (set (cond-> []
+                          follow-links (conj FileVisitOption/FOLLOW_LINKS)))]
+    (Files/walkFileTree (as-path f)
+                        visit-opts
+                        max-depth
+                        (reify FileVisitor
+                          (preVisitDirectory [_ dir attrs]
+                            (-> (pre-visit-dir dir attrs)
+                                file-visit-result))
+                          (postVisitDirectory [_ dir attrs]
+                            (-> (post-visit-dir dir attrs)
+                                file-visit-result))
+                          (visitFile [_ path attrs]
+                            (-> (visit-file path attrs)
+                                file-visit-result))
+                          (visitFileFailed [_ path attrs]
+                            (-> (visit-file-failed path attrs)
+                                file-visit-result))))))
 
 ;; TBD if this will be exposed
 #_:clj-kondo/ignore
@@ -117,13 +136,17 @@
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of
-  files. Use :hidden true in opts to match hidden files. Patterns
-  containing ** or / will cause a recursive walk over path. Glob
-  interpretation is done using the rules described in
-  https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)."
+  files. Patterns containing ** or / will cause a recursive walk over
+  path. Glob interpretation is done using the rules described in
+  https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
+
+  Options:
+
+  - :hidden: match hidden files.
+  - :follow-links: follow symlinks."
   ([path pattern] (glob path pattern nil))
-  ([path pattern {:keys [:hidden]}]
-   (let [base-path (real-path path)
+  ([path pattern {:keys [hidden follow-links]}]
+   (let [base-path (absolute-path path)
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
@@ -141,13 +164,14 @@
                    nil))]
      (walk-file-tree
       base-path
-      {:pre-visit-dir (fn [dir _attrs]
+      {:follow-links follow-links
+       :pre-visit-dir (fn [dir _attrs]
                         (if (and @past-root?
                                  (or (not recursive)
                                      (and skip-hidden?
                                           (hidden? dir))))
                           (do
-                            nil ;; (prn :skipping dir)
+                            nil #_(prn :skipping dir)
                             :skip-subtree)
                           (do
                             (if @past-root? (match dir)
@@ -158,7 +182,11 @@
                                     (hidden? path))
                        (match path))
                      :continue)})
-     (persistent! @results))))
+     (let [results (persistent! @results)]
+       (if (relative? path)
+         (mapv #(relativize base-path %)
+               results)
+         results)))))
 
 (defn directory?
   ([f] (directory? f nil))
