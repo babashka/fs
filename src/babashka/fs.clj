@@ -2,9 +2,14 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [java.io File]
+           [java.nio.file.attribute FileAttribute]
            [java.nio.file CopyOption
             ;; DirectoryStream DirectoryStream$Filter
-            Files FileSystems FileVisitOption FileVisitResult StandardCopyOption
+            Files
+            FileSystems
+            FileVisitOption
+            FileVisitResult
+            StandardCopyOption
             LinkOption Path
             FileVisitor]))
 
@@ -101,7 +106,10 @@
         visit-file (or visit-file continue)
         max-depth (or max-depth Integer/MAX_VALUE)
         visit-opts (set (cond-> []
-                          follow-links (conj FileVisitOption/FOLLOW_LINKS)))]
+                          follow-links (conj FileVisitOption/FOLLOW_LINKS)))
+        visit-file-failed (or visit-file-failed
+                              (fn [path _attrs]
+                                (throw (Exception. (format "Visiting %s failed" (str path))))))]
     (Files/walkFileTree (as-path f)
                         visit-opts
                         max-depth
@@ -240,3 +248,16 @@
   ([]
    (Files/createTempDirectory (str (java.util.UUID/randomUUID))
                               (into-array java.nio.file.attribute.FileAttribute []))))
+
+(defn sym-link
+  "Create a soft link from path to target."
+  [path target]
+  (Files/createSymbolicLink
+   (as-path path)
+   (as-path target)
+   (make-array FileAttribute 0)))
+
+(defn delete
+  "Deletes f via File#delete."
+  [f]
+  (.delete (as-file f)))

@@ -21,7 +21,15 @@
                 (fs/glob "test-resources/foo" "**"))))
     (is (= '("foo/1" "foo/foo")
            (map str
-                (fs/glob "test-resources" "foo/**"))))))
+                (fs/glob "test-resources" "foo/**")))))
+  (testing "symlink as root path"
+    (let [tmp-dir1 (fs/tmp-dir)
+          _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
+          tmp-dir2 (fs/tmp-dir)
+          sym-link (fs/sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
+      (is (empty? (fs/glob sym-link "**")))
+      (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
+      (is (= 1 (count (fs/glob (fs/real-path sym-link) "**")))))))
 
 (deftest file-name-test
   (is (= "fs" (fs/file-name cwd)))
