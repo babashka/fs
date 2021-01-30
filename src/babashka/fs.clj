@@ -130,15 +130,18 @@
          results (atom (transient []))
          match (fn [^Path path]
                  (let [relative-path (.relativize base-path path)]
-                   (when (.matches matcher relative-path)
-                     (swap! results conj! path))))
+                   (if (.matches matcher relative-path)
+                     (swap! results conj! path)
+                     (prn :no-match (str pattern) (str relative-path)))))
          past-root? (volatile! nil)
          recursive (str/starts-with? pattern "**/")]
      (walk-file-tree base-path {:pre-visit-dir (fn [dir _attrs]
                                                  (if (or (and @past-root? (not recursive))
                                                          (and skip-hidden?
                                                               (hidden? dir)))
-                                                   :skip-subtree
+                                                   (do
+                                                     nil ;; (prn :skipping dir)
+                                                     :skip-subtree)
                                                    (do
                                                      (if @past-root? (match dir)
                                                          (vreset! past-root? true))
