@@ -3,7 +3,7 @@
             [clojure.string :as str])
   (:import [java.io File]
            [java.nio.file CopyOption
-            DirectoryStream DirectoryStream$Filter
+            ;; DirectoryStream DirectoryStream$Filter
             Files FileSystems FileVisitResult StandardCopyOption
             LinkOption Path
             FileVisitor]))
@@ -103,7 +103,7 @@
 
 ;; TBD if this will be exposed
 #_:clj-kondo/ignore
-(defn- directory-stream
+#_(defn- directory-stream
   (^DirectoryStream [path]
    (Files/newDirectoryStream (as-path path)))
   (^DirectoryStream [path {:keys [:glob :accept]}]
