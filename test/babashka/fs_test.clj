@@ -16,10 +16,10 @@
                    (set (map str
                              (fs/glob "." "**.clj")))))
   (testing "glob also matches directories and doesn't return the root directory"
-    (is (= '("1" "foo")
+    (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map str
                 (fs/glob "test-resources/foo" "**"))))
-    (is (= '("foo/1" "foo/foo")
+    (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map str
                 (fs/glob "test-resources" "foo/**")))))
   (testing "symlink as root path"

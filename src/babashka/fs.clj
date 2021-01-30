@@ -192,7 +192,7 @@
                      :continue)})
      (let [results (persistent! @results)]
        (if (relative? path)
-         (mapv #(relativize base-path %)
+         (mapv #(relativize (real-path ".") %)
                results)
          results)))))
 
