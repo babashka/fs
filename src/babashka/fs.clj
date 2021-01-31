@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [java.io File]
-           [java.nio.file.attribute FileAttribute]
+           [java.nio.file.attribute FileAttribute PosixFilePermissions]
            [java.nio.file CopyOption
             ;; DirectoryStream DirectoryStream$Filter
             Files
@@ -141,6 +141,9 @@
                                    (accept [_ entry]
                                      (accept* entry))))))))
 
+(def ^:const file-separator File/separator)
+(def ^:const path-separator File/pathSeparator)
+
 (defn glob
   "Given a file and glob pattern, returns matches as vector of
   files. Patterns containing ** or / will cause a recursive walk over
@@ -160,7 +163,7 @@
          [base-path pattern recursive]
          (let [pattern (str base-path "/" pattern)
                recursive (or (str/includes? pattern "**")
-                             (str/includes? pattern File/separator))]
+                             (str/includes? pattern file-separator))]
            [base-path pattern recursive])
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
@@ -244,12 +247,33 @@
                    ^"[Ljava.nio.file.CopyOption;"
                    copy-options)))))
 
+#_(defn posix-file-permissions [s]
+  (cond (string? s)
+        (PosixFilePermissions/fromString s)
+        ;; (set? s)
+        ;; (into #{} (map keyword->posix-file-permission) s)
+        :else
+        (throw (java.lang.IllegalArgumentException. (str "Not supported: " s " of type: " (class s))))))
+
+#_(defn as-file-attributes [posix-file-permissions]
+  (PosixFilePermissions/asFileAttribute posix-file-permissions))
+
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories"
+
   ([]
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
-    (into-array java.nio.file.attribute.FileAttribute []))))
+    (into-array FileAttribute [])))
+  ;; TODO: figure out if fixed args work to cover all the method overloads, else we need to use a map
+  #_([prefix]
+   (Files/createTempDirectory
+    (str prefix)
+    (into-array FileAttribute [])))
+  #_([path file-attrs]
+   (Files/createTempDirectory
+    (str path)
+    (into-array FileAttribute []))))
 
 (defn sym-link
   "Create a soft link from path to target."
@@ -267,4 +291,4 @@
 (defn create-dirs
   "Creates directories using Files#createDirectories"
   [path]
-  (Files/createDirectories (as-path path) (into-array java.nio.file.attribute.FileAttribute [])))
+  (Files/createDirectories (as-path path) (into-array FileAttribute [])))
