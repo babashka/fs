@@ -2,9 +2,9 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [java.io File]
-           [java.nio.file.attribute FileAttribute #_PosixFilePermissions]
+           [java.nio.file.attribute FileAttribute PosixFilePermissions]
            [java.nio.file CopyOption
-            #?(:clj DirectoryStream) #?(:clj DirectoryStream$Filter)
+            #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
             Files
             FileSystems
             FileVisitOption
@@ -306,13 +306,23 @@
                                                        copy-options)
                                            :continue))}))))
 
-#_(defn posix-file-permissions [s]
-    (cond (string? s)
-          (PosixFilePermissions/fromString s)
-          ;; (set? s)
-          ;; (into #{} (map keyword->posix-file-permission) s)
-          :else
-          (throw (java.lang.IllegalArgumentException. (str "Not supported: " s " of type: " (class s))))))
+(defn posix->str
+  "Converts a set of PosixFilePermission to a string."
+  [p]
+  (PosixFilePermissions/toString p))
+
+(defn str->posix
+  "Converts a string to a set of PosixFilePermission."
+  [s]
+  (PosixFilePermissions/fromString s))
+
+(defn- as-posix-file-permissions [s]
+  (cond (string? s)
+        (str->posix s)
+        ;; (set? s)
+        ;; (into #{} (map keyword->posix-file-permission) s)
+        :else
+        s))
 
 #_(defn as-file-attributes [posix-file-permissions]
     (PosixFilePermissions/asFileAttribute posix-file-permissions))
@@ -352,14 +362,15 @@
   [f]
   (Files/deleteIfExists (as-path f)))
 
-(defn delete-tree
-  "Deletes a file tree."
-  ([root] (delete-tree root nil))
-  ([root {:keys [:nofollow-links] :as opts}]
-   (when (directory? root opts)
-     (doseq [path (list-dir root)]
-       (delete-tree path opts))
-     (delete root))))
+#?(:bb nil :clj
+   (defn delete-tree
+     "Deletes a file tree."
+     ([root] (delete-tree root nil))
+     ([root {:keys [:nofollow-links] :as opts}]
+      (when (directory? root opts)
+        (doseq [path (list-dir root)]
+          (delete-tree path opts))
+        (delete root)))))
 
 (defn create-dir
   "Creates directories using Files#createDirectory"
@@ -402,3 +413,14 @@
   [f]
   (.deleteOnExit (as-file f))
   f)
+
+(defn set-posix-file-permissions
+  "Sets posix file permissions on f. Accepts a string like \"rwx------\" or a set of PosixFilePermission."
+  [f posix-file-permissions]
+  (Files/setPosixFilePermissions (as-path f) (as-posix-file-permissions posix-file-permissions)))
+
+(defn posix-file-permissions
+  "Gets f's posix file permissions. Use str->posix to view as a string."
+  ([f] (posix-file-permissions f nil))
+  ([f {:keys [:nofollow-links]}]
+   (Files/getPosixFilePermissions (as-path f) (->link-opts nofollow-links))))
