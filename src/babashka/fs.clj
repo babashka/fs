@@ -39,7 +39,7 @@
       (io/file path)))
 
 (defn ^Path path
-  "Coerces f into a path. Multiple-arg versions treat the first argument as
+  "Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent."
   ([f]
    (as-path f))
@@ -49,7 +49,7 @@
    (reduce path (path parent child) more)))
 
 (defn ^File file
-  "Coerces f into a file. Multiple-arg versions treat the first argument
+  "Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent."
   ([f] (as-file f))
   ([f & fs]
@@ -200,6 +200,7 @@
          results)))))
 
 (defn directory?
+  "Returns true if f is a directory, using Files/isDirectory."
   ([f] (directory? f nil))
   ([f {:keys [:nofollow-links]}]
    (let [opts (cond-> []
@@ -209,8 +210,8 @@
                         (into-array LinkOption opts)))))
 
 (defn copy
-  "Copies src file to dest file. Supported options: :recursive (copy
-  file tree), :replace-existing, :copy-attributes
+  "Copies src file to dest file. Supported options: :recursive (copies
+  tree using walk-file-tree), :replace-existing, :copy-attributes
   and :nofollow-links."
   ([src dest] (copy src dest nil))
   ([src dest {:keys [:replace-existing
@@ -275,7 +276,7 @@
     (str path)
     (into-array FileAttribute []))))
 
-(defn sym-link
+(defn create-sym-link
   "Create a soft link from path to target."
   [path target]
   (Files/createSymbolicLink
@@ -284,7 +285,7 @@
    (make-array FileAttribute 0)))
 
 (defn delete
-  "Deletes f via File#delete."
+  "Deletes f via File#delete. Returns true if directory was deleted."
   [f]
   (.delete (as-file f)))
 

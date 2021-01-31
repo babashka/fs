@@ -26,7 +26,7 @@
     (let [tmp-dir1 (fs/create-temp-dir)
           _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
           tmp-dir2 (fs/create-temp-dir)
-          sym-link (fs/sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
+          sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
       (is (empty? (fs/glob sym-link "**")))
       (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
       (is (= 1 (count (fs/glob (fs/real-path sym-link) "**"))))))
