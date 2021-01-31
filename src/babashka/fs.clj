@@ -63,7 +63,7 @@
                 (into-array LinkOption (cond-> []
                                          nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
 
-(defn paths
+(defn elements
   "Returns all elements of f as paths."
   [f]
   (iterator-seq (.iterator (as-path f))))
