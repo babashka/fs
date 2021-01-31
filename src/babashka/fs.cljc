@@ -111,8 +111,8 @@
 
 ;;;; End predicates
 
-(defn elements
-  "Returns all elements of f as paths."
+(defn components
+  "Returns all components of f."
   [f]
   (iterator-seq (.iterator (as-path f))))
 

@@ -61,8 +61,8 @@
       (is (pos? cur-dir-count))
       (is (= cur-dir-count tmp-dir-count)))))
 
-(deftest elements-test
-  (let [paths (map str (fs/elements (fs/real-path ".")))]
+(deftest components-test
+  (let [paths (map str (fs/components (fs/real-path ".")))]
     (is (= "fs" (last paths)))
     (is (> (count paths) 1))))
 
