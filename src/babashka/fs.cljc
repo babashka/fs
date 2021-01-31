@@ -129,6 +129,11 @@
   [x]
   (.getName (as-file x)))
 
+(defn normalize
+  "Normalizes f via Path#normalize."
+  [f]
+  (.normalize (as-path f)))
+
 (def ^:private continue (constantly :continue))
 
 (defn walk-file-tree
