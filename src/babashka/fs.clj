@@ -285,9 +285,14 @@
    (make-array FileAttribute 0)))
 
 (defn delete
-  "Deletes f via File#delete. Returns true if directory was deleted."
-  [f]
-  (.delete (as-file f)))
+  "Deletes f via Path#delete. Returns nil if the delete was succesful, throws otherwise."
+  [dir]
+  (Files/delete (as-path dir)))
+
+(defn delete-if-exists
+  "Deletes dir via Path#deleteIfExists if it exists. Returns true if the delete was succesful, false if the dir didn't exist."
+  [dir]
+  (Files/deleteIfExists (as-path dir)))
 
 (defn create-dirs
   "Creates directories using Files#createDirectories"
