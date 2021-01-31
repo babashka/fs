@@ -4,7 +4,7 @@
   (:import [java.io File]
            [java.nio.file.attribute FileAttribute PosixFilePermissions]
            [java.nio.file CopyOption
-            ;; DirectoryStream DirectoryStream$Filter
+            #?(:clj DirectoryStream) #?(:clj DirectoryStream$Filter)
             Files
             FileSystems
             FileVisitOption
@@ -132,19 +132,32 @@
                             (-> (visit-file-failed path attrs)
                                 file-visit-result))))))
 
-;; TBD if this will be exposed
-#_:clj-kondo/ignore
-#_(defn- directory-stream
-  (^DirectoryStream [path]
-   (Files/newDirectoryStream (as-path path)))
-  (^DirectoryStream [path {:keys [:glob :accept]}]
-   (if glob
-     (Files/newDirectoryStream (as-path path) (str glob))
-     (let [accept* accept]
-       (Files/newDirectoryStream (as-path path)
-                                 (reify DirectoryStream$Filter
-                                   (accept [_ entry]
-                                     (accept* entry))))))))
+#?(:bb nil :clj
+   (defn directory-stream
+     "Returns a stream of all files in dir. The caller of this function is
+  responsible for closing the stream, e.g. using with-open. The stream
+  can consumed as a seq by calling seq on it. Accepts optional glob or
+  accept function of one argument."
+     (^DirectoryStream [dir]
+      (Files/newDirectoryStream (as-path dir)))
+     (^DirectoryStream [dir glob-or-accept]
+      (if (string? glob-or-accept)
+        (Files/newDirectoryStream (as-path dir) (str glob-or-accept))
+        (let [accept* glob-or-accept]
+          (Files/newDirectoryStream (as-path dir)
+                                    (reify DirectoryStream$Filter
+                                      (accept [_ entry]
+                                        (boolean (accept* entry))))))))))
+
+#?(:bb nil :clj
+   (defn list-files
+     "Returns all files in dir as vector. Uses directory-stream."
+     ([dir]
+      (with-open [stream (directory-stream dir)]
+        (vec stream)))
+     ([dir glob-or-accept]
+      (with-open [stream (directory-stream dir glob-or-accept)]
+        (vec stream)))))
 
 (def ^:const file-separator File/separator)
 (def ^:const path-separator File/pathSeparator)
