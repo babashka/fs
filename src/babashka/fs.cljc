@@ -369,3 +369,8 @@
    (Files/move (as-path source)
                (as-path target)
                (->copy-opts replace-existing copy-attributes nofollow-links))))
+
+(defn parent
+  "Returns parent of f, is it exists."
+  [f]
+  (.getParent (as-path f)))
