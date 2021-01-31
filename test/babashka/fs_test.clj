@@ -12,9 +12,9 @@
                              (fs/glob "." "README.md"))))
   (is (set/subset? #{"project.clj"
                      "test/babashka/fs_test.clj"
-                     "src/babashka/fs.clj"}
+                     "src/babashka/fs.cljc"}
                    (set (map str
-                             (fs/glob "." "**.clj")))))
+                             (fs/glob "." "**.{clj,cljc}")))))
   (testing "glob also matches directories and doesn't return the root directory"
     (is (= '("test-resources/foo/1" "test-resources/foo/foo")
            (map str
@@ -63,4 +63,10 @@
 (deftest elements-test
   (let [paths (map str (fs/elements (fs/real-path ".")))]
     (is (= "fs" (last paths)))
+    (is (> (count paths) 1))))
+
+(deftest list-files-test
+  (let [paths (map str (fs/list-dir (fs/real-path ".")))]
+    (is (> (count paths) 1)))
+  (let [paths (map str (fs/list-dir (fs/real-path ".") (fn accept [x] (fs/directory? x))))]
     (is (> (count paths) 1))))
