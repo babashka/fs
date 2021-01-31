@@ -353,6 +353,11 @@
        (delete-tree path opts))
      (delete root))))
 
+(defn create-dir
+  "Creates directories using Files#createDirectory"
+  [path]
+  (Files/createDirectory (as-path path) (into-array FileAttribute [])))
+
 (defn create-dirs
   "Creates directories using Files#createDirectories"
   [path]
