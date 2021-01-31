@@ -77,17 +77,43 @@
   [this other]
   (.relativize (as-path this) (as-path other)))
 
+;;;; Predicates
+
+(defn directory?
+  "Returns true if f is a directory, using Files/isDirectory."
+  ([f] (directory? f nil))
+  ([f {:keys [:nofollow-links]}]
+   (let [opts (cond-> []
+                nofollow-links (conj LinkOption/NOFOLLOW_LINKS))]
+     (Files/isDirectory (as-path f)
+                        ^"[Ljava.nio.file.LinkOption;"
+                        (into-array LinkOption opts)))))
+
 (defn hidden?
   "Returns true if f is hidden."
   [f] (.isHidden (as-file f)))
 
 (defn absolute?
-  "Returns true if f is hidden."
+  "Returns true if f represents an absolute path."
   [f] (.isAbsolute (as-file f)))
 
+(defn executable?
+  "Returns true if f is executable."
+  [f] (Files/isExecutable (as-path f)))
+
+(defn readable?
+  "Returns true if f is readable"
+  [f] (Files/isReadable (as-path f)))
+
+(defn writable?
+  "Returns true if f is readable"
+  [f] (Files/isWritable (as-path f)))
+
 (defn relative?
-  "Returns true if f is hidden."
+  "Returns true if f represents a relative path."
   [f] (not (absolute? f)))
+
+;;;; End predicates
 
 (defn file-name
   "Returns farthest element from the root as string, if any."
@@ -216,16 +242,6 @@
          (mapv #(relativize (real-path ".") %)
                results)
          results)))))
-
-(defn directory?
-  "Returns true if f is a directory, using Files/isDirectory."
-  ([f] (directory? f nil))
-  ([f {:keys [:nofollow-links]}]
-   (let [opts (cond-> []
-                nofollow-links (conj LinkOption/NOFOLLOW_LINKS))]
-     (Files/isDirectory (as-path f)
-                        ^"[Ljava.nio.file.LinkOption;"
-                        (into-array LinkOption opts)))))
 
 (defn copy
   "Copies src file to dest file. Supported options: :recursive (copies
