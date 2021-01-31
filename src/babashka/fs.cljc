@@ -344,7 +344,7 @@
 (defn deltree
   "Deletes a file tree."
   ([root] (deltree root nil))
-  ([root opts]
+  ([root {:keys [:nofollow-links] :as opts}]
    (when (directory? root opts)
      (doseq [path (list-dir root)]
        (deltree path opts))
