@@ -5,7 +5,7 @@ yet, but will be. Also can be used from the JVM.
 
 ## Status
 
-Working towards an initial release.
+Working towards an initial release. The API might still change.
 
 ## Why
 
