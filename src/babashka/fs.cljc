@@ -396,3 +396,9 @@
 (defn size
   [f]
   (Files/size (as-path f)))
+
+(defn delete-on-exit
+  "Requests delete on exit via File#deleteOnExit. Returns f."
+  [f]
+  (.deleteOnExit (as-file f))
+  f)

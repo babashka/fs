@@ -8,6 +8,10 @@
 
 (def cwd (fs/real-path "."))
 
+(defn temp-dir []
+  (-> (fs/create-temp-dir)
+      (fs/delete-on-exit)))
+
 (deftest glob-test
   (is (= '("README.md") (map str
                              (fs/glob "." "README.md"))))
@@ -24,15 +28,15 @@
            (map str
                 (fs/glob "test-resources" "foo/**")))))
   (testing "symlink as root path"
-    (let [tmp-dir1 (fs/create-temp-dir)
+    (let [tmp-dir1 (temp-dir)
           _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
-          tmp-dir2 (fs/create-temp-dir)
+          tmp-dir2 (temp-dir)
           sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
       (is (empty? (fs/glob sym-link "**")))
       (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
       (is (= 1 (count (fs/glob (fs/real-path sym-link) "**"))))))
   (testing "glob with specific depth"
-    (let [tmp-dir1 (fs/create-temp-dir)
+    (let [tmp-dir1 (temp-dir)
           nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
           _ (fs/create-dirs nested-dir)
           _ (spit (fs/file nested-dir "dude.txt") "contents")]
@@ -54,7 +58,7 @@
     (is (= "foo/bar/baz" (str f)))))
 
 (deftest copy-test
-  (let [tmp-dir (fs/create-temp-dir)]
+  (let [tmp-dir (temp-dir)]
     (fs/copy-tree "." tmp-dir)
     (let [cur-dir-count (count (fs/glob "." "**" #{:hidden}))
           tmp-dir-count (count (fs/glob tmp-dir "**" #{:hidden}))]
@@ -77,7 +81,7 @@
     (is (pos? (count paths)))))
 
 (deftest delete-tree-test
-  (let [tmp-dir1 (fs/create-temp-dir)
+  (let [tmp-dir1 (temp-dir)
         nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
         _ (fs/create-dirs nested-dir)]
     (is (fs/exists? nested-dir))
