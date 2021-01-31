@@ -258,7 +258,8 @@
                results)
          results)))))
 
-(defn- ->copy-opts [replace-existing copy-attributes nofollow-links]
+(defn- ->copy-opts ^"[Ljava.nio.file.CopyOption;"
+  [replace-existing copy-attributes nofollow-links]
   (into-array CopyOption
               (cond-> []
                 replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
@@ -277,7 +278,6 @@
                      :nofollow-links]}]
    (let [copy-options (->copy-opts replace-existing copy-attributes nofollow-links)]
      (Files/copy (as-path src) (as-path dest)
-                 ^"[Ljava.nio.file.CopyOption;"
                  copy-options))))
 
 (defn copy-tree
