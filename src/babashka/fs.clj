@@ -160,7 +160,7 @@
          [base-path pattern recursive]
          (let [pattern (str base-path "/" pattern)
                recursive (or (str/includes? pattern "**")
-                             (str/includes? pattern "/"))]
+                             (str/includes? pattern File/separator))]
            [base-path pattern recursive])
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
@@ -244,10 +244,12 @@
                    ^"[Ljava.nio.file.CopyOption;"
                    copy-options)))))
 
-(defn tmp-dir
+(defn create-temp-dir
+  "Creates a temporary directory using Files#createDirectories"
   ([]
-   (Files/createTempDirectory (str (java.util.UUID/randomUUID))
-                              (into-array java.nio.file.attribute.FileAttribute []))))
+   (Files/createTempDirectory
+    (str (java.util.UUID/randomUUID))
+    (into-array java.nio.file.attribute.FileAttribute []))))
 
 (defn sym-link
   "Create a soft link from path to target."
@@ -261,3 +263,8 @@
   "Deletes f via File#delete."
   [f]
   (.delete (as-file f)))
+
+(defn create-dirs
+  "Creates directories using Files#createDirectories"
+  [path]
+  (Files/createDirectories (as-path path) (into-array java.nio.file.attribute.FileAttribute [])))
