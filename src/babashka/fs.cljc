@@ -337,17 +337,17 @@
   (Files/delete (as-path dir)))
 
 (defn delete-if-exists
-  "Deletes dir via Path#deleteIfExists if it exists. Returns true if the delete was succesful, false if the dir didn't exist."
-  [dir]
-  (Files/deleteIfExists (as-path dir)))
+  "Deletes f via Path#deleteIfExists if it exists. Returns true if the delete was succesful, false if the dir didn't exist."
+  [f]
+  (Files/deleteIfExists (as-path f)))
 
-(defn deltree
+(defn delete-tree
   "Deletes a file tree."
-  ([root] (deltree root nil))
+  ([root] (delete-tree root nil))
   ([root {:keys [:nofollow-links] :as opts}]
    (when (directory? root opts)
      (doseq [path (list-dir root)]
-       (deltree path opts))
+       (delete-tree path opts))
      (delete root))))
 
 (defn create-dirs
