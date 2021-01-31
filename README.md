@@ -5,7 +5,7 @@ yet, but will be. Also can be used from the JVM.
 
 ## Status
 
-In the hammock. Very alpha. Not production ready.
+Working towards an initial release.
 
 ## Why
 
@@ -16,15 +16,28 @@ already offers a bunch of useful features, but isn't up to date with `java.nio`.
 The main inspiration for this library is
 [clj-commons/fs](https://github.com/clj-commons/fs) but some of its functions
 can be optimized by leveraging `java.nio` and others might need revision. We do
-not guarantee any compatibility with the `clj-commons` library. We might give
-`Path` a first class treatment instead of casting everything back to
-`java.io.File`.
+not guarantee any compatibility with the `clj-commons` library.
 
 ## API docs
 
-API docs are available at [babashka.org/fs](https://babashka.org/fs/babashka.fs.html)
+API docs are available at [babashka.org/fs](https://babashka.org/fs)
 
 ## Usage
+
+Until this library is included in babashka, you can use this library as a git lib:
+
+``` clojure
+#!/usr/bin/env bb
+
+(require '[babashka.deps :as deps])
+(deps/add-deps '{:deps {babashka/fs
+                        {:git/url "https://github.com/babashka/fs"
+                         :sha "b008b2d6ea64e49bf76066b7f057ae4638534e35"}}})
+```
+
+or use any later SHA.
+
+On the JVM, add it to `deps.edn`.
 
 ``` clojure
 (require '[babashka.fs :as fs])
@@ -32,14 +45,18 @@ API docs are available at [babashka.org/fs](https://babashka.org/fs/babashka.fs.
 
 ### glob
 
+The `glob` function takes a root path and a pattern. The pattern is interpreted
+as documented
+[here](https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)).
+
 ``` clojure
-(map str (fs/glob "." "**/*.clj"))
+(map str (fs/glob "." "**{.clj,cljc}"))
 ```
 
 Output:
 
 ``` clojure
-("test/babashka/fs_test.clj" "src/babashka/fs.clj")
+("project.clj" "test/babashka/fs_test.clj" "src/babashka/fs.cljc")
 ```
 
 ## Test
@@ -99,6 +116,6 @@ script/release
 
 ## License
 
-Copyright © 2020 Michiel Borkent
+Copyright © 2020-2021 Michiel Borkent
 
 Distributed under the EPL License, same as Clojure. See LICENSE.
