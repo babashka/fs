@@ -105,7 +105,7 @@
   "Returns true if f exists."
   ([f] (exists? f nil))
   ([f {:keys [:nofollow-links]}]
-   (Files/isDirectory
+   (Files/exists
     (as-path f)
     (->link-opts nofollow-links))))
 
@@ -258,6 +258,13 @@
                results)
          results)))))
 
+(defn- ->copy-opts [replace-existing copy-attributes nofollow-links]
+  (into-array CopyOption
+              (cond-> []
+                replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
+                copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
+                nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))))
+
 (defn copy
   "Copies src file to dest file. Supported options: :recursive (copies
   tree using walk-file-tree), :replace-existing, :copy-attributes
@@ -267,11 +274,7 @@
                      :copy-attributes
                      :nofollow-links
                      :recursive]}]
-   (let [copy-options (into-array CopyOption
-                                  (cond-> []
-                                    replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
-                                    copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
-                                    nofollow-links   (conj LinkOption/NOFOLLOW_LINKS)))
+   (let [copy-options (->copy-opts replace-existing copy-attributes nofollow-links)
          link-options (->link-opts nofollow-links)]
      (if recursive
        (let [from (real-path src {:nofollow-links nofollow-links})
@@ -354,3 +357,15 @@
   "Creates directories using Files#createDirectories"
   [path]
   (Files/createDirectories (as-path path) (into-array FileAttribute [])))
+
+(defn move
+  "Move or rename a file to a target file. Optional
+  [copy-options](http://docs.oracle.com/javase/7/docs/api/java/nio/file/CopyOption.html)
+  may be provided."
+  ([source target] (move source target nil))
+  ([source target {:keys [:replace-existing
+                          :copy-attributes
+                          :nofollow-links]}]
+   (Files/move (as-path source)
+               (as-path target)
+               (->copy-opts replace-existing copy-attributes nofollow-links))))

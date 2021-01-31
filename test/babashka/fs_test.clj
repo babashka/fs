@@ -1,9 +1,10 @@
 (ns babashka.fs-test
-  (:require [babashka.fs :as fs]
+  (:require #_[me.raynes.fs :as rfs]
+            [babashka.fs :as fs]
             [clojure.java.io :as io]
             [clojure.set :as set]
-            [clojure.test :refer [deftest is testing]]
-            #_[me.raynes.fs :as rfs]))
+            [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]))
 
 (def cwd (fs/real-path "."))
 
@@ -75,10 +76,19 @@
   (let [paths (map str (fs/list-dir (fs/real-path ".") "*.clj"))]
     (is (pos? (count paths)))))
 
-(deftest deltree-test
+(deftest delete-tree-test
   (let [tmp-dir1 (fs/create-temp-dir)
         nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
         _ (fs/create-dirs nested-dir)]
     (is (fs/exists? nested-dir))
-    (fs/deltree nested-dir)
+    (fs/delete-tree nested-dir)
     (is (not (fs/exists? nested-dir)))))
+
+(deftest move-test
+  (let [tmp-dir1 (fs/create-temp-dir)
+        f (fs/file tmp-dir1 "foo.txt")
+        _ (spit f "foo")
+        f2 (fs/file tmp-dir1 "bar.txt")]
+    (is (not (fs/exists? f)))
+    (is (fs/exists? f2))
+    (is (= "foo" (str/trim (slurp f2))))))
