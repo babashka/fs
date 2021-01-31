@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [java.io File]
-           [java.nio.file.attribute FileAttribute PosixFilePermissions]
+           [java.nio.file.attribute FileAttribute #_PosixFilePermissions]
            [java.nio.file CopyOption
             #?(:clj DirectoryStream) #?(:clj DirectoryStream$Filter)
             Files
@@ -55,13 +55,18 @@
   ([f & fs]
    (apply io/file (map as-file (cons f fs)))))
 
+(defn- ->link-opts ^"[Ljava.nio.file.LinkOption;"
+  [nofollow-links]
+  (into-array LinkOption
+              (cond-> []
+                nofollow-links
+                (conj LinkOption/NOFOLLOW_LINKS))))
+
 (defn ^Path real-path
   "Converts f into real path via Path#toRealPath."
   ([f] (real-path f nil))
   ([f {:keys [:nofollow-links]}]
-   (.toRealPath (as-path f)
-                (into-array LinkOption (cond-> []
-                                         nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
+   (.toRealPath (as-path f) (->link-opts nofollow-links))))
 
 ;;;; Predicates
 
@@ -69,11 +74,8 @@
   "Returns true if f is a directory, using Files/isDirectory."
   ([f] (directory? f nil))
   ([f {:keys [:nofollow-links]}]
-   (let [opts (cond-> []
-                nofollow-links (conj LinkOption/NOFOLLOW_LINKS))]
-     (Files/isDirectory (as-path f)
-                        ^"[Ljava.nio.file.LinkOption;"
-                        (into-array LinkOption opts)))))
+   (Files/isDirectory (as-path f)
+                      (->link-opts nofollow-links))))
 
 (defn hidden?
   "Returns true if f is hidden."
@@ -105,8 +107,7 @@
   ([f {:keys [:nofollow-links]}]
    (Files/isDirectory
     (as-path f)
-    (into-array LinkOption (cond-> []
-                             nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
+    (->link-opts nofollow-links))))
 
 ;;;; End predicates
 
@@ -271,9 +272,7 @@
                                     replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
                                     copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
                                     nofollow-links   (conj LinkOption/NOFOLLOW_LINKS)))
-         link-options (into-array LinkOption
-                                  (cond-> []
-                                    nofollow-links (conj LinkOption/NOFOLLOW_LINKS)))]
+         link-options (->link-opts nofollow-links)]
      (if recursive
        (let [from (real-path src {:nofollow-links nofollow-links})
              to (real-path dest {:nofollow-links nofollow-links})]
@@ -341,6 +340,15 @@
   "Deletes dir via Path#deleteIfExists if it exists. Returns true if the delete was succesful, false if the dir didn't exist."
   [dir]
   (Files/deleteIfExists (as-path dir)))
+
+(defn deltree
+  "Deletes a file tree."
+  ([root] (deltree root nil))
+  ([root opts]
+   (when (directory? root opts)
+     (doseq [path (list-dir root)]
+       (deltree path opts))
+     (delete root))))
 
 (defn create-dirs
   "Creates directories using Files#createDirectories"

@@ -1,1 +1,2 @@
-{:cljc {:features [:clj]}}
+{:cljc {:features [:clj]}
+ :linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}

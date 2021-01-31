@@ -74,3 +74,11 @@
     (is (zero? (count paths))))
   (let [paths (map str (fs/list-dir (fs/real-path ".") "*.clj"))]
     (is (pos? (count paths)))))
+
+(deftest deltree-test
+  (let [tmp-dir1 (fs/create-temp-dir)
+        nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
+        _ (fs/create-dirs nested-dir)]
+    (is (fs/exists? nested-dir))
+    (fs/deltree nested-dir)
+    (is (not (fs/exists? nested-dir)))))
