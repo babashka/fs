@@ -150,8 +150,8 @@
                                         (boolean (accept* entry))))))))))
 
 #?(:bb nil :clj
-   (defn list-files
-     "Returns all files in dir as vector. Uses directory-stream."
+   (defn list-dir
+     "Returns all paths in dir in vector. Uses directory-stream."
      ([dir]
       (with-open [stream (directory-stream dir)]
         (vec stream)))
