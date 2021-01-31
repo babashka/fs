@@ -63,20 +63,6 @@
                 (into-array LinkOption (cond-> []
                                          nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
 
-(defn elements
-  "Returns all elements of f as paths."
-  [f]
-  (iterator-seq (.iterator (as-path f))))
-
-(defn absolute-path
-  "Converts f into an absolute path via Path#toAbsolutePath."
-  [f] (.toAbsolutePath (as-path f)))
-
-(defn ^Path relativize
-  "Returns relative path by comparing this with other."
-  [this other]
-  (.relativize (as-path this) (as-path other)))
-
 ;;;; Predicates
 
 (defn directory?
@@ -91,11 +77,11 @@
 
 (defn hidden?
   "Returns true if f is hidden."
-  [f] (.isHidden (as-file f)))
+  [f] (Files/isHidden (as-path f)))
 
 (defn absolute?
   "Returns true if f represents an absolute path."
-  [f] (.isAbsolute (as-file f)))
+  [f] (.isAbsolute (as-path f)))
 
 (defn executable?
   "Returns true if f is executable."
@@ -113,7 +99,30 @@
   "Returns true if f represents a relative path."
   [f] (not (absolute? f)))
 
+(defn exists?
+  "Returns true if f exists."
+  ([f] (exists? f nil))
+  ([f {:keys [:nofollow-links]}]
+   (Files/isDirectory
+    (as-path f)
+    (into-array LinkOption (cond-> []
+                             nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
+
 ;;;; End predicates
+
+(defn elements
+  "Returns all elements of f as paths."
+  [f]
+  (iterator-seq (.iterator (as-path f))))
+
+(defn absolute-path
+  "Converts f into an absolute path via Path#toAbsolutePath."
+  [f] (.toAbsolutePath (as-path f)))
+
+(defn ^Path relativize
+  "Returns relative path by comparing this with other."
+  [this other]
+  (.relativize (as-path this) (as-path other)))
 
 (defn file-name
   "Returns farthest element from the root as string, if any."
