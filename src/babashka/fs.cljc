@@ -115,7 +115,7 @@
   [f]
   (iterator-seq (.iterator (as-path f))))
 
-(defn absolute-path
+(defn absolutize
   "Converts f into an absolute path via Path#toAbsolutePath."
   [f] (.toAbsolutePath (as-path f)))
 
@@ -214,7 +214,7 @@
   - :follow-links: follow symlinks."
   ([root pattern] (glob root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth]}]
-   (let [base-path (absolute-path root)
+   (let [base-path (absolutize root)
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
