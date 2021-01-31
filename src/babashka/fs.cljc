@@ -379,3 +379,7 @@
   "Returns last-modified timestamp via File#lastModified."
   [f]
   (.lastModified (as-file f)))
+
+(defn size
+  [f]
+  (Files/size (as-path f)))
