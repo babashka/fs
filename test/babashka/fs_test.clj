@@ -69,4 +69,8 @@
   (let [paths (map str (fs/list-dir (fs/real-path ".")))]
     (is (> (count paths) 1)))
   (let [paths (map str (fs/list-dir (fs/real-path ".") (fn accept [x] (fs/directory? x))))]
-    (is (> (count paths) 1))))
+    (is (> (count paths) 1)))
+  (let [paths (map str (fs/list-dir (fs/real-path ".") (fn accept [_] false)))]
+    (is (zero? (count paths))))
+  (let [paths (map str (fs/list-dir (fs/real-path ".") "*.clj"))]
+    (is (pos? (count paths)))))
