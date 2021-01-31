@@ -89,6 +89,7 @@
         f (fs/file tmp-dir1 "foo.txt")
         _ (spit f "foo")
         f2 (fs/file tmp-dir1 "bar.txt")]
+    (fs/move f f2)
     (is (not (fs/exists? f)))
     (is (fs/exists? f2))
     (is (= "foo" (str/trim (slurp f2))))))

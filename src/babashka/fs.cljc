@@ -374,3 +374,8 @@
   "Returns parent of f, is it exists."
   [f]
   (.getParent (as-path f)))
+
+(defn last-modified
+  "Returns last-modified timestamp via File#lastModified."
+  [f]
+  (.lastModified (as-file f)))
