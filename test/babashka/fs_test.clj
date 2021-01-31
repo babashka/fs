@@ -55,7 +55,7 @@
 
 (deftest copy-test
   (let [tmp-dir (fs/create-temp-dir)]
-    (fs/copy "." tmp-dir #{:recursive})
+    (fs/copy-tree "." tmp-dir)
     (let [cur-dir-count (count (fs/glob "." "**" #{:hidden}))
           tmp-dir-count (count (fs/glob tmp-dir "**" #{:hidden}))]
       (is (pos? cur-dir-count))

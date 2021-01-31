@@ -266,48 +266,56 @@
                 nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))))
 
 (defn copy
-  "Copies src file to dest file. Supported options: :recursive (copies
-  tree using walk-file-tree), :replace-existing, :copy-attributes
-  and :nofollow-links."
+  "Copies src file to dest file.
+  Options:
+  - :replace-existing
+  - :copy-attributes
+  - :nofollow-links."
   ([src dest] (copy src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
-                     :nofollow-links
-                     :recursive]}]
+                     :nofollow-links]}]
+   (let [copy-options (->copy-opts replace-existing copy-attributes nofollow-links)]
+     (Files/copy (as-path src) (as-path dest)
+                 ^"[Ljava.nio.file.CopyOption;"
+                 copy-options))))
+
+(defn copy-tree
+  "Copies entire file tree. Supports same options as copy."
+  ([src dest] (copy-tree src dest nil))
+  ([src dest {:keys [:replace-existing
+                     :copy-attributes
+                     :nofollow-links]}]
    (let [copy-options (->copy-opts replace-existing copy-attributes nofollow-links)
-         link-options (->link-opts nofollow-links)]
-     (if recursive
-       (let [from (real-path src {:nofollow-links nofollow-links})
-             to (real-path dest {:nofollow-links nofollow-links})]
-         (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
-                                                (let [rel (relativize from dir)
-                                                      to-dir (path to rel)]
-                                                  (when-not (Files/exists to-dir link-options)
-                                                    (Files/copy ^Path dir to-dir
-                                                                ^"[Ljava.nio.file.CopyOption;"
-                                                                copy-options)))
-                                                :continue)
-                               :visit-file (fn [from-path _attrs]
-                                             (let [rel (relativize from from-path)
-                                                   to-file (path to rel)]
-                                               (Files/copy ^Path from-path to-file
-                                                           ^"[Ljava.nio.file.CopyOption;"
-                                                           copy-options)
-                                               :continue))}))
-       (Files/copy (as-path src) (as-path dest)
-                   ^"[Ljava.nio.file.CopyOption;"
-                   copy-options)))))
+         link-options (->link-opts nofollow-links)
+         from (real-path src {:nofollow-links nofollow-links})
+         to (real-path dest {:nofollow-links nofollow-links})]
+     (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+                                            (let [rel (relativize from dir)
+                                                  to-dir (path to rel)]
+                                              (when-not (Files/exists to-dir link-options)
+                                                (Files/copy ^Path dir to-dir
+                                                            ^"[Ljava.nio.file.CopyOption;"
+                                                            copy-options)))
+                                            :continue)
+                           :visit-file (fn [from-path _attrs]
+                                         (let [rel (relativize from from-path)
+                                               to-file (path to rel)]
+                                           (Files/copy ^Path from-path to-file
+                                                       ^"[Ljava.nio.file.CopyOption;"
+                                                       copy-options)
+                                           :continue))}))))
 
 #_(defn posix-file-permissions [s]
-  (cond (string? s)
-        (PosixFilePermissions/fromString s)
-        ;; (set? s)
-        ;; (into #{} (map keyword->posix-file-permission) s)
-        :else
-        (throw (java.lang.IllegalArgumentException. (str "Not supported: " s " of type: " (class s))))))
+    (cond (string? s)
+          (PosixFilePermissions/fromString s)
+          ;; (set? s)
+          ;; (into #{} (map keyword->posix-file-permission) s)
+          :else
+          (throw (java.lang.IllegalArgumentException. (str "Not supported: " s " of type: " (class s))))))
 
 #_(defn as-file-attributes [posix-file-permissions]
-  (PosixFilePermissions/asFileAttribute posix-file-permissions))
+    (PosixFilePermissions/asFileAttribute posix-file-permissions))
 
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories"
@@ -318,13 +326,13 @@
     (into-array FileAttribute [])))
   ;; TODO: figure out if fixed args work to cover all the method overloads, else we need to use a map
   #_([prefix]
-   (Files/createTempDirectory
-    (str prefix)
-    (into-array FileAttribute [])))
+     (Files/createTempDirectory
+      (str prefix)
+      (into-array FileAttribute [])))
   #_([path file-attrs]
-   (Files/createTempDirectory
-    (str path)
-    (into-array FileAttribute []))))
+     (Files/createTempDirectory
+      (str path)
+      (into-array FileAttribute []))))
 
 (defn create-sym-link
   "Create a soft link from path to target."
