@@ -65,7 +65,7 @@
     (is (= "fs" (last paths)))
     (is (> (count paths) 1))))
 
-(deftest list-files-test
+(deftest list-dir-test
   (let [paths (map str (fs/list-dir (fs/real-path ".")))]
     (is (> (count paths) 1)))
   (let [paths (map str (fs/list-dir (fs/real-path ".") (fn accept [x] (fs/directory? x))))]
