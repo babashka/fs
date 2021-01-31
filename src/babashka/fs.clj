@@ -63,6 +63,11 @@
                 (into-array LinkOption (cond-> []
                                          nofollow-links (conj LinkOption/NOFOLLOW_LINKS))))))
 
+(defn paths
+  "Returns all elements of f as paths."
+  [f]
+  (iterator-seq (.iterator (as-path f))))
+
 (defn absolute-path
   "Converts f into an absolute path via Path#toAbsolutePath."
   [f] (.toAbsolutePath (as-path f)))
