@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [java.io File]
-           [java.nio.file.attribute FileAttribute PosixFilePermissions]
+           [java.nio.file.attribute FileAttribute FileTime PosixFilePermissions]
            [java.nio.file CopyOption
             #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
             Files
@@ -398,7 +398,7 @@
   [f]
   (.getParent (as-path f)))
 
-(defn last-modified
+#_(defn last-modified
   "Returns last-modified timestamp via File#lastModified."
   [f]
   (.lastModified (as-file f)))
@@ -437,3 +437,67 @@
 (defn read-all-lines
   [f]
   (vec (Files/readAllLines (as-path f))))
+
+;;;; Attributes, from github.com/nate/fs
+
+(defn- get-attribute
+  ([path attribute]
+   (get-attribute path attribute {}))
+  ([path attribute {:keys [nofollow-links]}]
+   (Files/getAttribute (as-path path)
+                       attribute
+                       (->link-opts {:nofollow-links nofollow-links}))))
+
+(defn- set-attribute
+  ([path attribute value]
+   (set-attribute path attribute value {}))
+  ([path attribute value {:keys [nofollow-links]}]
+   (Files/setAttribute (as-path path)
+                       attribute
+                       value
+                       (->link-opts {:nofollow-links nofollow-links}))))
+
+(defn file-time->instant [^FileTime ft]
+  (.toInstant ft))
+
+(defn instant->file-time [instant]
+  (FileTime/from instant))
+
+(defn file-time->millis [^FileTime ft]
+  (.toMillis ft))
+
+(defn millis->file-time [millis]
+  (FileTime/fromMillis millis))
+
+(defn ->file-time [x]
+  (cond (int? x) (millis->file-time x)
+        (instance? java.time.Instant x) (instant->file-time x)
+        :else x))
+
+(defn last-modified-time
+  "Returns last modified time as FileTime.."
+  ([f]
+   (last-modified-time f nil))
+  ([f {:keys [nofollow-links] :as opts}]
+   (get-attribute f "basic:lastModifiedTime" opts)))
+
+(defn set-last-modified-time
+  "Sets last modified time of f to time (millis, Instant or FileTime)."
+  ([f time]
+   (set-last-modified-time f time nil))
+  ([f time {:keys [nofollow-links] :as opts}]
+   (set-attribute f "basic:lastModifiedTime" (->file-time time) opts)))
+
+(defn creation-time
+  "Returns creation time as FileTime."
+  ([f]
+   (creation-time f nil))
+  ([f {:keys [nofollow-links] :as opts}]
+   (get-attribute f "basic:creationTime" opts)))
+
+(defn set-creation-time
+  "Sets creation time of f to time (millis, Instant or FileTime)."
+  ([f time]
+   (set-creation-time f time nil))
+  ([f time {:keys [nofollow-links] :as opts}]
+   (set-attribute f "basic:creationTime" (->file-time time) opts)))
