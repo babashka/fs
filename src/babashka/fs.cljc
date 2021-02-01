@@ -192,7 +192,7 @@
 
 #?(:bb nil :clj
    (defn list-dir
-     "Returns all paths in dir in vector. Uses directory-stream."
+     "Returns all paths in dir as vector. Uses directory-stream."
      ([dir]
       (with-open [stream (directory-stream dir)]
         (vec stream)))
