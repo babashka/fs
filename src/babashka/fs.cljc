@@ -383,9 +383,7 @@
   (Files/createDirectories (as-path path) (into-array FileAttribute [])))
 
 (defn move
-  "Move or rename a file to a target file. Optional
-  [copy-options](http://docs.oracle.com/javase/7/docs/api/java/nio/file/CopyOption.html)
-  may be provided."
+  "Move or rename a file to a target file via Files/move."
   ([source target] (move source target nil))
   ([source target {:keys [:replace-existing
                           :copy-attributes
