@@ -430,6 +430,9 @@
 
 (defn read-all-bytes
   "Returns contents of file as byte array."
-  {:added "3.0"}
   [f]
   (Files/readAllBytes (as-path f)))
+
+(defn read-all-lines
+  [f]
+  (vec (Files/readAllLines (as-path f))))
