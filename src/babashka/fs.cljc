@@ -427,3 +427,9 @@
   "Returns true if this is the same file as other."
   [this other]
   (Files/isSameFile (as-path this) (as-path other)))
+
+(defn read-all-bytes
+  "Returns contents of file as byte array."
+  {:added "3.0"}
+  [f]
+  (Files/readAllBytes (as-path f)))
