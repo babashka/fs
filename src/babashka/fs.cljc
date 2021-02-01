@@ -422,3 +422,8 @@
   ([f] (posix-file-permissions f nil))
   ([f {:keys [:nofollow-links]}]
    (Files/getPosixFilePermissions (as-path f) (->link-opts nofollow-links))))
+
+(defn same-file?
+  "Returns true if this is the same file as other."
+  [this other]
+  (Files/isSameFile (as-path this) (as-path other)))
