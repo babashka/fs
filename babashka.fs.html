@@ -34,7 +34,7 @@ Options:
 - :hidden: match hidden files.
 - :follow-links: follow symlinks.</pre></div></div><div class="public anchor" id="var-hidden.3F"><h3>hidden?</h3><div class="usage"><code>(hidden? f)</code></div><div class="doc"><pre class="plaintext">Returns true if f is hidden.
 </pre></div></div><div class="public anchor" id="var-last-modified"><h3>last-modified</h3><div class="usage"><code>(last-modified f)</code></div><div class="doc"><pre class="plaintext">Returns last-modified timestamp via File#lastModified.
-</pre></div></div><div class="public anchor" id="var-list-dir"><h3>list-dir</h3><div class="usage"><code>(list-dir dir)</code><code>(list-dir dir glob-or-accept)</code></div><div class="doc"><pre class="plaintext">Returns all paths in dir in vector. Uses directory-stream.
+</pre></div></div><div class="public anchor" id="var-list-dir"><h3>list-dir</h3><div class="usage"><code>(list-dir dir)</code><code>(list-dir dir glob-or-accept)</code></div><div class="doc"><pre class="plaintext">Returns all paths in dir as vector. Uses directory-stream.
 </pre></div></div><div class="public anchor" id="var-move"><h3>move</h3><div class="usage"><code>(move source target)</code><code>(move source target {:keys [:replace-existing :copy-attributes :nofollow-links]})</code></div><div class="doc"><pre class="plaintext">Move or rename a file to a target file. Optional
 [copy-options](<a href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/CopyOption.html)">http://docs.oracle.com/javase/7/docs/api/java/nio/file/CopyOption.html)</a>
 may be provided.</pre></div></div><div class="public anchor" id="var-normalize"><h3>normalize</h3><div class="usage"><code>(normalize f)</code></div><div class="doc"><pre class="plaintext">Normalizes f via Path#normalize.
