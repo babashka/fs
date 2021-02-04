@@ -317,7 +317,7 @@
   [s]
   (PosixFilePermissions/fromString s))
 
-(defn- as-posix-file-permissions [s]
+(defn ->posix-file-permissions [s]
   (cond (string? s)
         (str->posix s)
         ;; (set? s)
@@ -325,25 +325,35 @@
         :else
         s))
 
-#_(defn as-file-attributes [posix-file-permissions]
-    (PosixFilePermissions/asFileAttribute posix-file-permissions))
+(defn posix->file-attribute [x]
+  (PosixFilePermissions/asFileAttribute x))
+
+(defn ^"[FileAttribute;" ->file-attributes [x]
+  (cond (string? x)
+        (into-array [(posix->file-attribute (str->posix x))])
+        (nil? x) (make-array FileAttribute 0)
+        :else (do (prn (type x)) x)))
+
+;; createTempDirectory(Path dir, String prefix, FileAttribute<?>... attrs)
+;; createTempDirectory(String prefix, FileAttribute<?>... attrs)
 
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories"
-
   ([]
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
-    (into-array FileAttribute [])))
+    (make-array FileAttribute 0)))
   ;; TODO: figure out if fixed args work to cover all the method overloads, else we need to use a map
-  #_([prefix]
+  ([{:keys [:prefix :path :file-attributes :file-permissions]}]
+   (if path
+     (Files/createTempDirectory
+      (as-path path)
+      (str prefix)
+      (->file-attributes (or file-permissions file-attributes)))
      (Files/createTempDirectory
       (str prefix)
-      (into-array FileAttribute [])))
-  #_([path file-attrs]
-     (Files/createTempDirectory
-      (str path)
-      (into-array FileAttribute []))))
+      (->file-attributes (or file-permissions file-attributes))
+      ))))
 
 (defn create-sym-link
   "Create a soft link from path to target."
@@ -416,7 +426,7 @@
 (defn set-posix-file-permissions
   "Sets posix file permissions on f. Accepts a string like \"rwx------\" or a set of PosixFilePermission."
   [f posix-file-permissions]
-  (Files/setPosixFilePermissions (as-path f) (as-posix-file-permissions posix-file-permissions)))
+  (Files/setPosixFilePermissions (as-path f) (->posix-file-permissions posix-file-permissions)))
 
 (defn posix-file-permissions
   "Gets f's posix file permissions. Use str->posix to view as a string."
