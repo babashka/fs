@@ -328,32 +328,47 @@
 (defn posix->file-attribute [x]
   (PosixFilePermissions/asFileAttribute x))
 
-(defn ^"[FileAttribute;" ->file-attributes [x]
-  (cond (string? x)
-        (into-array [(posix->file-attribute (str->posix x))])
-        (nil? x) (make-array FileAttribute 0)
-        :else (do (prn (type x)) x)))
-
-;; createTempDirectory(Path dir, String prefix, FileAttribute<?>... attrs)
-;; createTempDirectory(String prefix, FileAttribute<?>... attrs)
-
 (defn create-temp-dir
-  "Creates a temporary directory using Files#createDirectories"
+  "Creates a temporary directory using Files#createDirectories.
+
+  (create-temp-dir): creates temp dir with random prefix.
+
+  (create-temp-dir prefix): creates temp dir with prefix.
+
+  (create-temp-dir path prefix): create temp dir in path with prefix. If prefix is nil, a random one is generated.
+
+  (create-temp-dir path prefix {:keys [:posix-file-permissions]}):
+
+  create temp dir in path with prefix. If prefix is nil, a random one
+  is generated. If path is nil, the directory is created as if called with (create-temp-dir prefix). The :posix-file-permissions option is a string like \"rwx------\"."
   ([]
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
     (make-array FileAttribute 0)))
-  ;; TODO: figure out if fixed args work to cover all the method overloads, else we need to use a map
-  ([{:keys [:prefix :path :file-attributes :file-permissions]}]
-   (if path
-     (Files/createTempDirectory
-      (as-path path)
-      (str prefix)
-      (->file-attributes (or file-permissions file-attributes)))
-     (Files/createTempDirectory
-      (str prefix)
-      (->file-attributes (or file-permissions file-attributes))
-      ))))
+  ([prefix]
+   (Files/createTempDirectory
+    prefix
+    (make-array FileAttribute 0)))
+  ([path prefix]
+   (Files/createTempDirectory
+    (as-path path)
+    (or prefix (str (java.util.UUID/randomUUID)))
+    (make-array FileAttribute 0)))
+  ([path prefix {:keys [:posix-file-permissions]}]
+   (let [attrs (if posix-file-permissions
+                 (-> posix-file-permissions
+                     (->posix-file-permissions)
+                     (posix->file-attribute)
+                     vector)
+                 [])]
+     (if path
+       (Files/createTempDirectory
+        (as-path path)
+        (or prefix (str (java.util.UUID/randomUUID)))
+        (into FileAttribute attrs))
+       (Files/createTempDirectory
+        (or prefix (str (java.util.UUID/randomUUID)))
+        ^"[LFileAttribute;" (into FileAttribute attrs))))))
 
 (defn create-sym-link
   "Create a soft link from path to target."
