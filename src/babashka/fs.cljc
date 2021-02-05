@@ -126,7 +126,7 @@
   (.relativize (as-path this) (as-path other)))
 
 (defn file-name
-  "Returns farthest element from the root as string, if any."
+  "Returns farthest component from the root as string, if any."
   [x]
   (.getName (as-file x)))
 
