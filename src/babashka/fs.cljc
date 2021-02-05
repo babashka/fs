@@ -330,14 +330,15 @@
 (defn- posix->file-attribute [x]
   (PosixFilePermissions/asFileAttribute x))
 
-(defn- posix->attrs [posix-file-permissions]
+(defn- posix->attrs
+  ^"[Ljava.nio.file.attribute.FileAttribute;" [posix-file-permissions]
   (let [attrs (if posix-file-permissions
                 (-> posix-file-permissions
                     (->posix-file-permissions)
                     (posix->file-attribute)
                     vector)
                 [])]
-    ^"[LFileAttribute;" (into FileAttribute attrs)))
+     (into-array FileAttribute attrs)))
 
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories.
