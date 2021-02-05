@@ -330,6 +330,15 @@
 (defn- posix->file-attribute [x]
   (PosixFilePermissions/asFileAttribute x))
 
+(defn- posix->attrs [posix-file-permissions]
+  (let [attrs (if posix-file-permissions
+                (-> posix-file-permissions
+                    (->posix-file-permissions)
+                    (posix->file-attribute)
+                    vector)
+                [])]
+    ^"[LFileAttribute;" (into FileAttribute attrs)))
+
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories.
 
@@ -343,12 +352,7 @@
     (str (java.util.UUID/randomUUID))
     (make-array FileAttribute 0)))
   ([{:keys [:prefix :path :posix-file-permissions]}]
-   (let [attrs (if posix-file-permissions
-                 (-> posix-file-permissions
-                     (->posix-file-permissions)
-                     (posix->file-attribute)
-                     vector)
-                 [])
+   (let [attrs (posix->attrs posix-file-permissions)
          prefix (or prefix (str (java.util.UUID/randomUUID)))]
      (if path
        (Files/createTempDirectory
@@ -357,7 +361,7 @@
         (into FileAttribute attrs))
        (Files/createTempDirectory
         prefix
-        ^"[LFileAttribute;" (into FileAttribute attrs))))))
+        attrs)))))
 
 (defn create-sym-link
   "Create a soft link from path to target."
@@ -388,14 +392,18 @@
         (delete root)))))
 
 (defn create-dir
-  "Creates directories using Files#createDirectory"
-  [path]
-  (Files/createDirectory (as-path path) (into-array FileAttribute [])))
+  "Creates dir using Files#createDirectory. Does not create parents."
+  ([path]
+   (create-dir path nil))
+  ([path {:keys [:posix-file-permissions]}]
+   (let [attrs (posix->attrs posix-file-permissions)]
+     (Files/createDirectory (as-path path) attrs))))
 
 (defn create-dirs
-  "Creates directories using Files#createDirectories"
-  [path]
-  (Files/createDirectories (as-path path) (into-array FileAttribute [])))
+  "Creates directories using Files#createDirectories. Also creates parents if needed."
+  ([path] (create-dirs path nil))
+  ([path {:keys [:posix-file-permissions]}]
+   (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
 
 (defn move
   "Move or rename a file to a target file via Files/move."
