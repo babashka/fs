@@ -21,7 +21,7 @@ not guarantee any compatibility with the `clj-commons` library.
 ## API docs
 
 API docs are available at [babashka.org/fs](https://babashka.org/fs).  Most
-functions take a string, `java.io.File` or `java.nio.file.Path` as input as
+functions take a string, `java.io.File` or `java.nio.file.Path` as input and
 return a `java.nio.file.Path`. Coercion into a `File` or `Path` can be done
 using `fs/file` and `fs/path`.
 
