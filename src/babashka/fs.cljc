@@ -1,6 +1,7 @@
 (ns babashka.fs
   (:require [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.walk :as walk])
   (:import [java.io File]
            [java.nio.file.attribute FileAttribute FileTime PosixFilePermissions]
            [java.nio.file CopyOption
@@ -260,11 +261,12 @@
          results)))))
 
 (defn- ->copy-opts ^"[Ljava.nio.file.CopyOption;"
-  [replace-existing copy-attributes nofollow-links]
+  [replace-existing copy-attributes atomic-move nofollow-links]
   (into-array CopyOption
               (cond-> []
                 replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
                 copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
+                atomic-move      (conj StandardCopyOption/ATOMIC_MOVE)
                 nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))))
 
 (defn copy
@@ -277,7 +279,7 @@
   ([src dest {:keys [:replace-existing
                      :copy-attributes
                      :nofollow-links]}]
-   (let [copy-options (->copy-opts replace-existing copy-attributes nofollow-links)]
+   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)]
      (Files/copy (as-path src) (as-path dest)
                  copy-options))))
 
@@ -287,7 +289,7 @@
   ([src dest {:keys [:replace-existing
                      :copy-attributes
                      :nofollow-links]}]
-   (let [copy-options (->copy-opts replace-existing copy-attributes nofollow-links)
+   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
          link-options (->link-opts nofollow-links)
          from (real-path src {:nofollow-links nofollow-links})
          to (real-path dest {:nofollow-links nofollow-links})]
@@ -400,21 +402,16 @@
   "Move or rename a file to a target file via Files/move."
   ([source target] (move source target nil))
   ([source target {:keys [:replace-existing
-                          :copy-attributes
+                          :atomic-move
                           :nofollow-links]}]
    (Files/move (as-path source)
                (as-path target)
-               (->copy-opts replace-existing copy-attributes nofollow-links))))
+               (->copy-opts replace-existing false atomic-move nofollow-links))))
 
 (defn parent
   "Returns parent of f, is it exists."
   [f]
   (.getParent (as-path f)))
-
-#_(defn last-modified
-    "Returns last-modified timestamp via File#lastModified."
-    [f]
-    (.lastModified (as-file f)))
 
 (defn size
   [f]
@@ -453,18 +450,34 @@
 
 ;;;; Attributes, from github.com/nate/fs
 
-(defn- get-attribute
+(defn get-attribute
   ([path attribute]
-   (get-attribute path attribute {}))
-  ([path attribute {:keys [nofollow-links]}]
+   (get-attribute path attribute nil))
+  ([path attribute {:keys [:nofollow-links]}]
    (Files/getAttribute (as-path path)
                        attribute
                        (->link-opts {:nofollow-links nofollow-links}))))
 
-(defn- set-attribute
+(defn- keyize
+  [key-fn m]
+  (let [f (fn [[k v]] (if (string? k) [(key-fn k) v] [k v]))]
+    (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
+
+(defn read-attributes
+  "Reads attributes via Files/readAttributes. Keywordizes string keys into keywords. This can be changed by passing a :key-fn in the options map."
+  ([path attributes]
+   (read-attributes path attributes nil))
+  ([path ^String attributes {:keys [:nofollow-links :key-fn]}]
+   (->>  (Files/readAttributes (as-path path)
+                               attributes
+                               (->link-opts {:nofollow-links nofollow-links}))
+         (into {})
+         (keyize (or key-fn keyword)))))
+
+(defn set-attribute
   ([path attribute value]
-   (set-attribute path attribute value {}))
-  ([path attribute value {:keys [nofollow-links]}]
+   (set-attribute path attribute value nil))
+  ([path attribute value {:keys [:nofollow-links]}]
    (Files/setAttribute (as-path path)
                        attribute
                        value
@@ -488,7 +501,7 @@
         :else x))
 
 (defn last-modified-time
-  "Returns last modified time as FileTime.."
+  "Returns last modified time as FileTime."
   ([f]
    (last-modified-time f nil))
   ([f {:keys [nofollow-links] :as opts}]
