@@ -8,8 +8,8 @@ Options:
 - :replace-existing
 - :copy-attributes
 - :nofollow-links.</pre></div></div><div class="public anchor" id="var-copy-tree"><h3>copy-tree</h3><div class="usage"><code>(copy-tree src dest)</code><code>(copy-tree src dest {:keys [:replace-existing :copy-attributes :nofollow-links]})</code></div><div class="doc"><pre class="plaintext">Copies entire file tree. Supports same options as copy.
-</pre></div></div><div class="public anchor" id="var-create-dir"><h3>create-dir</h3><div class="usage"><code>(create-dir path)</code></div><div class="doc"><pre class="plaintext">Creates directories using Files#createDirectory
-</pre></div></div><div class="public anchor" id="var-create-dirs"><h3>create-dirs</h3><div class="usage"><code>(create-dirs path)</code></div><div class="doc"><pre class="plaintext">Creates directories using Files#createDirectories
+</pre></div></div><div class="public anchor" id="var-create-dir"><h3>create-dir</h3><div class="usage"><code>(create-dir path)</code><code>(create-dir path {:keys [:posix-file-permissions]})</code></div><div class="doc"><pre class="plaintext">Creates dir using Files#createDirectory. Does not create parents.
+</pre></div></div><div class="public anchor" id="var-create-dirs"><h3>create-dirs</h3><div class="usage"><code>(create-dirs path)</code><code>(create-dirs path {:keys [:posix-file-permissions]})</code></div><div class="doc"><pre class="plaintext">Creates directories using Files#createDirectories. Also creates parents if needed.
 </pre></div></div><div class="public anchor" id="var-create-sym-link"><h3>create-sym-link</h3><div class="usage"><code>(create-sym-link path target)</code></div><div class="doc"><pre class="plaintext">Create a soft link from path to target.
 </pre></div></div><div class="public anchor" id="var-create-temp-dir"><h3>create-temp-dir</h3><div class="usage"><code>(create-temp-dir)</code><code>(create-temp-dir {:keys [:prefix :path :posix-file-permissions]})</code></div><div class="doc"><pre class="plaintext">Creates a temporary directory using Files#createDirectories.
 
