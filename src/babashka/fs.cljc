@@ -482,7 +482,7 @@
 (defn millis->file-time [millis]
   (FileTime/fromMillis millis))
 
-(defn ->file-time [x]
+(defn- ->file-time [x]
   (cond (int? x) (millis->file-time x)
         (instance? java.time.Instant x) (instant->file-time x)
         :else x))
