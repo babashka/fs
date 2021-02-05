@@ -307,17 +307,18 @@
                                                        copy-options)
                                            :continue))}))))
 
-(defn posix->str
+#_:clj-kondo/ignore
+(defn- posix->str
   "Converts a set of PosixFilePermission to a string."
   [p]
   (PosixFilePermissions/toString p))
 
-(defn str->posix
+(defn- str->posix
   "Converts a string to a set of PosixFilePermission."
   [s]
   (PosixFilePermissions/fromString s))
 
-(defn ->posix-file-permissions [s]
+(defn- ->posix-file-permissions [s]
   (cond (string? s)
         (str->posix s)
         ;; (set? s)
@@ -325,49 +326,36 @@
         :else
         s))
 
-(defn posix->file-attribute [x]
+(defn- posix->file-attribute [x]
   (PosixFilePermissions/asFileAttribute x))
 
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories.
 
   (create-temp-dir): creates temp dir with random prefix.
+  (create-temp-dir {:keys [:prefix :path :posix-file-permissions]}):
 
-  (create-temp-dir prefix): creates temp dir with prefix.
-
-  (create-temp-dir path prefix): create temp dir in path with prefix. If prefix is nil, a random one is generated.
-
-  (create-temp-dir path prefix {:keys [:posix-file-permissions]}):
-
-  create temp dir in path with prefix. If prefix is nil, a random one
-  is generated. If path is nil, the directory is created as if called with (create-temp-dir prefix). The :posix-file-permissions option is a string like \"rwx------\"."
+  create temp dir in path with prefix. If prefix is not provided, a random one
+  is generated. If path is not provided, the directory is created as if called with (create-temp-dir). The :posix-file-permissions option is a string like \"rwx------\"."
   ([]
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
     (make-array FileAttribute 0)))
-  ([prefix]
-   (Files/createTempDirectory
-    prefix
-    (make-array FileAttribute 0)))
-  ([path prefix]
-   (Files/createTempDirectory
-    (as-path path)
-    (or prefix (str (java.util.UUID/randomUUID)))
-    (make-array FileAttribute 0)))
-  ([path prefix {:keys [:posix-file-permissions]}]
+  ([{:keys [:prefix :path :posix-file-permissions]}]
    (let [attrs (if posix-file-permissions
                  (-> posix-file-permissions
                      (->posix-file-permissions)
                      (posix->file-attribute)
                      vector)
-                 [])]
+                 [])
+         prefix (or prefix (str (java.util.UUID/randomUUID)))]
      (if path
        (Files/createTempDirectory
         (as-path path)
-        (or prefix (str (java.util.UUID/randomUUID)))
+        prefix
         (into FileAttribute attrs))
        (Files/createTempDirectory
-        (or prefix (str (java.util.UUID/randomUUID)))
+        prefix
         ^"[LFileAttribute;" (into FileAttribute attrs))))))
 
 (defn create-sym-link
@@ -424,9 +412,9 @@
   (.getParent (as-path f)))
 
 #_(defn last-modified
-  "Returns last-modified timestamp via File#lastModified."
-  [f]
-  (.lastModified (as-file f)))
+    "Returns last-modified timestamp via File#lastModified."
+    [f]
+    (.lastModified (as-file f)))
 
 (defn size
   [f]
