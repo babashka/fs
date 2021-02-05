@@ -406,6 +406,14 @@
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
 
+(defn create-file
+  "Creates empty file using Files#createFile."
+  ([path]
+   (create-file path nil))
+  ([path {:keys [:posix-file-permissions]}]
+   (let [attrs (posix->attrs posix-file-permissions)]
+     (Files/createFile (as-path path) attrs))))
+
 (defn move
   "Move or rename a file to a target file via Files/move."
   ([source target] (move source target nil))

@@ -97,3 +97,9 @@
     (is (not (fs/exists? f)))
     (is (fs/exists? f2))
     (is (= "foo" (str/trim (slurp f2))))))
+
+(deftest foo
+  (let [dir (fs/create-temp-dir)
+        tmp-file (fs/create-file (fs/path dir "tmp-file"))]
+    (is (= 100 (-> (fs/set-attribute tmp-file "basic:lastModifiedTime" (fs/millis->file-time 100))
+                   (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis)))))
