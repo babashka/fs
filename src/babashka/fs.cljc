@@ -309,13 +309,12 @@
                                                        copy-options)
                                            :continue))}))))
 
-#_:clj-kondo/ignore
-(defn- posix->str
+(defn posix->str
   "Converts a set of PosixFilePermission to a string."
   [p]
   (PosixFilePermissions/toString p))
 
-(defn- str->posix
+(defn str->posix
   "Converts a string to a set of PosixFilePermission."
   [s]
   (PosixFilePermissions/fromString s))
@@ -429,7 +428,7 @@
   (Files/setPosixFilePermissions (as-path f) (->posix-file-permissions posix-file-permissions)))
 
 (defn posix-file-permissions
-  "Gets f's posix file permissions. Use str->posix to view as a string."
+  "Gets f's posix file permissions. Use posix->str to view as a string."
   ([f] (posix-file-permissions f nil))
   ([f {:keys [:nofollow-links]}]
    (Files/getPosixFilePermissions (as-path f) (->link-opts nofollow-links))))
@@ -486,13 +485,19 @@
 (defn file-time->instant [^FileTime ft]
   (.toInstant ft))
 
-(defn instant->file-time [instant]
+(defn instant->file-time
+  "Converts a java.time.Instant to a java.nio.file.attribute.FileTime."
+  [instant]
   (FileTime/from instant))
 
-(defn file-time->millis [^FileTime ft]
+(defn file-time->millis
+  "Converts a java.nio.file.attribute.FileTime to a java.time.Instant."
+  [^FileTime ft]
   (.toMillis ft))
 
-(defn millis->file-time [millis]
+(defn millis->file-time
+  "Converts millis (long) to a java.nio.file.attribute.FileTime."
+  [millis]
   (FileTime/fromMillis millis))
 
 (defn- ->file-time [x]
@@ -501,14 +506,14 @@
         :else x))
 
 (defn last-modified-time
-  "Returns last modified time as FileTime."
+  "Returns last modified time as a java.nio.file.attribute.FileTime."
   ([f]
    (last-modified-time f nil))
   ([f {:keys [nofollow-links] :as opts}]
    (get-attribute f "basic:lastModifiedTime" opts)))
 
 (defn set-last-modified-time
-  "Sets last modified time of f to time (millis, Instant or FileTime)."
+  "Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime)."
   ([f time]
    (set-last-modified-time f time nil))
   ([f time {:keys [nofollow-links] :as opts}]
@@ -522,7 +527,7 @@
    (get-attribute f "basic:creationTime" opts)))
 
 (defn set-creation-time
-  "Sets creation time of f to time (millis, Instant or FileTime)."
+  "Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime)."
   ([f time]
    (set-creation-time f time nil))
   ([f time {:keys [nofollow-links] :as opts}]
