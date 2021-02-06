@@ -68,9 +68,10 @@
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
 
 (deftest parent-test
-  (is (-> (fs/create-dir (fs/path (fs/temp-dir) "foo"))
-          fs/parent
-          (= (fs/temp-dir)))))
+  (let [tmp-dir (temp-dir)]
+    (is (-> (fs/create-dir (fs/path tmp-dir "foo"))
+            fs/parent
+            (= tmp-dir)))))
 
 (deftest file-name-test
   (is (= "fs" (fs/file-name cwd)))
@@ -185,3 +186,13 @@
   (let [tmp-file (fs/create-file (fs/path (temp-dir) "dude"))]
     (is (true? (fs/delete-if-exists tmp-file)))
     (is (false? (fs/delete-if-exists tmp-file)))))
+
+(deftest size-test
+  (is (pos? (fs/size (fs/temp-dir)))))
+
+(deftest set-posix-test
+  (let [tmp-file (fs/create-file (fs/path (temp-dir) "foo"))]
+    (is (fs/set-posix-file-permissions tmp-file
+                                       "rwx------"))
+    (is (= "rwx------"
+           (fs/posix->str (fs/posix-file-permissions tmp-file))))))
