@@ -13,6 +13,11 @@
       (fs/delete-on-exit)))
 
 (deftest walk-test
+  (is (let [counter (volatile! 0)]
+        (fs/walk-file-tree "." {:visit-file (fn [_ _] (vswap! counter inc) :continue)})
+        (is (pos? @counter))))
+  (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] :terminate)}))
+  (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] java.nio.file.FileVisitResult/TERMINATE)}))
   (is (thrown-with-msg?
        Exception #":continue, :skip-subtree, :skip-siblings, :terminate"
        (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _])}))))
