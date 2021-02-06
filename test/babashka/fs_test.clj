@@ -196,3 +196,15 @@
                                        "rwx------"))
     (is (= "rwx------"
            (fs/posix->str (fs/posix-file-permissions tmp-file))))))
+
+(deftest same-file?
+  (fs/same-file? (fs/path ".") (fs/real-path ".")))
+
+(deftest read-all-bytes-test
+  (let [bs (fs/read-all-bytes "README.md")]
+    (is (bytes? bs))
+    (is (= (fs/size "README.md") (count bs)))))
+
+(deftest read-all-lines-test
+  (let [ls (fs/read-all-lines "README.md")]
+    (is (= ls (line-seq (io/reader (fs/file "README.md")))))))
