@@ -139,15 +139,15 @@
 (def ^:private continue (constantly :continue))
 
 (defn walk-file-tree
-  "Walks f using Files/walkFileTree. Visitor functions: pre-visit-dir,
-  post-visit-dir, visit-file, visit-file-failed. All visitor functions
+  "Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
+  :post-visit-dir, :visit-file, :visit-file-failed. All visitor functions
   default to (constantly :continue). Supported return
   values: :continue, :skip-subtree, :skip-siblings, :terminate. A
   different return value will throw."
   [f
-   {:keys [pre-visit-dir post-visit-dir
-           visit-file visit-file-failed
-           follow-links max-depth]}]
+   {:keys [:pre-visit-dir :post-visit-dir
+           :visit-file :visit-file-failed
+           :follow-links :max-depth]}]
   (let [pre-visit-dir (or pre-visit-dir continue)
         post-visit-dir (or post-visit-dir continue)
         visit-file (or visit-file continue)
@@ -389,15 +389,20 @@
   [f]
   (Files/deleteIfExists (as-path f)))
 
+(defn sym-link? [f]
+  (Files/isSymbolicLink (as-path f)))
+
 #?(:bb nil :clj
    (defn delete-tree
-     "Deletes a file tree."
+     "Deletes a file tree using walk-file-tree."
      ([root] (delete-tree root nil))
-     ([root {:keys [:nofollow-links] :as opts}]
-      (when (directory? root opts)
-        (doseq [path (list-dir root)]
-          (delete-tree path opts)))
-      (delete root))))
+     ([root {:keys [:follow-links] :as opts}]
+      (walk-file-tree root {:visit-file (fn [path _]
+                                          (when (and follow-links (sym-link? path))
+                                            (delete-tree (real-path path) opts))
+                                          (delete path) :continue)
+                            :post-visit-dir (fn [path _]
+                                              (delete path) :continue)}))))
 
 (defn create-dir
   "Creates dir using Files#createDirectory. Does not create parents."
