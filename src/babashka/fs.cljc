@@ -511,7 +511,9 @@
                        value
                        (->link-opts {:nofollow-links nofollow-links}))))
 
-(defn file-time->instant [^FileTime ft]
+(defn file-time->instant
+  "Converts a java.nio.file.attribute.FileTime to a java.time.Instant."
+  [^FileTime ft]
   (.toInstant ft))
 
 (defn instant->file-time
