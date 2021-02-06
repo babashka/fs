@@ -571,8 +571,8 @@
 (defn which
   "Locates a program in exec-path, similar to the which Unix command."
   ([program] (which program nil))
-  ([program {:keys [:all :exec-path]}]
-   (loop [paths (or exec-path (babashka.fs/exec-paths))
+  ([program {:keys [:all]}]
+   (loop [paths (babashka.fs/exec-paths)
           results []]
      (if-let [p (first paths)]
        (let [f (babashka.fs/path p program)]
