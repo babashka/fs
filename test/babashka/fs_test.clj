@@ -213,3 +213,7 @@
   (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
     (is lmt)
     (is (= lmt (fs/last-modified-time ".")))))
+
+(deftest file-time-test
+  (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
+    (is (instance? java.time.Instant (fs/file-time->instant lmt)))))
