@@ -64,6 +64,9 @@
           _ (spit (fs/file nested-dir "dude.txt") "contents")]
       (is (= 1 (count (fs/glob tmp-dir1 "foo/bar/baz/*")))))))
 
+(deftest create-dir-test
+  (is (fs/create-dir (fs/path (temp-dir) "foo"))))
+
 (deftest file-name-test
   (is (= "fs" (fs/file-name cwd)))
   (is (= "fs" (fs/file-name (fs/file cwd))))
