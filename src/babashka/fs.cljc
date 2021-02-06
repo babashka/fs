@@ -380,6 +380,8 @@
 (defn delete
   "Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks."
+  ;; We don't follow symlinks, since the link can target a dir and you should be
+  ;; using delete-tree to delete that.
   [dir]
   (Files/delete (as-path dir)))
 
