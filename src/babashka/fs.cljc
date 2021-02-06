@@ -378,7 +378,7 @@
    (make-array FileAttribute 0)))
 
 (defn delete
-  "Deletes f via Path#delete. Returns nil if the delete was succesful,
+  "Deletes f. Returns nil if the delete was successful,
   throws otherwise."
   [dir]
   (Files/delete (as-path dir)))
