@@ -46,7 +46,7 @@ On the JVM, add it to `deps.edn`.
 (require '[babashka.fs :as fs])
 ```
 
-### glob
+## Examples
 
 The `glob` function takes a root path and a pattern. The pattern is interpreted
 as documented
@@ -60,6 +60,20 @@ Output:
 
 ``` clojure
 ("project.clj" "test/babashka/fs_test.clj" "src/babashka/fs.cljc")
+```
+
+The function `exec-path` returns directories from the PATH. To search all these directories for an executable, e.g. `java`, you can combine it with `list-dirs` which searches files directly in the directories using an (optional) glob pattern:
+
+``` clojure
+user=> (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-path)) "java")))
+#object[sun.nio.fs.UnixPath 0x27b2faa6 "/Users/borkdude/.jenv/versions/11.0/bin/java"]
+```
+
+For convenience, the above use case is also supported using the `which` function:
+
+``` clojure
+user=> (fs/which "java")
+#object[sun.nio.fs.UnixPath 0x2a685eba "/Users/borkdude/.jenv/versions/11.0/bin/java"]
 ```
 
 ## Test
