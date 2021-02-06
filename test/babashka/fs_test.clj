@@ -111,8 +111,19 @@
     (is (fs/exists? f2))
     (is (= "foo" (str/trim (slurp f2))))))
 
-(deftest foo
+(deftest set-attribute-test
   (let [dir (fs/create-temp-dir)
         tmp-file (fs/create-file (fs/path dir "tmp-file"))]
     (is (= 100 (-> (fs/set-attribute tmp-file "basic:lastModifiedTime" (fs/millis->file-time 100))
                    (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis)))))
+
+
+(deftest list-dirs-and-which-test
+  (let [java (first (filter fs/executable?
+                            (fs/list-dirs
+                             (filter fs/exists?
+                                     (fs/exec-path))
+                             "java")))]
+    (is java)
+    (is (= java (fs/which "java")))
+    (is (contains? (set (fs/which "java" {:all true})) java))))

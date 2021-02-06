@@ -113,9 +113,9 @@
 ;;;; End predicates
 
 (defn components
-  "Returns all components of f."
+  "Returns a seq of all components of f."
   [f]
-  (iterator-seq (.iterator (as-path f))))
+  (seq (as-path f)))
 
 (defn absolutize
   "Converts f into an absolute path via Path#toAbsolutePath."
@@ -549,3 +549,38 @@
    (set-creation-time f time nil))
   ([f time {:keys [nofollow-links] :as opts}]
    (set-attribute f "basic:creationTime" (->file-time time) opts)))
+
+(defn list-dirs
+  "Similar to list-dir but accepts multiple roots and returns the concatenated results."
+  [dirs glob-or-accept]
+  (mapcat #(list-dir % glob-or-accept) dirs))
+
+(defn exec-path
+  "Returns executable path (using the PATH environment variable) as seq of paths."
+  ([] (exec-path nil))
+  ([_] (let [paths (.split
+                    (System/getenv "PATH")
+                    path-separator)]
+         (map path paths))))
+
+(defn which
+  "Locates a program in exec-path, similar to the which Unix command."
+  ([program] (which program nil))
+  ([program {:keys [:all :exec-path]}]
+   (loop [paths (or exec-path (babashka.fs/exec-path))
+          results []]
+     (if-let [p (first paths)]
+       (let [f (babashka.fs/path p program)]
+         (if (executable? f)
+           (if all
+             (recur (rest paths) (conj results f))
+             f)
+           (recur (rest paths) results)))
+       (if all results (first results))))))
+
+;; the above can be implemented using:
+
+;; user=> (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-path)) "java")))
+;; #object[sun.nio.fs.UnixPath 0x1dd74143 "/Users/borkdude/.jenv/versions/11.0/bin/java"]
+;; although the which impl is faster
+
