@@ -560,9 +560,9 @@
   [dirs glob-or-accept]
   (mapcat #(list-dir % glob-or-accept) dirs))
 
-(defn exec-path
-  "Returns executable path (using the PATH environment variable) as seq of paths."
-  ([] (exec-path nil))
+(defn exec-paths
+  "Returns executable paths (using the PATH environment variable)."
+  ([] (exec-paths nil))
   ([_] (let [paths (.split
                     (System/getenv "PATH")
                     path-separator)]
@@ -572,7 +572,7 @@
   "Locates a program in exec-path, similar to the which Unix command."
   ([program] (which program nil))
   ([program {:keys [:all :exec-path]}]
-   (loop [paths (or exec-path (babashka.fs/exec-path))
+   (loop [paths (or exec-path (babashka.fs/exec-paths))
           results []]
      (if-let [p (first paths)]
        (let [f (babashka.fs/path p program)]

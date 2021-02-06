@@ -149,7 +149,7 @@
   (let [java (first (filter fs/executable?
                             (fs/list-dirs
                              (filter fs/exists?
-                                     (fs/exec-path))
+                                     (fs/exec-paths))
                              "java")))]
     (is java)
     (is (= java (fs/which "java")))
