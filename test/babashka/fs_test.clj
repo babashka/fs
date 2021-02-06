@@ -216,4 +216,9 @@
 
 (deftest file-time-test
   (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
-    (is (instance? java.time.Instant (fs/file-time->instant lmt)))))
+    (is (instance? java.time.Instant (fs/file-time->instant lmt)))
+    (is (= lmt (fs/instant->file-time (fs/file-time->instant lmt)))))
+  (let [tmpdir (temp-dir)
+        _ (fs/set-last-modified-time tmpdir 0)]
+    (is (= 0 (-> (fs/last-modified-time tmpdir)
+                 (fs/file-time->millis))))))
