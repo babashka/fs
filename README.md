@@ -62,10 +62,13 @@ Output:
 ("project.clj" "test/babashka/fs_test.clj" "src/babashka/fs.cljc")
 ```
 
-The function `exec-path` returns directories from the PATH. To search all these directories for an executable, e.g. `java`, you can combine it with `list-dirs` which searches files directly in the directories using an (optional) glob pattern:
+The function `exec-paths` returns all entries from `PATH` as `Path`s. To search
+all these directories for an executable, e.g. `java`, you can combine it with
+`list-dirs` which searches files directly in the directories using an (optional)
+glob pattern:
 
 ``` clojure
-(str (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-path)) "java"))))
+(str (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-paths)) "java"))))
 "/Users/borkdude/.jenv/versions/11.0/bin/java"
 ```
 
