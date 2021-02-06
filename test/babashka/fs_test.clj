@@ -156,4 +156,8 @@
 (deftest posix-test
   (is (str/includes? (-> (fs/posix-file-permissions ".")
                          (fs/posix->str))
-                     "rwx")))
+                     "rwx"))
+  (is (= (fs/posix-file-permissions ".")
+         (-> (fs/posix-file-permissions ".")
+             (fs/posix->str)
+             (fs/str->posix)))))
