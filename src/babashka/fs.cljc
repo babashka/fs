@@ -569,7 +569,7 @@
          (map path paths))))
 
 (defn which
-  "Locates a program in exec-path, similar to the which Unix command."
+  "Locates a program in (exec-paths) similar to the which Unix command."
   ([program] (which program nil))
   ([program {:keys [:all]}]
    (loop [paths (babashka.fs/exec-paths)
