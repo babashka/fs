@@ -13,9 +13,21 @@
       (fs/delete-on-exit)))
 
 (deftest walk-test
-  (is (let [counter (volatile! 0)]
-        (fs/walk-file-tree "." {:visit-file (fn [_ _] (vswap! counter inc) :continue)})
-        (is (pos? @counter))))
+  (let [dir-counter (volatile! 0)
+        file-counter (volatile! 0)]
+    (fs/walk-file-tree "." {:post-visit-dir (fn [_ _] (vswap! dir-counter inc) :continue)
+                            :visit-file (fn [_ _] (vswap! file-counter inc) :continue)
+                            :max-depth 2})
+    (is (pos? @dir-counter))
+    (is (pos? @file-counter)))
+  (testing "max-depth 0"
+    (let [dir-counter (volatile! 0)
+          file-counter (volatile! 0)]
+      (fs/walk-file-tree "." {:post-visit-dir (fn [_ _] (vswap! dir-counter inc) :continue)
+                              :visit-file (fn [_ _] (vswap! file-counter inc) :continue)
+                              :max-depth 0})
+      (is (zero? @dir-counter))
+      (is (= 1 @file-counter))))
   (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] :terminate)}))
   (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] java.nio.file.FileVisitResult/TERMINATE)}))
   (is (thrown-with-msg?
@@ -68,6 +80,13 @@
     (is (= "foo/bar/baz" (str f)))))
 
 (deftest copy-test
+  (let [tmp-dir (temp-dir)
+        tmp-file (fs/create-file (fs/path tmp-dir "tmp-file"))
+        dest-path (fs/path tmp-dir "tmp-file-dest")]
+    (fs/copy tmp-file dest-path)
+    (is (fs/exists? dest-path))))
+
+(deftest copy-tree-test
   (let [tmp-dir (temp-dir)]
     (fs/copy-tree "." tmp-dir)
     (let [cur-dir-count (count (fs/glob "." "**" #{:hidden}))
@@ -117,7 +136,6 @@
     (is (= 100 (-> (fs/set-attribute tmp-file "basic:lastModifiedTime" (fs/millis->file-time 100))
                    (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis)))))
 
-
 (deftest list-dirs-and-which-test
   (let [java (first (filter fs/executable?
                             (fs/list-dirs
@@ -127,3 +145,10 @@
     (is java)
     (is (= java (fs/which "java")))
     (is (contains? (set (fs/which "java" {:all true})) java))))
+
+(deftest predicate-test
+  (is (boolean? (fs/readable? (fs/path "."))))
+  (is (boolean? (fs/writable? (fs/path ".")))))
+
+(deftest normalize-test
+  (is (not (str/includes? (fs/normalize (fs/absolutize ".")) "."))))
