@@ -1,22 +1,25 @@
 # babashka.fs
 
-File system utilities for babashka. This library isn't part of babashka itself
-yet, but will be. Also can be used from the JVM.
+File system utilities. This library is included in
+[babashka](https://github.com/babashka/babashka) (>= 0.2.9) but can also be used
+from the JVM.
 
 ## Status
 
-Working towards an initial release. The API might still change. Awaiting user feedback.
+This library is pretty new. Breaking changes might happen, but we try to avoid
+them if possible.
 
 ## Why
 
 Babashka is a scripting utility. It's convenient to have cross platform file
 system utilities available for scripting. The namespace `clojure.java.io`
-already offers a bunch of useful features, but isn't up to date with `java.nio`.
+already offers a bunch of useful features, but it predates java.nio. The nio
+package isn't that nice to use from Clojure and this library should help with
+that.
 
-The main inspiration for this library is
-[clj-commons/fs](https://github.com/clj-commons/fs) but some of its functions
-can be optimized by leveraging `java.nio` and others might need revision. We do
-not guarantee any compatibility with the `clj-commons` library.
+The main inspirations for this library are
+[clj-commons/fs](https://github.com/clj-commons/fs) and
+[nate/fs](https://github.com/nate/fs/blob/master/src/nate/fs.clj).
 
 ## API docs
 
@@ -84,13 +87,6 @@ For convenience, the above use case is also supported using the `which` function
 ``` clojure
 $ clojure -M:test
 ```
-
-## Prior art
-
-- [nate/fs](https://github.com/nate/fs/blob/master/src/nate/fs.clj)
-- [hara.io](https://github.com/zcaudate/hara/blob/master/src/hara/io/file.clj)
-- [clj-commons/fs](https://github.com/clj-commons/fs)
-- [Python pathlib](https://docs.python.org/3/library/pathlib.html)
 
 ## Codox
 
