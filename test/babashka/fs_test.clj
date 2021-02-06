@@ -172,3 +172,8 @@
          (-> (fs/create-temp-dir {:posix-file-permissions "rwx------"})
              (fs/posix-file-permissions)
              (fs/posix->str)))))
+
+(deftest delete-if-exists-test
+  (let [tmp-file (fs/create-file (fs/path (temp-dir) "dude"))]
+    (is (true? (fs/delete-if-exists tmp-file)))
+    (is (false? (fs/delete-if-exists tmp-file)))))
