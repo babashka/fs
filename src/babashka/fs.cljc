@@ -573,11 +573,11 @@
 
 (defn exec-paths
   "Returns executable paths (using the PATH environment variable)."
-  ([] (exec-paths nil))
-  ([_] (let [paths (.split
-                    (System/getenv "PATH")
-                    path-separator)]
-         (map path paths))))
+  []
+  (let [paths (.split
+               (System/getenv "PATH")
+               path-separator)]
+    (map path paths)))
 
 (defn which
   "Locates a program in (exec-paths) similar to the which Unix command.
