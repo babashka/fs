@@ -208,3 +208,8 @@
 (deftest read-all-lines-test
   (let [ls (fs/read-all-lines "README.md")]
     (is (= ls (line-seq (io/reader (fs/file "README.md")))))))
+
+(deftest get-attribute-test
+  (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
+    (is lmt)
+    (is (= lmt (fs/last-modified-time ".")))))
