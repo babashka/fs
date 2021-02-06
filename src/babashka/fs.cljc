@@ -569,7 +569,8 @@
          (map path paths))))
 
 (defn which
-  "Locates a program in (exec-paths) similar to the which Unix command."
+  "Locates a program in (exec-paths) similar to the which Unix command.
+  The :all option will return a vec of results instead of a single result."
   ([program] (which program nil))
   ([program {:keys [:all]}]
    (loop [paths (babashka.fs/exec-paths)
