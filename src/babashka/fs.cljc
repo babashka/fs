@@ -389,8 +389,8 @@
      ([root {:keys [:nofollow-links] :as opts}]
       (when (directory? root opts)
         (doseq [path (list-dir root)]
-          (delete-tree path opts))
-        (delete root)))))
+          (delete-tree path opts)))
+      (delete root))))
 
 (defn create-dir
   "Creates dir using Files#createDirectory. Does not create parents."

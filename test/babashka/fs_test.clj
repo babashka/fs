@@ -83,8 +83,11 @@
 (deftest delete-tree-test
   (let [tmp-dir1 (temp-dir)
         nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
+        tmp-file (fs/file nested-dir "tmp-file")
         _ (fs/create-dirs nested-dir)]
     (is (fs/exists? nested-dir))
+    (fs/create-file (fs/file nested-dir "tmp-file"))
+    (is (fs/exists? tmp-file))
     (fs/delete-tree nested-dir)
     (is (not (fs/exists? nested-dir)))))
 
