@@ -67,6 +67,11 @@
 (deftest create-dir-test
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
 
+(deftest parent-test
+  (is (-> (fs/create-dir (fs/path (fs/temp-dir) "foo"))
+          fs/parent
+          (= (fs/temp-dir)))))
+
 (deftest file-name-test
   (is (= "fs" (fs/file-name cwd)))
   (is (= "fs" (fs/file-name (fs/file cwd))))
