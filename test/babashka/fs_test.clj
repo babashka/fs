@@ -152,3 +152,8 @@
 
 (deftest normalize-test
   (is (not (str/includes? (fs/normalize (fs/absolutize ".")) "."))))
+
+(deftest posix-test
+  (is (str/includes? (-> (fs/posix-file-permissions ".")
+                         (fs/posix->str))
+                     "rwx")))
