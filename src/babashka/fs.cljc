@@ -175,7 +175,7 @@
                                 file-visit-result))))))
 
 #?(:bb nil :clj
-   (defn directory-stream
+   (defn- directory-stream
      "Returns a stream of all files in dir. The caller of this function is
   responsible for closing the stream, e.g. using with-open. The stream
   can consumed as a seq by calling seq on it. Accepts optional glob or
@@ -193,7 +193,7 @@
 
 #?(:bb nil :clj
    (defn list-dir
-     "Returns all paths in dir as vector. Uses directory-stream."
+     "Returns all paths in dir as vector. For descending into subdirectories use glob."
      ([dir]
       (with-open [stream (directory-stream dir)]
         (vec stream)))
