@@ -384,8 +384,8 @@
   (Files/delete (as-path dir)))
 
 (defn delete-if-exists
-  "Deletes f via Path#deleteIfExists if it exists. Returns true if the
-  delete was succesful, false if f didn't exist."
+  "Deletes f if it exists. Returns true if the delete was successful,
+  false if f didn't exist."
   [f]
   (Files/deleteIfExists (as-path f)))
 
