@@ -221,4 +221,9 @@
   (let [tmpdir (temp-dir)
         _ (fs/set-last-modified-time tmpdir 0)]
     (is (= 0 (-> (fs/last-modified-time tmpdir)
-                 (fs/file-time->millis))))))
+                 (fs/file-time->millis)))))
+  (let [tmpdir (temp-dir)
+        _ (fs/set-creation-time tmpdir 0)]
+    ;; macOS doesn't allow you to alter the creation time
+    (is (is (number? (-> (fs/creation-time tmpdir)
+                         (fs/file-time->millis)))))))
