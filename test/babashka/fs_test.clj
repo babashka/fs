@@ -153,6 +153,13 @@
 (deftest normalize-test
   (is (not (str/includes? (fs/normalize (fs/absolutize ".")) "."))))
 
+(deftest temp-dir-test
+  (let [tmp-dir-in-temp-dir (fs/create-temp-dir {:path (fs/temp-dir)})]
+    (is (fs/starts-with? tmp-dir-in-temp-dir (fs/temp-dir)))))
+
+(deftest ends-with?-test
+  (is (fs/ends-with? (fs/temp-dir) (last (fs/temp-dir)))))
+
 (deftest posix-test
   (is (str/includes? (-> (fs/posix-file-permissions ".")
                          (fs/posix->str))
@@ -160,4 +167,8 @@
   (is (= (fs/posix-file-permissions ".")
          (-> (fs/posix-file-permissions ".")
              (fs/posix->str)
-             (fs/str->posix)))))
+             (fs/str->posix))))
+  (is (= "rwx------"
+         (-> (fs/create-temp-dir {:posix-file-permissions "rwx------"})
+             (fs/posix-file-permissions)
+             (fs/posix->str)))))

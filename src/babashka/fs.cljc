@@ -340,6 +340,11 @@
                 [])]
      (into-array FileAttribute attrs)))
 
+(defn temp-dir
+  "Returns java.io.tmpdir property as path."
+  []
+  (as-path (System/getProperty "java.io.tmpdir")))
+
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories.
 
@@ -359,7 +364,7 @@
        (Files/createTempDirectory
         (as-path path)
         prefix
-        (into FileAttribute attrs))
+        attrs)
        (Files/createTempDirectory
         prefix
         attrs)))))
@@ -584,3 +589,12 @@
 ;; #object[sun.nio.fs.UnixPath 0x1dd74143 "/Users/borkdude/.jenv/versions/11.0/bin/java"]
 ;; although the which impl is faster
 
+(defn starts-with?
+  "Returns true if path this starts with path other."
+  [this other]
+  (.startsWith (as-path this) (as-path other)))
+
+(defn ends-with?
+  "Returns true if path this ends with path other."
+  [this other]
+  (.endsWith (as-path this) (as-path other)))
