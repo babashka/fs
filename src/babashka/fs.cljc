@@ -379,13 +379,13 @@
 
 (defn delete
   "Deletes f. Returns nil if the delete was successful,
-  throws otherwise."
+  throws otherwise. Does not follow symlinks."
   [dir]
   (Files/delete (as-path dir)))
 
 (defn delete-if-exists
   "Deletes f if it exists. Returns true if the delete was successful,
-  false if f didn't exist."
+  false if f didn't exist. Does not follow symlinks."
   [f]
   (Files/deleteIfExists (as-path f)))
 
