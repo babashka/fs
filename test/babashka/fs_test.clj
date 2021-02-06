@@ -12,6 +12,11 @@
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
 
+(deftest walk-test
+  (is (thrown-with-msg?
+       Exception #":continue, :skip-subtree, :skip-siblings, :terminate"
+       (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _])}))))
+
 (deftest glob-test
   (is (= '("README.md") (map str
                              (fs/glob "." "README.md"))))
