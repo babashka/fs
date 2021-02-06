@@ -520,12 +520,12 @@
   (FileTime/from instant))
 
 (defn file-time->millis
-  "Converts a java.nio.file.attribute.FileTime to a java.time.Instant."
+  "Converts a java.nio.file.attribute.FileTime to epoch millis (long)."
   [^FileTime ft]
   (.toMillis ft))
 
 (defn millis->file-time
-  "Converts millis (long) to a java.nio.file.attribute.FileTime."
+  "Converts epoch millis (long) to a java.nio.file.attribute.FileTime."
   [millis]
   (FileTime/fromMillis millis))
 
