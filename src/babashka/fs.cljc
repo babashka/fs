@@ -392,17 +392,17 @@
 (defn sym-link? [f]
   (Files/isSymbolicLink (as-path f)))
 
-#?(:bb nil :clj
-   (defn delete-tree
-     "Deletes a file tree using walk-file-tree."
-     ([root] (delete-tree root nil))
-     ([root {:keys [:follow-links] :as opts}]
-      (walk-file-tree root {:visit-file (fn [path _]
-                                          (when (and follow-links (sym-link? path))
-                                            (delete-tree (real-path path) opts))
-                                          (delete path) :continue)
-                            :post-visit-dir (fn [path _]
-                                              (delete path) :continue)}))))
+(defn delete-tree
+  "Deletes a file tree using walk-file-tree. If :follow-links is true
+  then both symlinks and their targets will be deleted."
+  ([root] (delete-tree root nil))
+  ([root {:keys [:follow-links] :as opts}]
+   (walk-file-tree root {:visit-file (fn [path _]
+                                       (when (and follow-links (sym-link? path))
+                                         (delete-tree (real-path path) opts))
+                                       (delete path) :continue)
+                         :post-visit-dir (fn [path _]
+                                           (delete path) :continue)})))
 
 (defn create-dir
   "Creates dir using Files#createDirectory. Does not create parents."
