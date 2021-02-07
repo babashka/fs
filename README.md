@@ -20,6 +20,7 @@ package isn't that nice to use from Clojure and this library should help with
 that.
 
 The main inspirations for this library are
+[clojure.java.io](https://clojure.github.io/clojure/clojure.java.io-api.html),
 [clj-commons/fs](https://github.com/clj-commons/fs) and
 [nate/fs](https://github.com/nate/fs/blob/master/src/nate/fs.clj).
 
