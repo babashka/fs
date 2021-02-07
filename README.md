@@ -32,23 +32,9 @@ using `fs/file` and `fs/path`.
 
 ## Usage
 
-Until this library is included in babashka, you can use this library as a git lib:
-
-``` clojure
-#!/usr/bin/env bb
-
-(require '[babashka.deps :as deps])
-(deps/add-deps '{:deps {babashka/fs
-                        {:git/url "https://github.com/babashka/fs"
-                         :sha "b008b2d6ea64e49bf76066b7f057ae4638534e35"}}})
-```
-
-or use any later SHA.
-
-On the JVM, add it to `deps.edn`.
-
 ``` clojure
 (require '[babashka.fs :as fs])
+(fs/directory? ".") ;;=> true
 ```
 
 ## Examples
