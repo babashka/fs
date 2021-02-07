@@ -571,13 +571,16 @@
   [dirs glob-or-accept]
   (mapcat #(list-dir % glob-or-accept) dirs))
 
+(defn split-paths
+  "Splits a string joined by the OS-specific path-seperator into a vec of paths."
+  [^String joined-paths]
+  (mapv path (.split joined-paths path-separator)))
+
 (defn exec-paths
-  "Returns executable paths (using the PATH environment variable)."
+  "Returns executable paths (using the PATH environment variable). Same
+  as (split-paths (System/getenv \"PATH\"))."
   []
-  (let [paths (.split
-               (System/getenv "PATH")
-               path-separator)]
-    (map path paths)))
+  (split-paths (System/getenv "PATH")))
 
 (defn which
   "Locates a program in (exec-paths) similar to the which Unix command.
