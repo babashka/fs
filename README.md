@@ -1,5 +1,7 @@
 # babashka.fs
 
+[![Clojars Project](https://img.shields.io/clojars/v/babashka/fs.svg)](https://clojars.org/babashka/fs)
+
 File system utilities. This library is included in
 [babashka](https://github.com/babashka/babashka) (>= 0.2.9) but can also be used
 from the JVM.
