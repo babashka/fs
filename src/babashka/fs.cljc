@@ -395,7 +395,7 @@
   (Files/isSymbolicLink (as-path f)))
 
 (defn delete-tree
-  "Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow links."
+  "Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow symlinks."
   [root]
   (walk-file-tree root
                   {:visit-file (fn [path _]
