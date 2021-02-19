@@ -43,12 +43,12 @@
                    (set (map str
                              (fs/glob "." "**.{clj,cljc}")))))
   (testing "glob also matches directories and doesn't return the root directory"
-    (is (= '("test-resources/foo/1" "test-resources/foo/foo")
-           (map str
-                (fs/glob "test-resources/foo" "**"))))
-    (is (= '("test-resources/foo/1" "test-resources/foo/foo")
-           (map str
-                (fs/glob "test-resources" "foo/**")))))
+    (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
+                     (set (map str
+                               (fs/glob "test-resources/foo" "**")))))
+    (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
+                     (set (map str
+                               (fs/glob "test-resources" "foo/**"))))))
   (testing "symlink as root path"
     (let [tmp-dir1 (temp-dir)
           _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
@@ -66,6 +66,16 @@
 
 (deftest create-dir-test
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
+
+(deftest create-link-test
+  (let [tmp-dir (temp-dir)
+        _ (spit (fs/file tmp-dir "dudette.txt") "some content")
+        link (fs/create-link (fs/file tmp-dir "hard-link.txt") (fs/file tmp-dir "dudette.txt"))]
+    (is (.exists (io/as-file link)))
+    (is (.exists (fs/file tmp-dir "dudette.txt")))
+    (is (= (slurp (fs/file tmp-dir "hard-link.txt"))
+           (slurp (fs/file tmp-dir "dudette.txt"))))))
+
 
 (deftest parent-test
   (let [tmp-dir (temp-dir)]
