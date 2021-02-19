@@ -72,7 +72,10 @@
         _ (spit (fs/file tmp-dir "dudette.txt") "some content")
         link (fs/create-link (fs/file tmp-dir "hard-link.txt") (fs/file tmp-dir "dudette.txt"))]
     (is (.exists (io/as-file link)))
+    (is (= 2 (fs/get-attribute (io/as-file link) "unix:nlink")))
     (is (.exists (fs/file tmp-dir "dudette.txt")))
+    (is (fs/same-file? (fs/file tmp-dir "dudette.txt")
+                       (fs/file tmp-dir "hard-link.txt")))
     (is (= (slurp (fs/file tmp-dir "hard-link.txt"))
            (slurp (fs/file tmp-dir "dudette.txt"))))))
 
