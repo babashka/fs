@@ -4,8 +4,7 @@
             [clojure.java.io :as io]
             [clojure.set :as set]
             [clojure.string :as str]
-            [clojure.test :refer [deftest is testing]])
-  (:import [java.nio.file Files]))
+            [clojure.test :refer [deftest is testing]]))
 
 (def cwd (fs/real-path "."))
 
