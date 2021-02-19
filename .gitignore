@@ -71,3 +71,6 @@ flycheck_*.el
 
 .idea/
 gh-pages/
+
+# lsp
+.lsp/

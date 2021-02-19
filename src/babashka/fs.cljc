@@ -377,6 +377,13 @@
    (as-path target)
    (make-array FileAttribute 0)))
 
+(defn create-link
+  "Create a hard link from path to target."
+  [path target]
+  (Files/createLink
+  (as-path path)
+  (as-path target)))
+
 (defn delete
   "Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks."
