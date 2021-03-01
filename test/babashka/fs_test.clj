@@ -77,6 +77,12 @@
     (is (= (slurp (fs/file tmp-dir "hard-link.txt"))
            (slurp (fs/file tmp-dir "dudette.txt"))))))
 
+(deftest regular-file?-test
+  (let [tmp-dir  (temp-dir)
+        tmp-file (fs/path tmp-dir "tmp.txt")]
+    (spit (fs/file tmp-file) "")
+    (is (not (fs/regular-file? tmp-dir)))
+    (is (fs/regular-file? tmp-file))))
 
 (deftest parent-test
   (let [tmp-dir (temp-dir)]
