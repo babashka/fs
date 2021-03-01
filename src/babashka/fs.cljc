@@ -71,6 +71,13 @@
 
 ;;;; Predicates
 
+(defn regular-file?
+  "Returns true if f is a regular file, using Files/isRegularFile."
+  ([f] (regular-file? f nil))
+  ([f {:keys [:nofollow-links]}]
+   (Files/isRegularFile (as-path f)
+                        (->link-opts nofollow-links))))
+
 (defn directory?
   "Returns true if f is a directory, using Files/isDirectory."
   ([f] (directory? f nil))
