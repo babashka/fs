@@ -6,8 +6,6 @@
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
-(def cwd (fs/real-path "."))
-
 (defn temp-dir []
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
@@ -69,10 +67,10 @@
 
 (deftest create-link-test
   (let [tmp-dir (temp-dir)
-        _ (spit (fs/file tmp-dir "dudette.txt") "some content")
-        link (fs/create-link (fs/file tmp-dir "hard-link.txt") (fs/file tmp-dir "dudette.txt"))]
-    (is (.exists (io/as-file link)))
-    (is (= 2 (fs/get-attribute (io/as-file link) "unix:nlink")))
+        _       (spit (fs/file tmp-dir "dudette.txt") "some content")
+        link    (fs/create-link (fs/file tmp-dir "hard-link.txt") (fs/file tmp-dir "dudette.txt"))]
+    (is (.exists (fs/file link)))
+    (is (= 2 (fs/get-attribute (fs/file link) "unix:nlink")))
     (is (.exists (fs/file tmp-dir "dudette.txt")))
     (is (fs/same-file? (fs/file tmp-dir "dudette.txt")
                        (fs/file tmp-dir "hard-link.txt")))
@@ -87,9 +85,11 @@
             (= tmp-dir)))))
 
 (deftest file-name-test
-  (is (= "fs" (fs/file-name cwd)))
-  (is (= "fs" (fs/file-name (fs/file cwd))))
-  (is (= "fs" (fs/file-name (fs/path cwd)))))
+  (let [tmp-dir (fs/path (temp-dir) "foo")]
+    (fs/create-dir tmp-dir)
+    (is (= "foo" (fs/file-name tmp-dir)))
+    (is (= "foo" (fs/file-name (fs/file tmp-dir))))
+    (is (= "foo" (fs/file-name (fs/path tmp-dir))))))
 
 (deftest path-test
   (let [p (fs/path "foo" "bar" (io/file "baz"))]
@@ -117,8 +117,8 @@
       (is (= cur-dir-count tmp-dir-count)))))
 
 (deftest components-test
-  (let [paths (map str (fs/components (fs/real-path ".")))]
-    (is (= "fs" (last paths)))
+  (let [paths (map str (fs/components (fs/path (temp-dir) "foo")))]
+    (is (= "foo" (last paths)))
     (is (> (count paths) 1))))
 
 (deftest list-dir-test
