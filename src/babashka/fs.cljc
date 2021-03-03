@@ -228,9 +228,9 @@
          results (atom (transient []))
          past-root? (volatile! nil)
          [base-path pattern recursive]
-         (let [pattern (str base-path "/" pattern)
-               recursive (or (str/includes? pattern "**")
-                             (str/includes? pattern file-separator))]
+         (let [recursive (or (str/includes? pattern "**")
+                             (str/includes? pattern file-separator))
+               pattern (str base-path "/" pattern)]
            [base-path pattern recursive])
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
@@ -248,9 +248,7 @@
                                  (or (not recursive)
                                      (and skip-hidden?
                                           (hidden? dir))))
-                          (do
-                            nil #_(prn :skipping dir)
-                            :skip-subtree)
+                          :skip-subtree
                           (do
                             (if @past-root? (match dir)
                                 (vreset! past-root? true))
