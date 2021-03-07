@@ -624,3 +624,18 @@
   "Returns true if path this ends with path other."
   [this other]
   (.endsWith (as-path this) (as-path other)))
+
+(defn split-ext
+  "Splits a path into a vec of [name ext]. Works with strings, files, or paths."
+  [path]
+  (let [name (file-name path)
+        i (str/last-index-of name ".")
+        ext (when (and i (pos? i)) (subs name (+ 1 i)))]
+    (if ext
+      [(subs name 0 i) ext]
+      [name nil])))
+
+(defn extension
+  "Returns the extension of a file"
+  [path]
+  (-> path split-ext last))
