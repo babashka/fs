@@ -259,3 +259,21 @@
     ;; macOS doesn't allow you to alter the creation time
     (is (is (number? (-> (fs/creation-time tmpdir)
                          (fs/file-time->millis)))))))
+
+(deftest split-ext-test
+  (testing "strings"
+    (is (= ["name" "clj"] (fs/split-ext "name.clj")))
+    (is (= ["file" "ext"] (fs/split-ext "/path/to/file.ext")))
+    (is (= ["hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
+    (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
+    (is (= ["name" nil] (fs/split-ext "name"))))
+
+  (testing "coerces paths and files"
+    (is (= ["name" "clj"] (fs/split-ext (fs/file "name.clj"))))
+    (is (= ["name" "clj"] (fs/split-ext (fs/path "name.clj"))))))
+
+(deftest extension
+  (is (= "clj" (fs/extension "file-name.clj")))
+  (is (= "template" (fs/extension "file-name.html.template")))
+  (is (= nil (fs/extension ".dotfile")))
+  (is (= nil (fs/extension "bin/something"))))
