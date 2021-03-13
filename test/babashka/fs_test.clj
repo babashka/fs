@@ -112,12 +112,12 @@
 (deftest path-test
   (let [p (fs/path "foo" "bar" (io/file "baz"))]
     (is (instance? java.nio.file.Path p))
-    (is (= "foo/bar/baz" (str p)))))
+    (is (= "foo/bar/baz" (normalize p)))))
 
 (deftest file-test
   (let [f (fs/file "foo" "bar" (fs/path "baz"))]
     (is (instance? java.io.File f))
-    (is (= "foo/bar/baz" (str f)))))
+    (is (= "foo/bar/baz" (normalize f)))))
 
 (deftest copy-test
   (let [tmp-dir (temp-dir)
