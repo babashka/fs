@@ -6,6 +6,11 @@
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
+
+(def windows? (-> (System/getProperty "os.name")
+                  (str/lower-case)
+                  (str/includes? "win")))
+
 (defn temp-dir []
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
@@ -66,16 +71,17 @@
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
 
 (deftest create-link-test
-  (let [tmp-dir (temp-dir)
-        _       (spit (fs/file tmp-dir "dudette.txt") "some content")
-        link    (fs/create-link (fs/file tmp-dir "hard-link.txt") (fs/file tmp-dir "dudette.txt"))]
-    (is (.exists (fs/file link)))
-    (is (= 2 (fs/get-attribute (fs/file link) "unix:nlink")))
-    (is (.exists (fs/file tmp-dir "dudette.txt")))
-    (is (fs/same-file? (fs/file tmp-dir "dudette.txt")
-                       (fs/file tmp-dir "hard-link.txt")))
-    (is (= (slurp (fs/file tmp-dir "hard-link.txt"))
-           (slurp (fs/file tmp-dir "dudette.txt"))))))
+  (when-not windows?
+    (let [tmp-dir (temp-dir)
+          _       (spit (fs/file tmp-dir "dudette.txt") "some content")
+          link    (fs/create-link (fs/file tmp-dir "hard-link.txt") (fs/file tmp-dir "dudette.txt"))]
+      (is (.exists (fs/file link)))
+      (is (= 2 (fs/get-attribute (fs/file link) "unix:nlink")))
+      (is (.exists (fs/file tmp-dir "dudette.txt")))
+      (is (fs/same-file? (fs/file tmp-dir "dudette.txt")
+                         (fs/file tmp-dir "hard-link.txt")))
+      (is (= (slurp (fs/file tmp-dir "hard-link.txt"))
+             (slurp (fs/file tmp-dir "dudette.txt")))))))
 
 (deftest regular-file?-test
   (let [tmp-dir  (temp-dir)
@@ -202,17 +208,18 @@
   (is (fs/ends-with? (fs/temp-dir) (last (fs/temp-dir)))))
 
 (deftest posix-test
-  (is (str/includes? (-> (fs/posix-file-permissions ".")
-                         (fs/posix->str))
-                     "rwx"))
-  (is (= (fs/posix-file-permissions ".")
-         (-> (fs/posix-file-permissions ".")
-             (fs/posix->str)
-             (fs/str->posix))))
-  (is (= "rwx------"
-         (-> (fs/create-temp-dir {:posix-file-permissions "rwx------"})
-             (fs/posix-file-permissions)
-             (fs/posix->str)))))
+  (when-not windows?
+    (is (str/includes? (-> (fs/posix-file-permissions ".")
+                           (fs/posix->str))
+                       "rwx"))
+    (is (= (fs/posix-file-permissions ".")
+           (-> (fs/posix-file-permissions ".")
+               (fs/posix->str)
+               (fs/str->posix))))
+    (is (= "rwx------"
+           (-> (fs/create-temp-dir {:posix-file-permissions "rwx------"})
+               (fs/posix-file-permissions)
+               (fs/posix->str))))))
 
 (deftest delete-if-exists-test
   (let [tmp-file (fs/create-file (fs/path (temp-dir) "dude"))]
@@ -223,11 +230,12 @@
   (is (pos? (fs/size (fs/temp-dir)))))
 
 (deftest set-posix-test
-  (let [tmp-file (fs/create-file (fs/path (temp-dir) "foo"))]
-    (is (fs/set-posix-file-permissions tmp-file
-                                       "rwx------"))
-    (is (= "rwx------"
-           (fs/posix->str (fs/posix-file-permissions tmp-file))))))
+  (when-not windows?
+    (let [tmp-file (fs/create-file (fs/path (temp-dir) "foo"))]
+      (is (fs/set-posix-file-permissions tmp-file
+                                         "rwx------"))
+      (is (= "rwx------"
+             (fs/posix->str (fs/posix-file-permissions tmp-file)))))))
 
 (deftest same-file?
   (fs/same-file? (fs/path ".") (fs/real-path ".")))
