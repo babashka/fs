@@ -185,14 +185,17 @@
                    (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis)))))
 
 (deftest list-dirs-and-which-test
-  (let [java (first (filter fs/executable?
+  (let [java-executable (if windows?
+                          "java.exe"
+                          "java")
+        java (first (filter fs/executable?
                             (fs/list-dirs
                              (filter fs/exists?
                                      (fs/exec-paths))
-                             "java")))]
+                             java-executable)))]
     (is java)
-    (is (= java (fs/which "java")))
-    (is (contains? (set (fs/which "java" {:all true})) java))))
+    (is (= java (fs/which java-executable)))
+    (is (contains? (set (fs/which java-executable {:all true})) java))))
 
 (deftest predicate-test
   (is (boolean? (fs/readable? (fs/path "."))))
