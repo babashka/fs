@@ -229,6 +229,9 @@
   ([root pattern] (glob root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth]}]
    (let [base-path (absolutize root)
+         base-path (if windows?
+                     (str/replace base-path file-separator (str "\\" file-separator))
+                     base-path)
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
