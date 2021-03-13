@@ -230,7 +230,7 @@
          [base-path pattern recursive]
          (let [recursive (or (str/includes? pattern "**")
                              (str/includes? pattern file-separator))
-               pattern (str base-path "/" pattern)]
+               pattern (str base-path file-separator pattern)]
            [base-path pattern recursive])
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
