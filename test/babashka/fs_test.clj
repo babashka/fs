@@ -52,14 +52,15 @@
     (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
                      (set (map str
                                (fs/glob "test-resources" "foo/**"))))))
-  (testing "symlink as root path"
-    (let [tmp-dir1 (temp-dir)
-          _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
-          tmp-dir2 (temp-dir)
-          sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
-      (is (empty? (fs/glob sym-link "**")))
-      (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
-      (is (= 1 (count (fs/glob (fs/real-path sym-link) "**"))))))
+  (when-not windows?
+    (testing "symlink as root path"
+      (let [tmp-dir1 (temp-dir)
+            _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
+            tmp-dir2 (temp-dir)
+            sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
+        (is (empty? (fs/glob sym-link "**")))
+        (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
+        (is (= 1 (count (fs/glob (fs/real-path sym-link) "**")))))))
   (testing "glob with specific depth"
     (let [tmp-dir1 (temp-dir)
           nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
