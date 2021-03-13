@@ -271,7 +271,7 @@
                        (match path))
                      :continue)})
      (let [results (persistent! @results)
-           absolute-cwd (absolutize ".")]
+           absolute-cwd (absolutize "")]
        (if (relative? root)
          (mapv #(relativize absolute-cwd %)
                results)
