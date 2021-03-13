@@ -211,6 +211,11 @@
 (def ^:const file-separator File/separator)
 (def ^:const path-separator File/pathSeparator)
 
+(def ^:private windows?
+  (-> (System/getProperty "os.name")
+      (str/lower-case)
+      (str/includes? "win")))
+
 (defn glob
   "Given a file and glob pattern, returns matches as vector of
   files. Patterns containing ** or / will cause a recursive walk over
@@ -230,7 +235,11 @@
          [base-path pattern recursive]
          (let [recursive (or (str/includes? pattern "**")
                              (str/includes? pattern file-separator))
-               pattern (str base-path file-separator pattern)]
+               pattern (str base-path
+                            ;; we need to escape the file separator on Windows
+                            (when windows? "\\")
+                            file-separator
+                            pattern)]
            [base-path pattern recursive])
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
