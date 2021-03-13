@@ -154,19 +154,20 @@
     (is (fs/exists? tmp-file))
     (fs/delete-tree nested-dir)
     (is (not (fs/exists? nested-dir))))
-  (testing "delete-tree does not follow symlinks"
-    (let [tmp-dir1 (temp-dir)
-          tmp-dir2 (temp-dir)
-          tmp-file (fs/path tmp-dir2 "foo")
-          _ (fs/create-file tmp-file)
-          link-path (fs/path tmp-dir1 "link-to-tmp-dir2")
-          link (fs/create-sym-link link-path tmp-dir2)]
-      (is (fs/exists? tmp-file))
-      (fs/delete-tree tmp-dir1)
-      (is (not (fs/exists? link)))
-      (is (fs/exists? tmp-file))
-      (is (fs/exists? tmp-dir2))
-      (is (not (fs/exists? tmp-dir1))))))
+  (when-not windows?
+    (testing "delete-tree does not follow symlinks"
+      (let [tmp-dir1 (temp-dir)
+            tmp-dir2 (temp-dir)
+            tmp-file (fs/path tmp-dir2 "foo")
+            _ (fs/create-file tmp-file)
+            link-path (fs/path tmp-dir1 "link-to-tmp-dir2")
+            link (fs/create-sym-link link-path tmp-dir2)]
+        (is (fs/exists? tmp-file))
+        (fs/delete-tree tmp-dir1)
+        (is (not (fs/exists? link)))
+        (is (fs/exists? tmp-file))
+        (is (fs/exists? tmp-dir2))
+        (is (not (fs/exists? tmp-dir1)))))))
 
 (deftest move-test
   (let [tmp-dir1 (fs/create-temp-dir)
