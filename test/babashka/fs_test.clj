@@ -11,6 +11,11 @@
                   (str/lower-case)
                   (str/includes? "win")))
 
+(defn normalize [p]
+  (if windows?
+    (str/replace p "\\" "/")
+    (str p)))
+
 (defn temp-dir []
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
@@ -43,14 +48,14 @@
   (is (set/subset? #{"project.clj"
                      "test/babashka/fs_test.clj"
                      "src/babashka/fs.cljc"}
-                   (set (map str
+                   (set (map normalize
                              (fs/glob "." "**.{clj,cljc}")))))
   (testing "glob also matches directories and doesn't return the root directory"
     (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
-                     (set (map str
+                     (set (map normalize
                                (fs/glob "test-resources/foo" "**")))))
     (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
-                     (set (map str
+                     (set (map normalize
                                (fs/glob "test-resources" "foo/**"))))))
   (when-not windows?
     (testing "symlink as root path"
@@ -130,7 +135,7 @@
       (is (= cur-dir-count tmp-dir-count)))))
 
 (deftest components-test
-  (let [paths (map str (fs/components (fs/path (temp-dir) "foo")))]
+  (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
     (is (= "foo" (last paths)))
     (is (> (count paths) 1))))
 
