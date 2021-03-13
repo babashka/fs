@@ -71,7 +71,9 @@
           nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
           _ (fs/create-dirs nested-dir)
           _ (spit (fs/file nested-dir "dude.txt") "contents")]
-      (is (= 1 (count (fs/glob tmp-dir1 "foo/bar/baz/*")))))))
+      (is (= 1 (count (if windows?
+                        (fs/glob tmp-dir1 "foo\\\\bar\\\\baz\\\\*")
+                        (fs/glob tmp-dir1 "foo/bar/baz/*"))))))))
 
 (deftest create-dir-test
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
