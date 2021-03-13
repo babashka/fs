@@ -224,7 +224,8 @@
 
   Options:
 
-  - :hidden: match hidden files.
+  - :hidden: match hidden files. Note: on Windows files starting with
+  a dot are not hidden, unless their hidden attribute is set.
   - :follow-links: follow symlinks."
   ([root pattern] (glob root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth]}]
