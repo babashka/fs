@@ -228,7 +228,7 @@
   - :follow-links: follow symlinks."
   ([root pattern] (glob root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth]}]
-   (let [base-path (absolutize root)
+   (let [base-path (-> root absolutize normalize)
          base-path (if windows?
                      (str/replace base-path file-separator (str "\\" file-separator))
                      base-path)
