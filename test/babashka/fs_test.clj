@@ -130,6 +130,7 @@
 
 (deftest copy-tree-test
   (let [tmp-dir (temp-dir)]
+    (fs/delete tmp-dir)
     (fs/copy-tree "." tmp-dir)
     (let [cur-dir-count (count (fs/glob "." "**" #{:hidden}))
           tmp-dir-count (count (fs/glob tmp-dir "**" #{:hidden}))]

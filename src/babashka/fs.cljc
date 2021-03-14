@@ -301,32 +301,6 @@
      (Files/copy (as-path src) (as-path dest)
                  copy-options))))
 
-(defn copy-tree
-  "Copies entire file tree. Supports same options as copy."
-  ([src dest] (copy-tree src dest nil))
-  ([src dest {:keys [:replace-existing
-                     :copy-attributes
-                     :nofollow-links]}]
-   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
-         link-options (->link-opts nofollow-links)
-         from (real-path src {:nofollow-links nofollow-links})
-         to (real-path dest {:nofollow-links nofollow-links})]
-     (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
-                                            (let [rel (relativize from dir)
-                                                  to-dir (path to rel)]
-                                              (when-not (Files/exists to-dir link-options)
-                                                (Files/copy ^Path dir to-dir
-                                                            ^"[Ljava.nio.file.CopyOption;"
-                                                            copy-options)))
-                                            :continue)
-                           :visit-file (fn [from-path _attrs]
-                                         (let [rel (relativize from from-path)
-                                               to-file (path to rel)]
-                                           (Files/copy ^Path from-path to-file
-                                                       ^"[Ljava.nio.file.CopyOption;"
-                                                       copy-options)
-                                           :continue))}))))
-
 (defn posix->str
   "Converts a set of PosixFilePermission to a string."
   [p]
@@ -356,7 +330,51 @@
                     (posix->file-attribute)
                     vector)
                 [])]
-     (into-array FileAttribute attrs)))
+    (into-array FileAttribute attrs)))
+
+(defn create-dir
+  "Creates dir using Files#createDirectory. Does not create parents."
+  ([path]
+   (create-dir path nil))
+  ([path {:keys [:posix-file-permissions]}]
+   (let [attrs (posix->attrs posix-file-permissions)]
+     (Files/createDirectory (as-path path) attrs))))
+
+(defn create-dirs
+  "Creates directories using Files#createDirectories. Also creates parents if needed."
+  ([path] (create-dirs path nil))
+  ([path {:keys [:posix-file-permissions]}]
+   (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
+
+(defn copy-tree
+  "Copies entire file tree from src to dest. Creates dest if needed
+  using create-dirs, passing it the :posix-file-permissions
+  option. Supports same options as copy."
+  ([src dest] (copy-tree src dest nil))
+  ([src dest {:keys [:replace-existing
+                     :copy-attributes
+                     :nofollow-links
+                     :posix-file-permissions]}]
+   (create-dirs dest {:posix-file-permissions posix-file-permissions})
+   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
+         link-options (->link-opts nofollow-links)
+         from (real-path src {:nofollow-links nofollow-links})
+         to (real-path dest {:nofollow-links nofollow-links})]
+     (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+                                            (let [rel (relativize from dir)
+                                                  to-dir (path to rel)]
+                                              (when-not (Files/exists to-dir link-options)
+                                                (Files/copy ^Path dir to-dir
+                                                            ^"[Ljava.nio.file.CopyOption;"
+                                                            copy-options)))
+                                            :continue)
+                           :visit-file (fn [from-path _attrs]
+                                         (let [rel (relativize from from-path)
+                                               to-file (path to rel)]
+                                           (Files/copy ^Path from-path to-file
+                                                       ^"[Ljava.nio.file.CopyOption;"
+                                                       copy-options)
+                                           :continue))}))))
 
 (defn temp-dir
   "Returns java.io.tmpdir property as path."
@@ -429,20 +447,6 @@
                    :post-visit-dir (fn [path _]
                                      (delete path)
                                      :continue)}))
-
-(defn create-dir
-  "Creates dir using Files#createDirectory. Does not create parents."
-  ([path]
-   (create-dir path nil))
-  ([path {:keys [:posix-file-permissions]}]
-   (let [attrs (posix->attrs posix-file-permissions)]
-     (Files/createDirectory (as-path path) attrs))))
-
-(defn create-dirs
-  "Creates directories using Files#createDirectories. Also creates parents if needed."
-  ([path] (create-dirs path nil))
-  ([path {:keys [:posix-file-permissions]}]
-   (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
 
 (defn create-file
   "Creates empty file using Files#createFile."
