@@ -133,15 +133,26 @@
   [this other]
   (.relativize (as-path this) (as-path other)))
 
-(defn file-name
-  "Returns the name of the file or directory. E.g. (file-name \"foo/bar/baz\") returns \"baz\"."
-  [x]
-  (.getName (as-file x)))
-
 (defn normalize
   "Normalizes f via Path#normalize."
   [f]
   (.normalize (as-path f)))
+
+(defn ^Path canonicalize
+  "Returns the canonical path via
+  java.io.File#getCanonicalPath. If :nofollow-links is set, then it
+  will fall back on absolutize + normalize. This function can be used
+  as an alternative to real-path which requires files to exist."
+  ([f] (canonicalize f nil))
+  ([f {:keys [:nofollow-links]}]
+   (if nofollow-links
+     (-> f absolutize normalize)
+     (as-path (.getCanonicalPath (as-file f))))))
+
+(defn file-name
+  "Returns the name of the file or directory. E.g. (file-name \"foo/bar/baz\") returns \"baz\"."
+  [x]
+  (.getName (as-file x)))
 
 (def ^:private continue (constantly :continue))
 
@@ -353,13 +364,12 @@
   ([src dest] (copy-tree src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
-                     :nofollow-links
-                     :posix-file-permissions]}]
-   (create-dirs dest {:posix-file-permissions posix-file-permissions})
+                     :nofollow-links]}]
    (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
          link-options (->link-opts nofollow-links)
          from (real-path src {:nofollow-links nofollow-links})
-         to (real-path dest {:nofollow-links nofollow-links})]
+         ;; using canonicalize here because real-path requires the path to exist
+         to (canonicalize dest {:nofollow-links nofollow-links})]
      (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
                                             (let [rel (relativize from dir)
                                                   to-dir (path to rel)]
@@ -374,7 +384,8 @@
                                            (Files/copy ^Path from-path to-file
                                                        ^"[Ljava.nio.file.CopyOption;"
                                                        copy-options)
-                                           :continue))}))))
+                                           :continue)
+                                         :continue)}))))
 
 (defn temp-dir
   "Returns java.io.tmpdir property as path."
