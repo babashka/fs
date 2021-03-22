@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## v0.0.3
+
+- Create target dir in `copy-tree`
+
 ## v0.0.2
 
 - Add `create-link` and `split-paths` ([@eamonnsullivan](https://github.com/eamonnsullivan))
