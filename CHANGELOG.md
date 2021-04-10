@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- `delete-tree` must not crash when tree doesn't exist (making it idempotent)
+
 ## v0.0.3
 
 - Create target dir in `copy-tree`
