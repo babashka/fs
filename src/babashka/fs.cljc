@@ -451,13 +451,14 @@
 (defn delete-tree
   "Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow symlinks."
   [root]
-  (walk-file-tree root
-                  {:visit-file (fn [path _]
-                                 (delete path)
-                                 :continue)
-                   :post-visit-dir (fn [path _]
-                                     (delete path)
-                                     :continue)}))
+  (when (exists? root)
+    (walk-file-tree root
+                    {:visit-file (fn [path _]
+                                   (delete path)
+                                   :continue)
+                     :post-visit-dir (fn [path _]
+                                       (delete path)
+                                       :continue)})))
 
 (defn create-file
   "Creates empty file using Files#createFile."

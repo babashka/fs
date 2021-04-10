@@ -161,7 +161,10 @@
     (fs/create-file (fs/file nested-dir "tmp-file"))
     (is (fs/exists? tmp-file))
     (fs/delete-tree nested-dir)
-    (is (not (fs/exists? nested-dir))))
+    (is (not (fs/exists? nested-dir)))
+    (testing "No exception when tree doesn't exist"
+      (is (do (fs/delete-tree nested-dir)
+              true))))
   (when-not windows?
     (testing "delete-tree does not follow symlinks"
       (let [tmp-dir1 (temp-dir)
