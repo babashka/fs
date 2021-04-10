@@ -296,8 +296,24 @@
     (is (= ["name" "clj"] (fs/split-ext (fs/file "name.clj"))))
     (is (= ["name" "clj"] (fs/split-ext (fs/path "name.clj"))))))
 
-(deftest extension
+(deftest extension-test
   (is (= "clj" (fs/extension "file-name.clj")))
   (is (= "template" (fs/extension "file-name.html.template")))
   (is (= nil (fs/extension ".dotfile")))
   (is (= nil (fs/extension "bin/something"))))
+
+(deftest modified-since-test
+  (let [td0 (fs/create-temp-dir)
+        anchor (fs/file td0 "f0")
+        _ (spit anchor "content")
+        _ (Thread/sleep 10)
+        td1 (fs/create-temp-dir)
+        f1 (fs/file td1 "f1")
+        _ (spit f1 "content")
+        f2 (fs/file td1 "f2")
+        _ (spit f2 "content")]
+    (is (= #{f1} (into #{} (map fs/file (fs/modified-since anchor f1)))))
+    (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since anchor td1)))))
+    (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
+    (fs/set-last-modified-time anchor (fs/last-modified-time f1))
+    (is (not (fs/modified-since anchor f1)))))
