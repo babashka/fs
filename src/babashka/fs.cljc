@@ -703,7 +703,8 @@
   to compare with.  The file-set may be a regular file, directory or
   collection of files (e.g. returned by glob). Directories are
   searched recursively.
-  Returns nil if no modified files were found, making it suitable as a predicate."
+  Returns nil if no modified files were found, making it suitable as a
+  predicate. As such, this function is only semi-lazy since it realizes the first chunk."
   [anchor file-set]
   (let [lm (last-modified anchor)]
     (seq (map path (filter #(> (last-modified-1 %) lm) (expand-file-set file-set))))))
