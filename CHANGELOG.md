@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - `delete-tree` must not crash when tree doesn't exist (making it idempotent)
+- Add `modified-since`
 
 ## v0.0.3
 
