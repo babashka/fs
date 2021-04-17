@@ -697,16 +697,14 @@
     (filter regular-file? (file-seq (file file-set)))))
 
 (defn modified-since
-  "Returns regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
+  "Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
   The anchor path can be a regular file or directory, in which case
   the recursive max last modified time stamp is used as the timestamp
   to compare with.  The file-set may be a regular file, directory or
   collection of files (e.g. returned by glob). Directories are
-  searched recursively.
-  Returns nil if no modified files were found, making it suitable as a
-  predicate. As such, this function is only semi-lazy since it realizes the first chunk."
+  searched recursively."
   [anchor file-set]
   (let [lm (last-modified anchor)]
-    (seq (map path (filter #(> (last-modified-1 %) lm) (expand-file-set file-set))))))
+    (map path (filter #(> (last-modified-1 %) lm) (expand-file-set file-set)))))
 
 ;;;; End modified since

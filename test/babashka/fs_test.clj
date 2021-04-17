@@ -316,4 +316,4 @@
     (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since anchor td1)))))
     (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
     (fs/set-last-modified-time anchor (fs/last-modified-time f1))
-    (is (not (fs/modified-since anchor f1)))))
+    (is (not (seq (fs/modified-since anchor f1))))))
