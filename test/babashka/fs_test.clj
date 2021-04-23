@@ -128,6 +128,14 @@
     (fs/copy tmp-file dest-path)
     (is (fs/exists? dest-path))))
 
+(deftest copy-into-test
+  (let [tmp-dir (temp-dir)
+        tmp-file (fs/create-file (fs/path tmp-dir "tmp-file"))
+        tmp-dir-foo (fs/create-dir (fs/path (temp-dir) "foo"))
+        dest-path (fs/path tmp-dir-foo "tmp-file")]
+    (fs/copy-into tmp-file tmp-dir-foo)
+    (is (fs/exists? dest-path))))
+
 (deftest copy-tree-test
   (let [tmp-dir (temp-dir)]
     (fs/delete tmp-dir)
