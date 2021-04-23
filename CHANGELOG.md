@@ -4,8 +4,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+## v0.0.4
+
 - `delete-tree` must not crash when tree doesn't exist (making it idempotent)
 - Add `modified-since`
+- Allow dir as dest in `copy`
 
 ## v0.0.3
 
