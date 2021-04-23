@@ -122,11 +122,17 @@
     (is (= "foo/bar/baz" (normalize f)))))
 
 (deftest copy-test
-  (let [tmp-dir (temp-dir)
-        tmp-file (fs/create-file (fs/path tmp-dir "tmp-file"))
-        dest-path (fs/path tmp-dir "tmp-file-dest")]
-    (fs/copy tmp-file dest-path)
-    (is (fs/exists? dest-path))))
+  (let [tmp-dir-1 (temp-dir)
+        src-file (fs/create-file (fs/path tmp-dir-1 "tmp-file"))
+        dest-dir (temp-dir)
+        dest-file (fs/path dest-dir "tmp-file")]
+    (fs/copy src-file dest-file)
+    (is (fs/exists? dest-file))
+    (fs/delete dest-file)
+    (is (not (fs/exists? dest-file)))
+    (testing "copying into dir"
+      (fs/copy src-file dest-dir)
+      (is (fs/exists? dest-file)))))
 
 (deftest copy-tree-test
   (let [tmp-dir (temp-dir)]

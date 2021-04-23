@@ -299,18 +299,21 @@
                 nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))))
 
 (defn copy
-  "Copies src file to dest file.
+  "Copies src file to dest dir or file.
   Options:
   - :replace-existing
   - :copy-attributes
-  - :nofollow-links."
+  - :nofollow-links (used to determine to copy symbolic link itself or not)."
   ([src dest] (copy src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
                      :nofollow-links]}]
    (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)]
-     (Files/copy (as-path src) (as-path dest)
-                 copy-options))))
+     (if (directory? dest)
+       (Files/copy (as-path src) (path dest (file-name src))
+                   copy-options)
+       (Files/copy (as-path src) (as-path dest)
+                   copy-options)))))
 
 (defn posix->str
   "Converts a set of PosixFilePermission to a string."
