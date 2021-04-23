@@ -312,6 +312,11 @@
      (Files/copy (as-path src) (as-path dest)
                  copy-options))))
 
+(defn copy-into
+  "Copies src file to dest dir" 
+  ([src dir] (copy-into src dir nil))
+  ([src dir opts] (copy-into src (file dir (file-name src)) opts)))
+
 (defn posix->str
   "Converts a set of PosixFilePermission to a string."
   [p]
