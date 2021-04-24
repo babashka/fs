@@ -85,6 +85,12 @@
    (Files/isDirectory (as-path f)
                       (->link-opts nofollow-links))))
 
+(def ^:private simple-link-opts
+  (into-array LinkOption []))
+
+(defn- directory-simple?
+  [^Path f] (Files/isDirectory f simple-link-opts))
+
 (defn hidden?
   "Returns true if f is hidden."
   [f] (Files/isHidden (as-path f)))
@@ -308,11 +314,12 @@
   ([src dest {:keys [:replace-existing
                      :copy-attributes
                      :nofollow-links]}]
-   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)]
-     (if (directory? dest)
+   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
+         dest (as-path dest)]
+     (if (directory-simple? dest)
        (Files/copy (as-path src) (path dest (file-name src))
                    copy-options)
-       (Files/copy (as-path src) (as-path dest)
+       (Files/copy (as-path src) dest
                    copy-options)))))
 
 (defn posix->str
@@ -472,14 +479,19 @@
      (Files/createFile (as-path path) attrs))))
 
 (defn move
-  "Move or rename a file to a target file via Files/move."
+  "Move or rename a file to a target dir or file via Files/move."
   ([source target] (move source target nil))
   ([source target {:keys [:replace-existing
                           :atomic-move
                           :nofollow-links]}]
-   (Files/move (as-path source)
-               (as-path target)
-               (->copy-opts replace-existing false atomic-move nofollow-links))))
+   (let [target (as-path target)]
+     (if (directory-simple? target)
+       (Files/move (as-path source)
+                   (path target (file-name source))
+                   (->copy-opts replace-existing false atomic-move nofollow-links))
+       (Files/move (as-path source)
+                   target
+                   (->copy-opts replace-existing false atomic-move nofollow-links))))))
 
 (defn parent
   "Returns parent of f, is it exists."

@@ -187,14 +187,24 @@
         (is (not (fs/exists? tmp-dir1)))))))
 
 (deftest move-test
-  (let [tmp-dir1 (fs/create-temp-dir)
-        f (fs/file tmp-dir1 "foo.txt")
+  (let [src-dir (fs/create-temp-dir)
+        dest-dir (fs/create-temp-dir)
+        f (fs/file src-dir "foo.txt")
         _ (spit f "foo")
-        f2 (fs/file tmp-dir1 "bar.txt")]
+        f2 (fs/file dest-dir "foo.txt")]
     (fs/move f f2)
     (is (not (fs/exists? f)))
     (is (fs/exists? f2))
-    (is (= "foo" (str/trim (slurp f2))))))
+    (is (= "foo" (str/trim (slurp f2))))
+    (fs/delete f2)
+    (is (not (fs/exists? f2)))
+    (testing "moving into dir"
+      (spit f "foo")
+      (is (fs/exists? f))
+      (fs/move f dest-dir)
+      (is (not (fs/exists? f)))
+      (is (fs/exists? f2))
+      (is (= "foo" (str/trim (slurp f2)))))))
 
 (deftest set-attribute-test
   (let [dir (fs/create-temp-dir)
