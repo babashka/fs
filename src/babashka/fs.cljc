@@ -446,8 +446,8 @@
   throws otherwise. Does not follow symlinks."
   ;; We don't follow symlinks, since the link can target a dir and you should be
   ;; using delete-tree to delete that.
-  [dir]
-  (Files/delete (as-path dir)))
+  [f]
+  (Files/delete (as-path f)))
 
 (defn delete-if-exists
   "Deletes f if it exists. Returns true if the delete was successful,
