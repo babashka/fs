@@ -533,7 +533,7 @@
   [f]
   (vec (Files/readAllLines (as-path f))))
 
-;;;; Attributes, from github.com/nate/fs
+;;;; Attributes, from github.com/corasaurus-hex/fs
 
 (defn get-attribute
   ([path attribute]
