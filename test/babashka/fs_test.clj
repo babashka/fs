@@ -318,6 +318,18 @@
   (is (= nil (fs/extension ".dotfile")))
   (is (= nil (fs/extension "bin/something"))))
 
+(deftest file-name-without-extension-test
+  (is (= "file-name" (fs/file-name-without-extension "file-name.clj")))
+  (is (= "file-name.html" (fs/file-name-without-extension "file-name.html.template")))
+  (is (= "file-name" (fs/file-name-without-extension "file-name.html.template" ".html.template")))
+  (is (= "file-name.html.template" (fs/file-name-without-extension "file-name.html.template" ".html")))
+  (is (= "file-name.html" (fs/file-name-without-extension "/path/to/file-name.html.template")))
+  (is (= "file-name" (fs/file-name-without-extension "/path/to/file-name.html.template" ".html.template")))
+  (is (= "file-name.html.template" (fs/file-name-without-extension "/path/to/file-name.html.template" ".html")))
+  (is (= ".dotfile" (fs/file-name-without-extension ".dotfile")))
+  (is (= ".dotfile" (fs/file-name-without-extension ".dotfile" ".dotfile")))
+  (is (= "something" (fs/file-name-without-extension "bin/something"))))
+
 (deftest modified-since-test
   (let [td0 (fs/create-temp-dir)
         anchor (fs/file td0 "f0")

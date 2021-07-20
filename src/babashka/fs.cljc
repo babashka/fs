@@ -684,6 +684,20 @@
   [path]
   (-> path split-ext last))
 
+(defn file-name-without-extension
+  "Returns the file name with the extension, if present, removed."
+  ([path]
+   (-> path split-ext first))
+  ([path extension]
+   (let [name (file-name path)
+         ext-index (str/last-index-of name extension)
+         has-ext? (and ext-index
+                       (pos? ext-index)
+                       (= ext-index (- (count name) (count extension))))]
+     (if has-ext?
+       (subs name 0 ext-index)
+       name))))
+
 ;;;; Modified since
 
 (defn- last-modified-1
