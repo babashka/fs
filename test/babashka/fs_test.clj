@@ -16,6 +16,11 @@
     (str/replace p "\\" "/")
     (str p)))
 
+(defn as-os-path [p]
+  (if windows?
+    (str/replace p "/" "\\")
+    (str/replace p "\\" "/")))
+
 (defn temp-dir []
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
@@ -303,8 +308,8 @@
 (deftest split-ext-test
   (testing "strings"
     (is (= ["name" "clj"] (fs/split-ext "name.clj")))
-    (is (= ["/path/to/file" "ext"] (fs/split-ext "/path/to/file.ext")))
-    (is (= ["some/path/hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
+    (is (= [(as-os-path "/path/to/file") "ext"] (fs/split-ext "/path/to/file.ext")))
+    (is (= [(as-os-path "some/path/hi.tar") "gz"] (fs/split-ext "some/path/hi.tar.gz")))
     (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
     (is (= ["name" nil] (fs/split-ext "name"))))
 
@@ -323,12 +328,12 @@
   (is (= "file-name.html" (fs/strip-ext "file-name.html.template")))
   (is (= "file-name" (fs/strip-ext "file-name.html.template" ".html.template")))
   (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" ".html")))
-  (is (= "/path/to/file-name.html" (fs/strip-ext "/path/to/file-name.html.template")))
-  (is (= "path/to/file-name" (fs/strip-ext "path/to/file-name.html.template" ".html.template")))
-  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" ".html")))
+  (is (= (as-os-path "/path/to/file-name.html") (fs/strip-ext "/path/to/file-name.html.template")))
+  (is (= (as-os-path "path/to/file-name") (fs/strip-ext "path/to/file-name.html.template" ".html.template")))
+  (is (= (as-os-path "/path/to/file-name.html.template") (fs/strip-ext "/path/to/file-name.html.template" ".html")))
   (is (= ".dotfile" (fs/strip-ext ".dotfile")))
   (is (= ".dotfile" (fs/strip-ext ".dotfile" ".dotfile")))
-  (is (= "bin/something" (fs/strip-ext "bin/something"))))
+  (is (= (as-os-path "bin/something") (fs/strip-ext "bin/something"))))
 
 (deftest modified-since-test
   (let [td0 (fs/create-temp-dir)
