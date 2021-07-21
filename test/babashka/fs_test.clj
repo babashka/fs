@@ -330,10 +330,10 @@
   (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" ".html")))
   (is (= (as-os-path "/path/to/file-name.html") (fs/strip-ext "/path/to/file-name.html.template")))
   (is (= (as-os-path "path/to/file-name") (fs/strip-ext "path/to/file-name.html.template" ".html.template")))
-  (is (= (as-os-path "/path/to/file-name.html.template") (fs/strip-ext "/path/to/file-name.html.template" ".html")))
+  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" ".html")))
   (is (= ".dotfile" (fs/strip-ext ".dotfile")))
   (is (= ".dotfile" (fs/strip-ext ".dotfile" ".dotfile")))
-  (is (= (as-os-path "bin/something") (fs/strip-ext "bin/something"))))
+  (is (= "bin/something" (fs/strip-ext "bin/something"))))
 
 (deftest modified-since-test
   (let [td0 (fs/create-temp-dir)
