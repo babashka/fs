@@ -303,8 +303,8 @@
 (deftest split-ext-test
   (testing "strings"
     (is (= ["name" "clj"] (fs/split-ext "name.clj")))
-    (is (= ["file" "ext"] (fs/split-ext "/path/to/file.ext")))
-    (is (= ["hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
+    (is (= ["/path/to/file" "ext"] (fs/split-ext "/path/to/file.ext")))
+    (is (= ["some/path/hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
     (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
     (is (= ["name" nil] (fs/split-ext "name"))))
 
@@ -318,17 +318,17 @@
   (is (= nil (fs/extension ".dotfile")))
   (is (= nil (fs/extension "bin/something"))))
 
-(deftest file-name-without-extension-test
-  (is (= "file-name" (fs/file-name-without-extension "file-name.clj")))
-  (is (= "file-name.html" (fs/file-name-without-extension "file-name.html.template")))
-  (is (= "file-name" (fs/file-name-without-extension "file-name.html.template" ".html.template")))
-  (is (= "file-name.html.template" (fs/file-name-without-extension "file-name.html.template" ".html")))
-  (is (= "file-name.html" (fs/file-name-without-extension "/path/to/file-name.html.template")))
-  (is (= "file-name" (fs/file-name-without-extension "/path/to/file-name.html.template" ".html.template")))
-  (is (= "file-name.html.template" (fs/file-name-without-extension "/path/to/file-name.html.template" ".html")))
-  (is (= ".dotfile" (fs/file-name-without-extension ".dotfile")))
-  (is (= ".dotfile" (fs/file-name-without-extension ".dotfile" ".dotfile")))
-  (is (= "something" (fs/file-name-without-extension "bin/something"))))
+(deftest strip-ext-test
+  (is (= "file-name" (fs/strip-ext "file-name.clj")))
+  (is (= "file-name.html" (fs/strip-ext "file-name.html.template")))
+  (is (= "file-name" (fs/strip-ext "file-name.html.template" ".html.template")))
+  (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" ".html")))
+  (is (= "/path/to/file-name.html" (fs/strip-ext "/path/to/file-name.html.template")))
+  (is (= "path/to/file-name" (fs/strip-ext "path/to/file-name.html.template" ".html.template")))
+  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" ".html")))
+  (is (= ".dotfile" (fs/strip-ext ".dotfile")))
+  (is (= ".dotfile" (fs/strip-ext ".dotfile" ".dotfile")))
+  (is (= "bin/something" (fs/strip-ext "bin/something"))))
 
 (deftest modified-since-test
   (let [td0 (fs/create-temp-dir)
