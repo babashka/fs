@@ -326,13 +326,13 @@
 (deftest strip-ext-test
   (is (= "file-name" (fs/strip-ext "file-name.clj")))
   (is (= "file-name.html" (fs/strip-ext "file-name.html.template")))
-  (is (= "file-name" (fs/strip-ext "file-name.html.template" ".html.template")))
-  (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" ".html")))
+  (is (= "file-name" (fs/strip-ext "file-name.html.template" {:ext "html.template"})))
+  (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" {:ext "html"})))
   (is (= (as-os-path "/path/to/file-name.html") (fs/strip-ext "/path/to/file-name.html.template")))
-  (is (= (as-os-path "path/to/file-name") (fs/strip-ext "path/to/file-name.html.template" ".html.template")))
-  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" ".html")))
+  (is (= (as-os-path "path/to/file-name") (fs/strip-ext "path/to/file-name.html.template" {:ext "html.template"})))
+  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" {:ext "html"})))
   (is (= ".dotfile" (fs/strip-ext ".dotfile")))
-  (is (= ".dotfile" (fs/strip-ext ".dotfile" ".dotfile")))
+  (is (= ".dotfile" (fs/strip-ext ".dotfile" {:ext "dotfile"})))
   (is (= "bin/something" (fs/strip-ext "bin/something"))))
 
 (deftest modified-since-test

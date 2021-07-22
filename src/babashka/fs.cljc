@@ -689,17 +689,17 @@
   "Returns the path with the extension removed. If provided, a specific extension will be removed."
   ([path]
    (-> path split-ext first))
-  ([path extension]
+  ([path {:keys [ext]}]
    (let [name (file-name path)
-         extension (if (str/starts-with? extension ".")
-                     extension
-                     (str "." extension))
-         ext-index (str/last-index-of name extension)
+         ext (str "." ext)
+         ext-index (str/last-index-of name ext)
          has-ext? (and ext-index
                        (pos? ext-index)
-                       (= ext-index (- (count name) (count extension))))]
+                       (= ext-index (- (count name) (count ext))))]
      (if has-ext?
-       (-> (parent path) (path* (subs name 0 ext-index)) str)
+       (-> (parent path)
+           (path* (subs name 0 ext-index))
+           str)
        path))))
 
 (defn extension
