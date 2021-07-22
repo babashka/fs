@@ -49,10 +49,6 @@
   ([parent child & more]
    (reduce path (path parent child) more)))
 
-(def ^:private path*
-  "Used as the function name internally in cases where we want to use `path` as an argument name."
-  path)
-
 (defn ^File file
   "Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent."
@@ -681,7 +677,7 @@
         ext (when (and i (pos? i)) (subs name (+ 1 i)))]
     (if ext
       (let [new-name (subs name 0 i)
-            new-path (-> (parent path) (path* new-name) str)]
+            new-path (-> (parent path) (babashka.fs/path new-name) str)]
         [new-path ext])
       [path nil])))
 
@@ -698,7 +694,7 @@
                        (= ext-index (- (count name) (count ext))))]
      (if has-ext?
        (-> (parent path)
-           (path* (subs name 0 ext-index))
+           (babashka.fs/path (subs name 0 ext-index))
            str)
        path))))
 
