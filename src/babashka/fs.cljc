@@ -670,14 +670,33 @@
   (.endsWith (as-path this) (as-path other)))
 
 (defn split-ext
-  "Splits a path into a vec of [name ext]. Works with strings, files, or paths."
+  "Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths."
   [path]
   (let [name (file-name path)
         i (str/last-index-of name ".")
         ext (when (and i (pos? i)) (subs name (+ 1 i)))]
     (if ext
-      [(subs name 0 i) ext]
-      [name nil])))
+      (let [new-name (subs name 0 i)
+            new-path (-> (parent path) (babashka.fs/path new-name) str)]
+        [new-path ext])
+      [path nil])))
+
+(defn strip-ext
+  "Returns the path with the extension removed. If provided, a specific extension will be removed."
+  ([path]
+   (-> path split-ext first))
+  ([path {:keys [ext]}]
+   (let [name (file-name path)
+         ext (str "." ext)
+         ext-index (str/last-index-of name ext)
+         has-ext? (and ext-index
+                       (pos? ext-index)
+                       (= ext-index (- (count name) (count ext))))]
+     (if has-ext?
+       (-> (parent path)
+           (babashka.fs/path (subs name 0 ext-index))
+           str)
+       path))))
 
 (defn extension
   "Returns the extension of a file"
