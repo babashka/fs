@@ -4,8 +4,10 @@
             [clojure.java.io :as io]
             [clojure.set :as set]
             [clojure.string :as str]
-            [clojure.test :refer [deftest is testing]]))
-
+            [clojure.test :refer [deftest is testing]])
+  (:import
+   [java.io FileInputStream FileOutputStream]
+   [java.util.zip ZipEntry ZipOutputStream]))
 
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
@@ -350,3 +352,30 @@
     (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
     (fs/set-last-modified-time anchor (fs/last-modified-time f1))
     (is (not (seq (fs/modified-since anchor f1))))))
+
+;; https://mkyong.com/java/how-to-compress-files-in-zip-format/
+;; TODO: this is far from a public API, just for testing purposes
+(defn zip
+  [zip-file src]
+  (with-open
+    [fos (FileOutputStream. (str zip-file))
+     zos (ZipOutputStream. fos)
+     fis (FileInputStream. (fs/file src))]
+    (let [src (fs/path src)
+          ^String src-name (fs/file-name src)
+          entry (ZipEntry. src-name)]
+      (.putNextEntry zos entry))
+    (io/copy fis zos)))
+
+(deftest zip-test
+  (let [td (fs/create-temp-dir)
+        td-out (fs/path td "out")
+        zip-file (fs/path td "foo.zip")
+        _ (zip zip-file "README.md")]
+    (fs/unzip zip-file td-out)
+    (is (fs/exists? (fs/path td-out "README.md")))
+    (is (= (slurp "README.md") (slurp (fs/file td-out "README.md"))))
+    (is (thrown? java.nio.file.FileAlreadyExistsException (fs/unzip zip-file td-out)))
+    (testing "no exception when replacing existing"
+      (is (do (fs/unzip zip-file td-out {:replace-existing true})
+              true)))))

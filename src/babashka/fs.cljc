@@ -2,8 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.walk :as walk])
-  (:import [java.io File]
-           [java.nio.file.attribute FileAttribute FileTime PosixFilePermissions]
+  (:import [java.io File FileInputStream FileOutputStream]
            [java.nio.file CopyOption
             #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
             Files
@@ -12,7 +11,9 @@
             FileVisitResult
             StandardCopyOption
             LinkOption Path
-            FileVisitor]))
+            FileVisitor]
+           [java.nio.file.attribute FileAttribute FileTime PosixFilePermissions]
+           [java.util.zip ZipEntry ZipOutputStream ZipInputStream]))
 
 (set! *warn-on-reflection* true)
 
@@ -742,3 +743,32 @@
     (map path (filter #(> (last-modified-1 %) lm) (expand-file-set file-set)))))
 
 ;;;; End modified since
+
+;; taken and adapted from babashka.pods.impl.resolver
+
+(defn unzip
+  "zip-file: zip archive to unzip (required)
+   dest: destination directory (defaults to \".\")
+   Options:
+     :replace-existing true/false: overwrite existing files"
+  ([zip-file] (unzip zip-file "."))
+  ([zip-file dest] (unzip zip-file dest nil))
+  ([zip-file dest {:keys [replace-existing]}]
+   (let [output-path (as-path dest)
+         zip-file (as-path zip-file)
+         _ (create-dirs dest)
+         cp-opts (->copy-opts replace-existing nil nil nil)]
+     (with-open
+       [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
+        zis (ZipInputStream. fis)]
+       (loop []
+         (let [entry (.getNextEntry zis)]
+           (when entry
+             (let [entry-name (.getName entry)
+                   new-path (.resolve output-path entry-name)]
+               (if (.isDirectory entry)
+                 (create-dirs new-path)
+                 (Files/copy ^java.io.InputStream zis
+                             new-path
+                             cp-opts)))
+             (recur))))))))
