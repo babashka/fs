@@ -2,20 +2,14 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/babashka/fs.svg)](https://clojars.org/babashka/fs)
 
-File system utilities. This library is included in
-[babashka](https://github.com/babashka/babashka) (>= 0.2.9) but can also be used
-from the JVM.
-
-## Status
-
-This library is pretty new. Breaking changes might happen, but we try to avoid
-them if possible.
+File system utilities. This library can be used on the JVM and is also included
+in [babashka](https://github.com/babashka/babashka) (>= 0.2.9).
 
 ## Why
 
 Babashka is a scripting utility. It's convenient to have cross platform file
 system utilities available for scripting. The namespace `clojure.java.io`
-already offers a bunch of useful features, but it predates java.nio. The nio
+already offers a bunch of useful features, but it predates `java.nio`. The nio
 package isn't that nice to use from Clojure and this library should help with
 that.
 
