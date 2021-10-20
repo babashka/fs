@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.walk :as walk])
-  (:import [java.io File FileInputStream FileOutputStream]
+  (:import [java.io File]
            [java.nio.file CopyOption
             #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
             Files
@@ -13,7 +13,7 @@
             LinkOption Path
             FileVisitor]
            [java.nio.file.attribute FileAttribute FileTime PosixFilePermissions]
-           [java.util.zip ZipEntry ZipOutputStream ZipInputStream]))
+           [java.util.zip ZipInputStream]))
 
 (set! *warn-on-reflection* true)
 
@@ -234,19 +234,23 @@
       (str/lower-case)
       (str/includes? "win")))
 
-(defn glob
-  "Given a file and glob pattern, returns matches as vector of
-  files. Patterns containing ** or / will cause a recursive walk over
-  path. Glob interpretation is done using the rules described in
+(defn match
+  "Given a file and match pattern, returns matches as vector of
+  files. Pattern interpretation is done using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
 
   Options:
 
   - :hidden: match hidden files. Note: on Windows files starting with
   a dot are not hidden, unless their hidden attribute is set.
-  - :follow-links: follow symlinks."
-  ([root pattern] (glob root pattern nil))
-  ([root pattern {:keys [hidden follow-links max-depth]}]
+  - :follow-links: follow symlinks
+  - :recursive: match recursively.
+  - :max-depth: max depth to descend into directory structure.
+
+  Examples:
+  (fs/match \".\" \"regex:.*\\.clj\" {:recursive true})"
+  ([root pattern] (match root pattern nil))
+  ([root pattern {:keys [hidden follow-links max-depth recursive]}]
    (let [base-path (-> root absolutize normalize)
          base-path (if windows?
                      (str/replace base-path file-separator (str "\\" file-separator))
@@ -254,18 +258,16 @@
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
-         [base-path pattern recursive]
-         (let [recursive (or (str/includes? pattern "**")
-                             (str/includes? pattern file-separator))
-               pattern (str base-path
-                            ;; we need to escape the file separator on Windows
-                            (when windows? "\\")
-                            file-separator
-                            pattern)]
-           [base-path pattern recursive])
+         [prefix pattern] (str/split pattern #":")
+         pattern (str base-path
+                      ;; we need to escape the file separator on Windows
+                      (when windows? "\\")
+                      file-separator
+                      pattern)
+         pattern (str prefix ":" pattern)
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
-                  (str "glob:" pattern))
+                  pattern)
          match (fn [^Path path]
                  (if (.matches matcher path)
                    (swap! results conj! path)
@@ -295,6 +297,29 @@
          (mapv #(relativize absolute-cwd %)
                results)
          results)))))
+
+(defn glob
+  "Given a file and glob pattern, returns matches as vector of
+  files. Patterns containing ** or / will cause a recursive walk over
+  path, unless overriden with :recursive. Glob interpretation is done
+  using the rules described in
+  https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
+
+  Options:
+
+  - :hidden: match hidden files. Note: on Windows files starting with
+  a dot are not hidden, unless their hidden attribute is set.
+  - :follow-links: follow symlinks.
+  - :recursive: force recursive search.
+
+  Examples:
+  (fs/glob \".\" \"**.clj\")"
+  ([root pattern] (glob root pattern nil))
+  ([root pattern opts]
+   (let [recursive (:recursive opts
+                               (or (str/includes? pattern "**")
+                                   (str/includes? pattern file-separator)))]
+     (match root (str "glob:" pattern) (assoc opts :recursive recursive)))))
 
 (defn- ->copy-opts ^"[Ljava.nio.file.CopyOption;"
   [replace-existing copy-attributes atomic-move nofollow-links]
