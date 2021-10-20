@@ -50,37 +50,36 @@
        (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _])}))))
 
 (deftest match-test
-  (is (= '("README.md") (map str
-                             (fs/glob "." "README.md"))))
+  (is (= '("README.md") (map str (fs/match "." "regex:README.md"))))
   (is (set/subset? #{"project.clj"
                      "test/babashka/fs_test.clj"
                      "src/babashka/fs.cljc"}
                    (set (map normalize
-                             (fs/glob "." "**.{clj,cljc}")))))
-  (testing "glob also matches directories and doesn't return the root directory"
+                             (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
+  (testing "match also matches directories and doesn't return the root directory"
     (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
                      (set (map normalize
-                               (fs/glob "test-resources/foo" "**")))))
+                               (fs/match "test-resources/foo" "regex:.*" {:recursive true})))))
     (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
                      (set (map normalize
-                               (fs/glob "test-resources" "foo/**"))))))
+                               (fs/match "test-resources" "regex:foo/.*" {:recursive true}))))))
   (when-not windows?
     (testing "symlink as root path"
       (let [tmp-dir1 (temp-dir)
             _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
             tmp-dir2 (temp-dir)
             sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
-        (is (empty? (fs/glob sym-link "**")))
-        (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
-        (is (= 1 (count (fs/glob (fs/real-path sym-link) "**")))))))
-  (testing "glob with specific depth"
+        (is (empty? (fs/match sym-link "regex:.*")))
+        (is (= 1 (count (fs/match sym-link "regex:.*" {:follow-links true}))))
+        (is (= 1 (count (fs/match (fs/real-path sym-link) "regex:.*")))))))
+  (testing "match with specific depth"
     (let [tmp-dir1 (temp-dir)
           nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
           _ (fs/create-dirs nested-dir)
           _ (spit (fs/file nested-dir "dude.txt") "contents")]
       (is (= 1 (count (if windows?
-                        (fs/glob tmp-dir1 "foo\\\\bar\\\\baz\\\\*")
-                        (fs/glob tmp-dir1 "foo/bar/baz/*"))))))))
+                        (fs/match tmp-dir1 "regex:foo\\\\bar\\\\baz\\\\.*" {:recursive true})
+                        (fs/match tmp-dir1 "regex:foo/bar/baz/.*" {:recursive true}))))))))
 
 (deftest glob-test
   (is (= '("README.md") (map str
