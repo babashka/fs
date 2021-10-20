@@ -62,7 +62,7 @@
                                (fs/match "test-resources/foo" "regex:.*" {:recursive true})))))
     (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
                      (set (map normalize
-                               (fs/match "test-resources" "regex:foo/.*" {:recursive true}))))))
+                               (fs/match "test-resources" "regex:foo.*" {:recursive true}))))))
   (when-not windows?
     (testing "symlink as root path"
       (let [tmp-dir1 (temp-dir)
