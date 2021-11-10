@@ -109,7 +109,7 @@
   [f] (Files/isReadable (as-path f)))
 
 (defn writable?
-  "Returns true if f is readable"
+  "Returns true if f is writable"
   [f] (Files/isWritable (as-path f)))
 
 (defn relative?
