@@ -399,7 +399,7 @@
       (.putNextEntry zos entry))
     (io/copy fis zos)))
 
-(deftest zip-test
+(deftest unzip-test
   (let [td (fs/create-temp-dir)
         td-out (fs/path td "out")
         zip-file (fs/path td "foo.zip")
@@ -410,4 +410,10 @@
     (is (thrown? java.nio.file.FileAlreadyExistsException (fs/unzip zip-file td-out)))
     (testing "no exception when replacing existing"
       (is (do (fs/unzip zip-file td-out {:replace-existing true})
-              true)))))
+              true))))
+  (testing "Entry within directory can become before directory"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          zip-file (fs/path "test-resources" "bencode-1.1.0.jar")]
+      (fs/unzip zip-file td-out)
+      (is (fs/exists? (fs/file td-out "bencode" "core.clj"))))))

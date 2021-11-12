@@ -793,7 +793,9 @@
                    new-path (.resolve output-path entry-name)]
                (if (.isDirectory entry)
                  (create-dirs new-path)
-                 (Files/copy ^java.io.InputStream zis
-                             new-path
-                             cp-opts)))
+                 (do
+                   (create-dirs (parent new-path))
+                   (Files/copy ^java.io.InputStream zis
+                                             new-path
+                                             cp-opts))))
              (recur))))))))

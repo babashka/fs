@@ -74,3 +74,5 @@ gh-pages/
 
 # lsp
 .lsp/
+
+!test-resources/bencode-1.1.0.jar
