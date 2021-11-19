@@ -431,3 +431,33 @@
       (testing "deletes its directory and contents on exit from the scope"
         (is (not (fs/exists? (fs/path @capture-dir "xx"))))
         (is (not (fs/exists? @capture-dir)))))))
+
+(deftest home-test
+  (let [user-home (fs/path (System/getProperty "user.home"))
+        user-dir (fs/parent user-home)]
+    (testing "without arguments"
+      (is (= user-home
+             (fs/home))))
+    (testing "with a username"
+      (is (= (fs/path user-dir "this-is-me")
+             (fs/home "this-is-me"))))
+    (testing "without username"
+      (is (= user-home
+             (fs/home "")
+             (fs/home nil))))))
+
+(deftest expand-home-test
+  (testing "for the current user"
+    (is (= (fs/home)
+           (fs/expand-home (fs/path "~"))
+           (fs/expand-home "~")))
+    (is (= (fs/path (fs/home) "abc" "bb")
+           (fs/expand-home (fs/path "~" "abc" "bb"))))
+    ; Weird but technically allowed
+    (is (= (fs/path (fs/home) "..")
+           (fs/expand-home (fs/path "~" ".."))))
+    (is (= (fs/path (fs/home) ".")
+           (fs/expand-home (fs/path "~" ".")))))
+  (testing "for another user")
+  (testing "without nothing to expand")
+  (testing "with ~ in another place"))
