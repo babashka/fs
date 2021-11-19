@@ -799,3 +799,45 @@
                                              new-path
                                              cp-opts))))
              (recur))))))))
+
+(defn- with-temp-dir-fn
+  [[sym options] body]
+  `(let [~sym (create-temp-dir ~options)]
+     (try
+       ~@body
+       (finally
+         (delete-tree ~sym)))))
+
+(defn ^:no-doc with-temp-dir-bindings
+  [bindings body]
+  {:pre [(vector? bindings) (even? (count bindings))]}
+  (cond
+    (not (seq bindings)) `(do ~@body)
+
+    (symbol? (bindings 0))
+    (with-temp-dir-fn (subvec bindings 0 2)
+      (if-let [more-bindings (not-empty (subvec bindings 2))]
+        [`(with-temp-dir
+            ~more-bindings
+            ~@body)]
+        body))
+
+    :else
+    (throw
+     (IllegalArgumentException.
+      "with-temp-dir only allows [symbol value] pairs in bindings"))))
+
+(defmacro with-temp-dir
+  "bindings [binding-name options ...]
+
+  Evaluate body with binding-name bound to a java.io.File path to a
+  temporary directory, created by passing options to create-temp-dir.
+
+  The temporary directories are deleted with delete-tree in the reverse
+  of the order in which they were declared.
+
+  Options is a map with the keys as for create-temp-dir."
+  {:arglists '[[[binding-name options ...] & body]]}
+  [bindings & body]
+  {:pre [(vector? bindings) (even? (count bindings))]}
+  (with-temp-dir-bindings bindings body))

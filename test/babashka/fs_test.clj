@@ -417,3 +417,22 @@
           zip-file (fs/path "test-resources" "bencode-1.1.0.jar")]
       (fs/unzip zip-file td-out)
       (is (fs/exists? (fs/file td-out "bencode" "core.clj"))))))
+
+(deftest with-temp-dir-test
+  (let [capture-dir (volatile! nil)]
+    (testing "with-temp-dir"
+      (fs/with-temp-dir [dir {:prefix "with-temp-dir-test"}]
+        (vreset! capture-dir dir)
+        (testing "creates a directory with the given options"
+          (is (fs/exists? dir))
+          (is (str/starts-with? (fs/file-name(str dir)) "with-temp-dir-test")))
+        (fs/create-file (fs/path dir "xx"))
+        (is (fs/exists? (fs/path dir "xx"))))
+      (testing "deletes its directory and contents on exit from the scope"
+        (is (not (fs/exists? (fs/path @capture-dir "xx"))))
+        (is (not (fs/exists? @capture-dir))))
+      (testing "can create multiple directories"
+        (fs/with-temp-dir [dir1 {:prefix "p1"}
+                           dir2 {:prefix "p2"}]
+          (is (fs/exists? dir1))
+          (is (fs/exists? dir2)))))))
