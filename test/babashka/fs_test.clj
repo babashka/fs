@@ -430,9 +430,4 @@
         (is (fs/exists? (fs/path dir "xx"))))
       (testing "deletes its directory and contents on exit from the scope"
         (is (not (fs/exists? (fs/path @capture-dir "xx"))))
-        (is (not (fs/exists? @capture-dir))))
-      (testing "can create multiple directories"
-        (fs/with-temp-dir [dir1 {:prefix "p1"}
-                           dir2 {:prefix "p2"}]
-          (is (fs/exists? dir1))
-          (is (fs/exists? dir2)))))))
+        (is (not (fs/exists? @capture-dir)))))))
