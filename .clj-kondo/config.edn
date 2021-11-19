@@ -1,2 +1,3 @@
 {:cljc {:features [:clj]}
- :linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}}
+ :linters {:unused-binding {:exclude-destructured-keys-in-fn-args true}}
+ :config-paths ["../resources/clj-kondo.exports/babashka/fs"]}

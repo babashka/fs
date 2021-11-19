@@ -799,3 +799,19 @@
                                              new-path
                                              cp-opts))))
              (recur))))))))
+
+(defmacro with-temp-dir
+  "Evaluate body with binding-name bound to a temporary directory.
+
+  The directory is created by passing `options` to create-temp-dir, and
+  will be removed with `delete-tree` on exit from the scope.
+
+  `options` is a map with the keys as for create-temp-dir."
+  {:arglists '[[[binding-name options] & body]]}
+  [[binding-name options & more] & body]
+  {:pre [(empty? more)(symbol? binding-name)]}
+  `(let [~binding-name (create-temp-dir ~options)]
+     (try
+       ~@body
+       (finally
+         (delete-tree ~binding-name)))))
