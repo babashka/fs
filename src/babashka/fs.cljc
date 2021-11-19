@@ -815,3 +815,31 @@
        ~@body
        (finally
          (delete-tree ~binding-name)))))
+
+(let [homedir (path (System/getProperty "user.home"))
+      usersdir (parent homedir)]
+  (defn ^Path home
+    "With no arguments, returns the current value of the `user.home` system
+     property. If a `user` is passed, returns that user's home directory. It
+     is naively assumed to be a directory with the same name as the `user`
+     located relative to the parent of the current value of `user.home`."
+    ([] homedir)
+    ([user] (if (empty? user) homedir (path usersdir user)))))
+
+
+(defn ^Path expand-home
+  "If `path` begins with a tilde (`~`), expand the tilde to the value
+  of the `user.home` system property. If the `path` begins with a
+  tilde immediately followed by some characters, they are assumed to
+  be a username. This is expanded to the path to that user's home
+  directory. This is (naively) assumed to be a directory with the same
+  name as the user relative to the parent of the current value of
+  `user.home`."
+  [f]
+  (let [path-str (str f)]
+    (if (.startsWith path-str "~")
+      (let [sep (.indexOf path-str File/separator)]
+        (if (neg? sep)
+          (home (subs path-str 1))
+          (path (home (subs path-str 1 sep)) (subs path-str (inc sep)))))
+      (as-path f))))
