@@ -466,7 +466,24 @@
            (fs/expand-home (str "~lola" fs/file-separator))))
     (is (= (fs/path (fs/home "lola") "has" "a" "file")
            (fs/expand-home (fs/path "~lola" "has" "a" "file"))
-           (fs/expand-home (str/join fs/file-separator ["~lola" "has" "a" "file"])))))
+           (fs/expand-home (str/join fs/file-separator ["~lola" "has" "a" "file"]))))
+    ; Weird but technically allowed
+    (is (= (fs/path (fs/home "raymond") "..")
+           (fs/expand-home (fs/path "~raymond" ".."))))
+    (is (= (fs/path (fs/home "raymond") ".")
+           (fs/expand-home (fs/path "~raymond" ".")))))
   (testing "without nothing to expand"
-    ())
-  (testing "with ~ in another place"))
+    (doseq [input [["a" "b" "c"]
+                   [""]
+                   ["."]
+                   [".."]]]
+      (is (= (apply fs/path input)
+             (fs/expand-home (str/join fs/file-separator input))))))
+  (testing "with ~ in another place"
+    (doseq [input [["a" "b" "~"]
+                   ["a" "b" "~c"]
+                   ["a" "~" "c"]
+                   ["a" "~b" "c"]
+                   ["a~" "b" "c"]]]
+      (is (= (apply fs/path input)
+             (fs/expand-home (str/join fs/file-separator input))))))
