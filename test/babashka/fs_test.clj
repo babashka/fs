@@ -487,3 +487,5 @@
                    ["a~" "b" "c"]]]
       (is (= (apply fs/path input)
              (fs/expand-home (str/join fs/file-separator input))))))
+  (is (= (fs/path (fs/home) "abc" "~" "def")
+           (fs/expand-home (fs/path "~" "abc" "~" "def")))))
