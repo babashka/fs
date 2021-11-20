@@ -447,6 +447,7 @@
              (fs/home nil))))))
 
 (deftest expand-home-test
+  ; The following tests assume that fs/home is working correctly
   (testing "for the current user"
     (is (= (fs/home)
            (fs/expand-home (fs/path "~"))
