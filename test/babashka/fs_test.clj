@@ -450,7 +450,8 @@
   (testing "for the current user"
     (is (= (fs/home)
            (fs/expand-home (fs/path "~"))
-           (fs/expand-home "~")))
+           (fs/expand-home "~")
+           (fs/expand-home (str "~" fs/file-separator))))
     (is (= (fs/path (fs/home) "abc" "bb")
            (fs/expand-home (fs/path "~" "abc" "bb"))))
     ; Weird but technically allowed
