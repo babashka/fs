@@ -458,6 +458,14 @@
            (fs/expand-home (fs/path "~" ".."))))
     (is (= (fs/path (fs/home) ".")
            (fs/expand-home (fs/path "~" ".")))))
-  (testing "for another user")
-  (testing "without nothing to expand")
+  (testing "for another user"
+    (is (= (fs/home "lola")
+           (fs/expand-home (fs/path "~lola"))
+           (fs/expand-home "~lola")
+           (fs/expand-home (str "~lola" fs/file-separator))))
+    (is (= (fs/path (fs/home "lola") "has" "a" "file")
+           (fs/expand-home (fs/path "~lola" "has" "a" "file"))
+           (fs/expand-home (str/join fs/file-separator ["~lola" "has" "a" "file"])))))
+  (testing "without nothing to expand"
+    ())
   (testing "with ~ in another place"))
