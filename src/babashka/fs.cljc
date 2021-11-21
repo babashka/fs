@@ -816,16 +816,19 @@
        (finally
          (delete-tree ~binding-name)))))
 
-(let [homedir (delay (path (System/getProperty "user.home")))
-      usersdir (delay (parent @homedir))]
-  (defn ^Path home
-    "With no arguments, returns the current value of the `user.home` system
-     property. If a `user` is passed, returns that user's home directory. It
-     is naively assumed to be a directory with the same name as the `user`
-     located relative to the parent of the current value of `user.home`."
-    ([] @homedir)
-    ([user] (if (empty? user) @homedir (path @usersdir user)))))
+(def ^:private cached-home-dir
+  (delay (path (System/getProperty "user.home"))))
 
+(def ^:private cached-users-dir
+  (delay (parent @cached-home-dir)))
+
+(defn ^Path home
+  "With no arguments, returns the current value of the `user.home`
+  system property. If a `user` is passed, returns that user's home
+  directory as found in the parent of home with no args."
+  ([] @cached-home-dir)
+  ([user] (if (empty? user) @cached-home-dir
+              (path @cached-users-dir user))))
 
 (defn ^Path expand-home
   "If `path` begins with a tilde (`~`), expand the tilde to the value
