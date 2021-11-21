@@ -816,15 +816,15 @@
        (finally
          (delete-tree ~binding-name)))))
 
-(let [homedir (path (System/getProperty "user.home"))
-      usersdir (parent homedir)]
+(let [homedir (delay (path (System/getProperty "user.home")))
+      usersdir (delay (parent @homedir))]
   (defn ^Path home
     "With no arguments, returns the current value of the `user.home` system
      property. If a `user` is passed, returns that user's home directory. It
      is naively assumed to be a directory with the same name as the `user`
      located relative to the parent of the current value of `user.home`."
-    ([] homedir)
-    ([user] (if (empty? user) homedir (path usersdir user)))))
+    ([] @homedir)
+    ([user] (if (empty? user) @homedir (path @usersdir user)))))
 
 
 (defn ^Path expand-home
