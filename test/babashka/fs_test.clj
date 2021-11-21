@@ -431,3 +431,62 @@
       (testing "deletes its directory and contents on exit from the scope"
         (is (not (fs/exists? (fs/path @capture-dir "xx"))))
         (is (not (fs/exists? @capture-dir)))))))
+
+(deftest home-test
+  (let [user-home (fs/path (System/getProperty "user.home"))
+        user-dir (fs/parent user-home)]
+    (testing "without arguments"
+      (is (= user-home
+             (fs/home))))
+    (testing "with a username"
+      (is (= (fs/path user-dir "this-is-me")
+             (fs/home "this-is-me"))))
+    (testing "without username"
+      (is (= user-home
+             (fs/home "")
+             (fs/home nil))))))
+
+(deftest expand-home-test
+  ; The following tests assume that fs/home is working correctly
+  (testing "for the current user"
+    (is (= (fs/home)
+           (fs/expand-home (fs/path "~"))
+           (fs/expand-home "~")
+           (fs/expand-home (str "~" fs/file-separator))))
+    (is (= (fs/path (fs/home) "abc" "bb")
+           (fs/expand-home (fs/path "~" "abc" "bb"))))
+    ; Weird but technically allowed
+    (is (= (fs/path (fs/home) "..")
+           (fs/expand-home (fs/path "~" ".."))))
+    (is (= (fs/path (fs/home) ".")
+           (fs/expand-home (fs/path "~" ".")))))
+  (testing "for another user"
+    (is (= (fs/home "lola")
+           (fs/expand-home (fs/path "~lola"))
+           (fs/expand-home "~lola")
+           (fs/expand-home (str "~lola" fs/file-separator))))
+    (is (= (fs/path (fs/home "lola") "has" "a" "file")
+           (fs/expand-home (fs/path "~lola" "has" "a" "file"))
+           (fs/expand-home (str/join fs/file-separator ["~lola" "has" "a" "file"]))))
+    ; Weird but technically allowed
+    (is (= (fs/path (fs/home "raymond") "..")
+           (fs/expand-home (fs/path "~raymond" ".."))))
+    (is (= (fs/path (fs/home "raymond") ".")
+           (fs/expand-home (fs/path "~raymond" ".")))))
+  (testing "without nothing to expand"
+    (doseq [input [["a" "b" "c"]
+                   [""]
+                   ["."]
+                   [".."]]]
+      (is (= (apply fs/path input)
+             (fs/expand-home (str/join fs/file-separator input))))))
+  (testing "with ~ in another place"
+    (doseq [input [["a" "b" "~"]
+                   ["a" "b" "~c"]
+                   ["a" "~" "c"]
+                   ["a" "~b" "c"]
+                   ["a~" "b" "c"]]]
+      (is (= (apply fs/path input)
+             (fs/expand-home (str/join fs/file-separator input))))))
+  (is (= (fs/path (fs/home) "abc" "~" "def")
+           (fs/expand-home (fs/path "~" "abc" "~" "def")))))
