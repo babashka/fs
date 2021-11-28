@@ -699,7 +699,8 @@
 
 (defn which
   "Locates a program in (exec-paths) similar to the which Unix command.
-  On Windows it tries to resolve in the order of: no extension, .com, .exe, .bat, .cmd."
+  On Windows it tries to resolve in the order of: .com, .exe, .bat,
+  .cmd."
   ([program] (which program nil))
   ([program opts]
    (let [has-ext? (extension program)]
@@ -707,7 +708,10 @@
             results []]
        (if-let [p (first paths)]
          (let [fs (loop [exts (if (and windows? (not has-ext?))
-                                [".com" ".exe" ".bat" ".cmd"]
+                                ;; :win-exts is unsupported, if you read and use
+                                ;; this, let me know, it may break.
+                                (or (:win-exts opts)
+                                    [".com" ".exe" ".bat" ".cmd"])
                                 [""])
                          candidates []]
                     (if-let [ext (first exts)]
@@ -729,6 +733,11 @@
                f)
              (recur (rest paths) results)))
          (if (:all opts) results (first results)))))))
+
+(defn which-all
+  ([program] (which-all program nil))
+  ([program opts]
+   (which program (assoc opts :all true))))
 
 ;; the above can be implemented using:
 
