@@ -1,4 +1,4 @@
-(defproject babashka/fs "0.1.1"
+(defproject babashka/fs "0.1.2"
   :description "Babashka file system utilities."
   :url "https://github.com/babashka/fs"
   :scm {:name "git"
@@ -6,8 +6,7 @@
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src"]
-  :dependencies [[org.clojure/clojure "1.9.0"]
-                 [babashka/fs "0.1.1"]]
+  :dependencies [[org.clojure/clojure "1.9.0"]]
   :plugins [[lein-codox "0.10.7"]
             [lein-cloverage "1.2.2"]]
   :codox {:output-path "gh-pages"}

@@ -2,6 +2,13 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## v0.1.2
+
+- Add `with-temp-dir` macro #37 (@hugoduncan)
+- Add `fs/home` and `fs/expand-home` #12 #13 (@Kineolyan)
+- Improve `which` on Windows: take into account `.com`, `.exe`, `.bat.`, `.cmd`
+  when searching for program
+
 ## v0.1.1
 
 - Allow raw pattern to be passed to fs/match [#32](https://github.com/babashka/fs/issues/32)
