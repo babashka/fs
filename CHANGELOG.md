@@ -11,7 +11,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## v0.1.1
 
-- Allow raw pattern to be passed to fs/match [#32](https://github.com/babashka/fs/issues/32)
+- Allow raw pattern to be passed to `fs/match` [#32](https://github.com/babashka/fs/issues/32)
 - `unzip`: entry in dir can come before dir in zip entries [#35](https://github.com/babashka/fs/issues/35)
 
 ## v0.1.0
