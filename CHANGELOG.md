@@ -4,8 +4,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## v0.1.2
 
-- Add `with-temp-dir` macro #37 (@hugoduncan)
-- Add `fs/home` and `fs/expand-home` #12 #13 (@Kineolyan)
+- Add `with-temp-dir` macro [#37](https://github.com/babashka/fs/issues/37) ([@hugoduncan](https://github.com/hugoduncan))
+- Add `fs/home` and `fs/expand-home` [#12](https://github.com/babashka/fs/issues/12) [#13](https://github.com/babashka/fs/issues/13) ([@Kineolyan](https://github.com/Kineolyan))
 - Improve `which` on Windows: take into account `.com`, `.exe`, `.bat.`, `.cmd`
   when searching for program
 
