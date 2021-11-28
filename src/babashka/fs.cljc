@@ -652,60 +652,6 @@
   [dirs glob-or-accept]
   (mapcat #(list-dir % glob-or-accept) dirs))
 
-(defn split-paths
-  "Splits a string joined by the OS-specific path-seperator into a vec of paths."
-  [^String joined-paths]
-  (mapv path (.split joined-paths path-separator)))
-
-(defn exec-paths
-  "Returns executable paths (using the PATH environment variable). Same
-  as (split-paths (System/getenv \"PATH\"))."
-  []
-  (split-paths (System/getenv "PATH")))
-
-(defn which
-  "Locates a program in (exec-paths) similar to the which Unix command.
-  On Windows it tries to resolve in the order of: no extension, .com, .exe, .bat, .cmd."
-  ([program] (which program nil))
-  ([program opts]
-   (loop [paths (babashka.fs/exec-paths)
-          results []]
-     (if-let [p (first paths)]
-       (let [fs (loop [exts (if windows?
-                              ["" ".com" ".exe" ".bat" ".cmd"]
-                              [""])
-                       candidates []]
-                  (if-let [ext (first exts)]
-                    (let [f (babashka.fs/path p (str program ext))]
-                      (if (executable? f)
-                        (recur (rest exts)
-                               (conj candidates f))
-                        (recur (rest exts)
-                               candidates)))
-                    candidates))]
-         (if-let [f (first fs)]
-           (if (:all opts)
-             (recur (rest paths) (into results fs))
-             f)
-           (recur (rest paths) results)))
-       (if (:all opts) results (first results))))))
-
-;; the above can be implemented using:
-
-;; user=> (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-path)) "java")))
-;; #object[sun.nio.fs.UnixPath 0x1dd74143 "/Users/borkdude/.jenv/versions/11.0/bin/java"]
-;; although the which impl is faster
-
-(defn starts-with?
-  "Returns true if path this starts with path other."
-  [this other]
-  (.startsWith (as-path this) (as-path other)))
-
-(defn ends-with?
-  "Returns true if path this ends with path other."
-  [this other]
-  (.endsWith (as-path this) (as-path other)))
-
 (defn split-ext
   "Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths."
   [path]
@@ -739,6 +685,66 @@
   "Returns the extension of a file"
   [path]
   (-> path split-ext last))
+
+(defn split-paths
+  "Splits a string joined by the OS-specific path-seperator into a vec of paths."
+  [^String joined-paths]
+  (mapv path (.split joined-paths path-separator)))
+
+(defn exec-paths
+  "Returns executable paths (using the PATH environment variable). Same
+  as (split-paths (System/getenv \"PATH\"))."
+  []
+  (split-paths (System/getenv "PATH")))
+
+(defn which
+  "Locates a program in (exec-paths) similar to the which Unix command.
+  On Windows it tries to resolve in the order of: no extension, .com, .exe, .bat, .cmd."
+  ([program] (which program nil))
+  ([program opts]
+   (let [has-ext? (extension program)]
+     (loop [paths (babashka.fs/exec-paths)
+            results []]
+       (if-let [p (first paths)]
+         (let [fs (loop [exts (if (and windows? (not has-ext?))
+                                [".com" ".exe" ".bat" ".cmd"]
+                                [""])
+                         candidates []]
+                    (if-let [ext (first exts)]
+                      (let [f (babashka.fs/path p (str program ext))]
+                        (if (and (executable? f)
+                                 (or (not windows?)
+                                     ;; on Windows, we require the resolved
+                                     ;; executable to have an extension, either
+                                     ;; from the program argument or the result
+                                     (extension f)))
+                          (recur (rest exts)
+                                 (conj candidates f))
+                          (recur (rest exts)
+                                 candidates)))
+                      candidates))]
+           (if-let [f (first fs)]
+             (if (:all opts)
+               (recur (rest paths) (into results fs))
+               f)
+             (recur (rest paths) results)))
+         (if (:all opts) results (first results)))))))
+
+;; the above can be implemented using:
+
+;; user=> (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-path)) "java")))
+;; #object[sun.nio.fs.UnixPath 0x1dd74143 "/Users/borkdude/.jenv/versions/11.0/bin/java"]
+;; although the which impl is faster
+
+(defn starts-with?
+  "Returns true if path this starts with path other."
+  [this other]
+  (.startsWith (as-path this) (as-path other)))
+
+(defn ends-with?
+  "Returns true if path this ends with path other."
+  [this other]
+  (.endsWith (as-path this) (as-path other)))
 
 ;;;; Modified since
 
