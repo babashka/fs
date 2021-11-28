@@ -665,19 +665,30 @@
 
 (defn which
   "Locates a program in (exec-paths) similar to the which Unix command.
-  When using the :all option, a vec of results instead of a single result is returned."
+  On Windows it tries to resolve in the order of: no extension, .com, .exe, .bat, .cmd."
   ([program] (which program nil))
-  ([program {:keys [:all]}]
+  ([program opts]
    (loop [paths (babashka.fs/exec-paths)
           results []]
      (if-let [p (first paths)]
-       (let [f (babashka.fs/path p program)]
-         (if (executable? f)
-           (if all
-             (recur (rest paths) (conj results f))
+       (let [fs (loop [exts (if windows?
+                              ["" ".com" ".exe" ".bat" ".cmd"]
+                              [""])
+                       candidates []]
+                  (if-let [ext (first exts)]
+                    (let [f (babashka.fs/path p (str program ext))]
+                      (if (executable? f)
+                        (recur (rest exts)
+                               (conj candidates f))
+                        (recur (rest exts)
+                               candidates)))
+                    candidates))]
+         (if-let [f (first fs)]
+           (if (:all opts)
+             (recur (rest paths) (into results fs))
              f)
            (recur (rest paths) results)))
-       (if all results (first results))))))
+       (if (:all opts) results (first results))))))
 
 ;; the above can be implemented using:
 

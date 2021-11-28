@@ -261,7 +261,8 @@
                                      (fs/exec-paths))
                              java-executable)))]
     (is java)
-    (is (= java (fs/which java-executable)))
+    ;; on Windows we can find the executable on the path without the .exe extension
+    (is (= java (fs/which "java")))
     (is (contains? (set (fs/which java-executable {:all true})) java))))
 
 (deftest predicate-test
