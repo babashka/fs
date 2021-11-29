@@ -11,7 +11,7 @@
 
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
-                  (str/includes? "win")))
+                  (str/starts-with? "windows")))
 
 (defn normalize [p]
   (if windows?
