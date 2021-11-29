@@ -46,4 +46,6 @@ build_script:
 
     powershell -Command "if (Test-Path('bb.exe')) { return } else { Expand-Archive bb.zip . }"
 
+    set PATH=on-path;%PATH%;
+
     call bb test
