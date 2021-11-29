@@ -78,3 +78,4 @@ gh-pages/
 !test-resources/bencode-1.1.0.jar
 # imported via config-paths
 .clj-kondo/babashka/fs
+on-path

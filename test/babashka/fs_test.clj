@@ -11,7 +11,7 @@
 
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
-                  (str/includes? "win")))
+                  (str/starts-with? "windows")))
 
 (defn normalize [p]
   (if windows?
@@ -263,7 +263,16 @@
     (is java)
     ;; on Windows we can find the executable on the path without the .exe extension
     (is (= java (fs/which "java")))
-    (is (contains? (set (fs/which java-executable {:all true})) java))))
+    (is (contains? (set (fs/which-all "java")) java))
+    (fs/create-dirs "on-path")
+    (if windows?
+      (doto (fs/file "on-path" "foo.foo.bat")
+        (spit "echo hello"))
+      (doto (fs/file "on-path" "foo.foo")
+        (spit "echo hello")
+        (fs/set-posix-file-permissions "r-xr-x---")))
+    (is (fs/which "foo.foo"))
+    (fs/delete-tree "on-path")))
 
 (deftest predicate-test
   (is (boolean? (fs/readable? (fs/path "."))))

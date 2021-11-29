@@ -40,11 +40,12 @@ clone_script:
 
 #     call lein self-install
 
-- cmd: >-
-    powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/borkdude/deps.clj/releases/download/v0.0.11/deps.clj-0.0.11-windows-amd64.zip', 'deps.zip')"
-
-    powershell -Command "expand-archive -path 'deps.zip' -destination ."
-
 build_script:
 - cmd: >-
-    call deps.exe -M:test
+    powershell -Command "if (Test-Path('bb.exe')) { return } else { (New-Object Net.WebClient).DownloadFile('https://github.com/borkdude/babashka/releases/download/v0.6.5/babashka-0.6.5-windows-amd64.zip', 'bb.zip') }"
+
+    powershell -Command "if (Test-Path('bb.exe')) { return } else { Expand-Archive bb.zip . }"
+
+    set PATH=on-path;%PATH%;
+
+    call bb test
