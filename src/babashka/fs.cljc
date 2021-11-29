@@ -703,16 +703,21 @@
   .cmd."
   ([program] (which program nil))
   ([program opts]
-   (let [has-ext? (extension program)]
+   ;; :win-exts is unsupported, if you read and use
+   ;; this, let me know, it may break.
+   (let [exts (if windows?
+                (let [exts (or (:win-exts opts)
+                               [".com" ".exe" ".bat" ".cmd"])
+                      ext (extension program)]
+                  (if (contains? (set exts) ext)
+                    ;; this program name already contains the expected extension on Windows
+                    [""]
+                    exts))
+                [""])]
      (loop [paths (babashka.fs/exec-paths)
             results []]
        (if-let [p (first paths)]
-         (let [fs (loop [exts (if (and windows? (not has-ext?))
-                                ;; :win-exts is unsupported, if you read and use
-                                ;; this, let me know, it may break.
-                                (or (:win-exts opts)
-                                    [".com" ".exe" ".bat" ".cmd"])
-                                [""])
+         (let [fs (loop [exts exts
                          candidates []]
                     (if-let [ext (first exts)]
                       (let [f (babashka.fs/path p (str program ext))]

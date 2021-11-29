@@ -263,7 +263,11 @@
     (is java)
     ;; on Windows we can find the executable on the path without the .exe extension
     (is (= java (fs/which "java")))
-    (is (contains? (set (fs/which java-executable {:all true})) java))))
+    (is (contains? (set (fs/which-all java-executable)) java))
+    (when windows?
+      (spit "foo.foo.bat" "echo hello")
+      (prn (fs/which "foo.foo"))
+      (is (fs/which "foo.foo")))))
 
 (deftest predicate-test
   (is (boolean? (fs/readable? (fs/path "."))))
