@@ -710,9 +710,9 @@
                                ["com" "exe" "bat" "cmd"])
                       ext (extension program)]
                   (if (and ext (contains? (set exts) ext))
-                    ;; this program name already contains the expected extension on 
-                    ;; so we search with that
-                    [nil]
+                    ;; this program name already contains the expected extension so we 
+                    ;; first search with that and then try the others to find e.g. foo.bat.cmd
+                    (into [nil] exts)
                     exts))
                 [nil])]
      (loop [paths (babashka.fs/exec-paths)

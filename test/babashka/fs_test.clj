@@ -275,6 +275,10 @@
     (when windows?
       (testing "can find executable when including extension"
         (is (= (fs/which "foo.foo") (fs/which "foo.foo.bat")))))
+    (when windows?
+      (testing "can find foo.cmd.bat"
+        (spit "on-path/foo.cmd.bat" "echo hello")
+        (is (= (fs/which "foo.cmd") (fs/which "foo.cmd.bat")))))
     (fs/delete-tree "on-path")))
 
 (deftest predicate-test
