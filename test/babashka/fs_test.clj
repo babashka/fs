@@ -263,9 +263,10 @@
     (is java)
     ;; on Windows we can find the executable on the path without the .exe extension
     (is (= java (fs/which "java")))
-    (is (contains? (set (fs/which-all java-executable)) java))
+    (is (contains? (set (fs/which-all "java")) java))
     (when windows?
-      (spit "foo.foo.bat" "echo hello")
+      (fs/create-dirs "on-path")
+      (spit (fs/file "on-path" "foo.foo.bat") "echo hello")
       (prn (fs/which "foo.foo"))
       (is (fs/which "foo.foo")))))
 
