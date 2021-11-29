@@ -709,13 +709,11 @@
                 (let [exts (or (:win-exts opts)
                                [".com" ".exe" ".bat" ".cmd"])
                       ext (extension program)]
-                  (prn :found-ext ext)
                   (if (and ext (contains? (set exts) ext))
                     ;; this program name already contains the expected extension on Windows
                     [""]
                     exts))
                 [""])]
-     (prn :exts exts)
      (loop [paths (babashka.fs/exec-paths)
             results []]
        (if-let [p (first paths)]
@@ -723,13 +721,7 @@
                          candidates []]
                     (if-let [ext (first exts)]
                       (let [f (babashka.fs/path p (str program ext))]
-                        (prn :ext ext :f f)
-                        (if (and (executable? f)
-                                 (or (not windows?)
-                                     ;; on Windows, we require the resolved
-                                     ;; executable to have an extension, either
-                                     ;; from the program argument or the result
-                                     (extension f)))
+                        (if (executable? f)
                           (recur (rest exts)
                                  (conj candidates f))
                           (recur (rest exts)
