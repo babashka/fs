@@ -727,10 +727,10 @@
                           (recur (rest exts)
                                  candidates)))
                       candidates))]
-           (if-let [f (first fs)]
+           (if (seq fs)
              (if (:all opts)
                (recur (rest paths) (into results fs))
-               f)
+               (first fs))
              (recur (rest paths) results)))
          (if (:all opts) results (first results)))))))
 
