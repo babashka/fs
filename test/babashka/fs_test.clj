@@ -271,7 +271,6 @@
       (doto (fs/file "on-path" "foo.foo")
         (spit "echo hello")
         (fs/set-posix-file-permissions "r-xr-x---")))
-    (prn (System/getenv "PATH"))
     (is (fs/which "foo.foo"))
     (fs/delete-tree "on-path")))
 
