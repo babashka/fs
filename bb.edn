@@ -1,0 +1,4 @@
+{:tasks
+ {:requires ([babashka.fs :as fs])
+  test (clojure {:extra-env {"PATH" (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+                "-M:test")}}
