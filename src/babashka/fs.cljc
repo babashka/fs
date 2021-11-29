@@ -464,8 +464,8 @@
   "Create a hard link from path to target."
   [path target]
   (Files/createLink
-  (as-path path)
-  (as-path target)))
+   (as-path path)
+   (as-path target)))
 
 (defn delete
   "Deletes f. Returns nil if the delete was successful,
@@ -707,20 +707,22 @@
    ;; this, let me know, it may break.
    (let [exts (if windows?
                 (let [exts (or (:win-exts opts)
-                               [".com" ".exe" ".bat" ".cmd"])
+                               ["com" "exe" "bat" "cmd"])
                       ext (extension program)]
                   (if (and ext (contains? (set exts) ext))
-                    ;; this program name already contains the expected extension on Windows
-                    [""]
+                    ;; this program name already contains the expected extension on 
+                    ;; so we search with that
+                    [nil]
                     exts))
-                [""])]
+                [nil])]
      (loop [paths (babashka.fs/exec-paths)
             results []]
        (if-let [p (first paths)]
          (let [fs (loop [exts exts
                          candidates []]
-                    (if-let [ext (first exts)]
-                      (let [f (babashka.fs/path p (str program ext))]
+                    (if (seq exts)
+                      (let [ext (first exts)
+                            f (babashka.fs/path p (str program (when ext (str "." ext))))]
                         (if (executable? f)
                           (recur (rest exts)
                                  (conj candidates f))
@@ -810,8 +812,8 @@
          _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)]
      (with-open
-       [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
-        zis (ZipInputStream. fis)]
+      [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
+       zis (ZipInputStream. fis)]
        (loop []
          (let [entry (.getNextEntry zis)]
            (when entry
@@ -822,8 +824,8 @@
                  (do
                    (create-dirs (parent new-path))
                    (Files/copy ^java.io.InputStream zis
-                                             new-path
-                                             cp-opts))))
+                               new-path
+                               cp-opts))))
              (recur))))))))
 
 (defmacro with-temp-dir
@@ -835,7 +837,7 @@
   `options` is a map with the keys as for create-temp-dir."
   {:arglists '[[[binding-name options] & body]]}
   [[binding-name options & more] & body]
-  {:pre [(empty? more)(symbol? binding-name)]}
+  {:pre [(empty? more) (symbol? binding-name)]}
   `(let [~binding-name (create-temp-dir ~options)]
      (try
        ~@body

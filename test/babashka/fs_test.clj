@@ -272,6 +272,9 @@
         (spit "echo hello")
         (fs/set-posix-file-permissions "r-xr-x---")))
     (is (fs/which "foo.foo"))
+    (when windows?
+      (testing "can find executable when including extension"
+        (is (= (fs/which "foo.foo") (fs/which "foo.foo.bat")))))
     (fs/delete-tree "on-path")))
 
 (deftest predicate-test
@@ -400,9 +403,9 @@
 (defn zip
   [zip-file src]
   (with-open
-    [fos (FileOutputStream. (str zip-file))
-     zos (ZipOutputStream. fos)
-     fis (FileInputStream. (fs/file src))]
+   [fos (FileOutputStream. (str zip-file))
+    zos (ZipOutputStream. fos)
+    fis (FileInputStream. (fs/file src))]
     (let [src (fs/path src)
           ^String src-name (fs/file-name src)
           entry (ZipEntry. src-name)]
@@ -435,7 +438,7 @@
         (vreset! capture-dir dir)
         (testing "creates a directory with the given options"
           (is (fs/exists? dir))
-          (is (str/starts-with? (fs/file-name(str dir)) "with-temp-dir-test")))
+          (is (str/starts-with? (fs/file-name (str dir)) "with-temp-dir-test")))
         (fs/create-file (fs/path dir "xx"))
         (is (fs/exists? (fs/path dir "xx"))))
       (testing "deletes its directory and contents on exit from the scope"
@@ -499,4 +502,4 @@
       (is (= (apply fs/path input)
              (fs/expand-home (str/join fs/file-separator input))))))
   (is (= (fs/path (fs/home) "abc" "~" "def")
-           (fs/expand-home (fs/path "~" "abc" "~" "def")))))
+         (fs/expand-home (fs/path "~" "abc" "~" "def")))))
