@@ -48,4 +48,5 @@ clone_script:
 build_script:
 - cmd: >-
     set PATH=on-path;%PATH%
+
     call deps.exe -M:test
