@@ -709,6 +709,7 @@
                 (let [exts (or (:win-exts opts)
                                [".com" ".exe" ".bat" ".cmd"])
                       ext (extension program)]
+                  (prn :found-ext ext)
                   (if (and ext (contains? (set exts) ext))
                     ;; this program name already contains the expected extension on Windows
                     [""]
