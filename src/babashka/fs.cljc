@@ -714,6 +714,7 @@
                     [""]
                     exts))
                 [""])]
+     (prn :exts exts)
      (loop [paths (babashka.fs/exec-paths)
             results []]
        (if-let [p (first paths)]
@@ -721,6 +722,7 @@
                          candidates []]
                     (if-let [ext (first exts)]
                       (let [f (babashka.fs/path p (str program ext))]
+                        (prn :ext ext :f f)
                         (if (and (executable? f)
                                  (or (not windows?)
                                      ;; on Windows, we require the resolved
