@@ -401,6 +401,7 @@
   ([src dest {:keys [:replace-existing
                      :copy-attributes
                      :nofollow-links]}]
+   (create-dirs dest)
    (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
          link-options (->link-opts nofollow-links)
          from (real-path src {:nofollow-links nofollow-links})
