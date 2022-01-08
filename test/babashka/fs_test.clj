@@ -182,6 +182,13 @@
       (is (pos? cur-dir-count))
       (is (= cur-dir-count tmp-dir-count)))))
 
+;; https://github.com/babashka/fs/issues/42
+;; foo2 doesn't exist
+(deftest copy-tree-create-nested-dest-test
+  (is (fs/copy-tree "test-resources/foo" "test-resources/foo2/foo")
+      "The nested destination directory is not created when it doesn't exist")
+  (fs/delete-tree "test-resources/foo2"))
+
 (deftest components-test
   (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
     (is (= "foo" (last paths)))
