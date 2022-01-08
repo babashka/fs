@@ -400,8 +400,17 @@
   ([src dest] (copy-tree src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
-                     :nofollow-links]}]
-   (create-dirs dest)
+                     :nofollow-links]
+              :as opts}]
+   ;; cf. Python
+   (when-not (directory? src)
+     (throw (IllegalArgumentException. (str "Not a directory: " src))))
+   ;; cf. Python
+   (when (and (exists? dest)
+              (not (directory? dest)))
+     (throw (IllegalArgumentException. (str "Not a directory: " dest))))
+   ;; cf. Python
+   (create-dirs dest opts)
    (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
          link-options (->link-opts nofollow-links)
          from (real-path src {:nofollow-links nofollow-links})

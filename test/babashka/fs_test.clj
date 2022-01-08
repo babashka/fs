@@ -182,12 +182,23 @@
       (is (pos? cur-dir-count))
       (is (= cur-dir-count tmp-dir-count)))))
 
-;; https://github.com/babashka/fs/issues/42
-;; foo2 doesn't exist
+(deftest copy-tree-on-file-test
+  ;; cf. python3 -c 'import shutil; shutil.copytree("foo/bar1", "foo2")'
+  (let [tmp-dir (temp-dir)]
+    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
+                          (fs/copy-tree (fs/file "test-resources" "foo" "1") (fs/file tmp-dir))))
+    (spit (fs/file tmp-dir "1") "")
+    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
+                          (fs/copy-tree (fs/file "test-resources" "foo") (fs/file tmp-dir "1"))))
+    (fs/delete-tree tmp-dir)))
+
 (deftest copy-tree-create-nested-dest-test
-  (is (fs/copy-tree "test-resources/foo" "test-resources/foo2/foo")
-      "The nested destination directory is not created when it doesn't exist")
-  (fs/delete-tree "test-resources/foo2"))
+  ;; https://github.com/babashka/fs/issues/42
+  ;; foo2 doesn't exist
+  (fs/with-temp-dir [tmp {}]
+    (fs/copy-tree "test-resources/foo" (fs/file tmp "foo2" "foo"))
+    (is (fs/exists? (fs/file tmp"foo2" "foo" "1"))
+        "The nested destination directory is not created when it doesn't exist")))
 
 (deftest components-test
   (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
