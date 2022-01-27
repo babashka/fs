@@ -218,7 +218,8 @@
 
 #?(:bb nil :clj
    (defn list-dir
-     "Returns all paths in dir as vector. For descending into subdirectories use glob."
+     "Returns all paths in dir as vector. For descending into subdirectories use glob.
+     - `glob-or-accept` - a glob string such as \"*.edn\" or a (fn accept [^java.nio.file.Path p]) -> truthy"
      ([dir]
       (with-open [stream (directory-stream dir)]
         (vec stream)))
@@ -658,7 +659,8 @@
    (set-attribute f "basic:creationTime" (->file-time time) opts)))
 
 (defn list-dirs
-  "Similar to list-dir but accepts multiple roots and returns the concatenated results."
+  "Similar to list-dir but accepts multiple roots and returns the concatenated results.
+  - `glob-or-accept` - a glob string such as \"*.edn\" or a (fn accept [^java.nio.file.Path p]) -> truthy"
   [dirs glob-or-accept]
   (mapcat #(list-dir % glob-or-accept) dirs))
 
