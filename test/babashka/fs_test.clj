@@ -525,3 +525,7 @@
              (fs/expand-home (str/join fs/file-separator input))))))
   (is (= (fs/path (fs/home) "abc" "~" "def")
          (fs/expand-home (fs/path "~" "abc" "~" "def")))))
+
+(deftest uri->path-test
+  (is (instance? java.nio.file.Path
+                 (fs/path (.toURI (fs/file "."))))))

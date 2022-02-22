@@ -3,6 +3,7 @@
             [clojure.string :as str]
             [clojure.walk :as walk])
   (:import [java.io File]
+           [java.net URI]
            [java.nio.file CopyOption
             #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
             Files
@@ -32,7 +33,9 @@
 (defn- ^Path as-path
   [path]
   (if (instance? Path path) path
-      (.toPath (io/file path))))
+      (if (instance? URI path)
+        (java.nio.file.Paths/get ^URI path)
+        (.toPath (io/file path)))))
 
 (defn- ^java.io.File as-file
   "Coerces a path into a file if it isn't already one."
@@ -722,7 +725,7 @@
                                ["com" "exe" "bat" "cmd"])
                       ext (extension program)]
                   (if (and ext (contains? (set exts) ext))
-                    ;; this program name already contains the expected extension so we 
+                    ;; this program name already contains the expected extension so we
                     ;; first search with that and then try the others to find e.g. foo.bat.cmd
                     (into [nil] exts)
                     exts))
@@ -824,8 +827,8 @@
          _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)]
      (with-open
-      [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
-       zis (ZipInputStream. fis)]
+       [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
+        zis (ZipInputStream. fis)]
        (loop []
          (let [entry (.getNextEntry zis)]
            (when entry
