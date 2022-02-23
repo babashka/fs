@@ -902,8 +902,7 @@
      (with-open [zos (ZipOutputStream.
                       (FileOutputStream. (file zip-file)))]
        (doseq [zpath entries]
-         (let [zip-from zpath]
-           (copy-to-zip zos zip-from)))))))
+         (copy-to-zip zos zpath))))))
 
 ;;;; End zip
 
