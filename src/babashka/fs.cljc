@@ -861,6 +861,7 @@
                                cp-opts))))
              (recur))))))))
 
+;; partially borrowed from tools.build
 (defn- add-zip-entry
   [^ZipOutputStream output-stream ^File file]
   (let [dir (.isDirectory file)
@@ -880,6 +881,7 @@
 
     (.closeEntry output-stream)))
 
+;; partially borrowed from tools.build
 (defn- copy-to-zip
   [^ZipOutputStream jos f]
   (let [files (file-seq (file f))]
@@ -887,8 +889,11 @@
             (add-zip-entry jos f))
           files)))
 
+;; partially borrowed from tools.build
 (defn zip
-  "Zips entry or entries into zip-file. Currently only accepts relative entries."
+  "Zips entry or entries into zip-file. An entry may be a file or
+  directory. Directories are included recursively and their names are
+  preserved in the zip file. Currently only accepts relative entries."
   ([zip-file entries]
    (zip zip-file entries nil))
   ([zip-file entries _opts]
