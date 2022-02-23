@@ -885,22 +885,20 @@
   ([^ZipOutputStream jos f _path]
    (let [files (file-seq (file f))]
      (run! (fn [^File f]
-             (let [rel-path (str (if (relative? f)
-                                   f
-                                   (relativize "." f)))]
-               (when-not (= rel-path "")
-                 ;; (println "  Adding" rel-path)
-                 (add-zip-entry jos rel-path f))))
+             (let [rel-path (str f)]
+               (add-zip-entry jos rel-path f)))
        files))))
 
 (defn zip
-  "Zips entry or entries into zip-file."
+  "Zips entry or entries into zip-file. Currently only accepts relative entries."
   ([zip-file entries]
    (zip zip-file entries nil))
   ([zip-file entries _opts]
    (let [entries (if (string? entries)
                    [entries]
                    entries)]
+     (assert (every? relative? entries)
+             "All entries must be relative")
      (with-open [zos (ZipOutputStream.
                       (FileOutputStream. (file zip-file)))]
        (doseq [zpath entries]
