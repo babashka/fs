@@ -5,4 +5,4 @@
                                 :sha "cb96e80f6f3d3b307c59cbeb49bb0dcb3a2a780b"}
                                clj-commons/fs {:mvn/version "1.5.2"}
                                com.google.cloud/google-cloud-nio {:mvn/version "0.123.10"}}
-                  #_#_:main-opts ["-m" "cognitect.test-runner"]}}}
+                  :main-opts ["-m" "cognitect.test-runner"]}}}
