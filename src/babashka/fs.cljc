@@ -862,13 +862,14 @@
              (recur))))))))
 
 (defn- add-zip-entry
-  [^ZipOutputStream output-stream ^String path ^File file]
+  [^ZipOutputStream output-stream ^File file]
   (let [dir (.isDirectory file)
         attrs (Files/readAttributes (as-path file) BasicFileAttributes
                                     (->link-opts []))
-        path (if (and dir (not (.endsWith path "/"))) (str path "/") path)
-        path (str/replace path \\ \/) ;; only use unix-style paths in jars
-        entry (doto (ZipEntry. path)
+        fpath (str file)
+        fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
+        fpath (str/replace fpath \\ \/) ;; only use unix-style paths in jars
+        entry (doto (ZipEntry. fpath)
                 ;(.setSize (.size attrs))
                 ;(.setLastAccessTime (.lastAccessTime attrs))
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
@@ -883,8 +884,7 @@
   [^ZipOutputStream jos f]
   (let [files (file-seq (file f))]
     (run! (fn [^File f]
-            (let [rel-path (str f)]
-              (add-zip-entry jos rel-path f)))
+            (add-zip-entry jos f))
           files)))
 
 (defn zip
