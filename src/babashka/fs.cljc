@@ -13,8 +13,9 @@
             StandardCopyOption
             LinkOption Path
             FileVisitor]
-           [java.nio.file.attribute FileAttribute FileTime PosixFilePermissions]
-           [java.util.zip ZipInputStream]))
+           [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions]
+           [java.util.zip ZipInputStream ZipOutputStream ZipEntry]
+           [java.io File BufferedInputStream FileInputStream FileOutputStream]))
 
 (set! *warn-on-reflection* true)
 
@@ -829,7 +830,7 @@
 
 ;;;; End modified since
 
-;; taken and adapted from babashka.pods.impl.resolver
+;;;; Zip
 
 (defn unzip
   "zip-file: zip archive to unzip (required)
@@ -859,6 +860,59 @@
                                new-path
                                cp-opts))))
              (recur))))))))
+
+(defn- add-zip-entry
+  [^ZipOutputStream output-stream ^String path ^File file]
+  (let [dir (.isDirectory file)
+        attrs (Files/readAttributes (as-path file) BasicFileAttributes
+                                    (->link-opts []))
+        path (if (and dir (not (.endsWith path "/"))) (str path "/") path)
+        path (str/replace path \\ \/) ;; only use unix-style paths in jars
+        entry (doto (ZipEntry. path)
+                ;(.setSize (.size attrs))
+                ;(.setLastAccessTime (.lastAccessTime attrs))
+                (.setLastModifiedTime (.lastModifiedTime attrs)))]
+    (.putNextEntry output-stream entry)
+    (when-not dir
+      (with-open [fis (BufferedInputStream. (FileInputStream. file))]
+        (io/copy fis output-stream)))
+
+    (.closeEntry output-stream)))
+
+(defn- copy-to-zip
+  ([^ZipOutputStream jos f]
+   (copy-to-zip jos f f))
+  ([^ZipOutputStream jos f _path]
+   (let [files (file-seq (file f))
+         root-path (if (relative? f)
+                     nil
+                     (if (directory? f)
+                       (parent f)
+                       f))]
+     (run! (fn [^File f]
+             (let [rel-path (str (if (relative? f)
+                                   f
+                                   (relativize root-path f)))]
+               (when-not (= rel-path "")
+                 ;; (println "  Adding" rel-path)
+                 (add-zip-entry jos rel-path f))))
+       files))))
+
+(defn zip
+  "Zips entry or entries into zip-file."
+  ([zip-file entries]
+   (zip zip-file entries nil))
+  ([zip-file entries _opts]
+   (let [entries (if (string? entries)
+                   [entries]
+                   entries)]
+     (with-open [zos (ZipOutputStream.
+                      (FileOutputStream. (file zip-file)))]
+       (doseq [zpath entries]
+         (let [zip-from zpath]
+           (copy-to-zip zos zip-from)))))))
+
+;;;; End zip
 
 (defmacro with-temp-dir
   "Evaluate body with binding-name bound to a temporary directory.

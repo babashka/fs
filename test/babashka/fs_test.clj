@@ -420,25 +420,11 @@
     (fs/set-last-modified-time anchor (fs/last-modified-time f1))
     (is (not (seq (fs/modified-since anchor f1))))))
 
-;; https://mkyong.com/java/how-to-compress-files-in-zip-format/
-;; TODO: this is far from a public API, just for testing purposes
-(defn zip
-  [zip-file src]
-  (with-open
-   [fos (FileOutputStream. (str zip-file))
-    zos (ZipOutputStream. fos)
-    fis (FileInputStream. (fs/file src))]
-    (let [src (fs/path src)
-          ^String src-name (fs/file-name src)
-          entry (ZipEntry. src-name)]
-      (.putNextEntry zos entry))
-    (io/copy fis zos)))
-
-(deftest unzip-test
+(deftest zip-unzip-test
   (let [td (fs/create-temp-dir)
         td-out (fs/path td "out")
         zip-file (fs/path td "foo.zip")
-        _ (zip zip-file "README.md")]
+        _ (fs/zip zip-file "README.md")]
     (fs/unzip zip-file td-out)
     (is (fs/exists? (fs/path td-out "README.md")))
     (is (= (slurp "README.md") (slurp (fs/file td-out "README.md"))))
@@ -451,7 +437,24 @@
           td-out (fs/path td "out")
           zip-file (fs/path "test-resources" "bencode-1.1.0.jar")]
       (fs/unzip zip-file td-out)
-      (is (fs/exists? (fs/file td-out "bencode" "core.clj"))))))
+      (is (fs/exists? (fs/file td-out "bencode" "core.clj")))))
+  (testing "Zip directory"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          zip-file (fs/path td "foo.zip")]
+      (fs/zip zip-file "src")
+      (fs/unzip zip-file td-out)
+      (is (fs/exists? (fs/file td-out "src")))))
+  (testing "Zip directory and file"
+    ;; NOTE: currently the API works more like unix zip than tools.build zip:
+    ;;  zip /tmp/out2.zip src README.md
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          zip-file (fs/path td "foo.zip")]
+      (fs/zip zip-file ["src" "README.md"])
+      (fs/unzip zip-file td-out)
+      (is (fs/exists? (fs/file td-out "src")))
+      (is (fs/exists? (fs/file td-out "README.md"))))))
 
 (deftest with-temp-dir-test
   (let [capture-dir (volatile! nil)]
