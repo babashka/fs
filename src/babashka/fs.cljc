@@ -880,14 +880,12 @@
     (.closeEntry output-stream)))
 
 (defn- copy-to-zip
-  ([^ZipOutputStream jos f]
-   (copy-to-zip jos f f))
-  ([^ZipOutputStream jos f _path]
-   (let [files (file-seq (file f))]
-     (run! (fn [^File f]
-             (let [rel-path (str f)]
-               (add-zip-entry jos rel-path f)))
-       files))))
+  [^ZipOutputStream jos f]
+  (let [files (file-seq (file f))]
+    (run! (fn [^File f]
+            (let [rel-path (str f)]
+              (add-zip-entry jos rel-path f)))
+          files)))
 
 (defn zip
   "Zips entry or entries into zip-file. Currently only accepts relative entries."
