@@ -13,8 +13,9 @@
             StandardCopyOption
             LinkOption Path
             FileVisitor]
-           [java.nio.file.attribute FileAttribute FileTime PosixFilePermissions]
-           [java.util.zip ZipInputStream]))
+           [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions]
+           [java.util.zip ZipInputStream ZipOutputStream ZipEntry]
+           [java.io File BufferedInputStream FileInputStream FileOutputStream]))
 
 (set! *warn-on-reflection* true)
 
@@ -860,7 +861,7 @@
 
 ;;;; End modified since
 
-;; taken and adapted from babashka.pods.impl.resolver
+;;;; Zip
 
 (defn unzip
   "zip-file: zip archive to unzip (required)
@@ -890,6 +891,54 @@
                                new-path
                                cp-opts))))
              (recur))))))))
+
+;; partially borrowed from tools.build
+(defn- add-zip-entry
+  [^ZipOutputStream output-stream ^File file]
+  (let [dir (.isDirectory file)
+        attrs (Files/readAttributes (as-path file) BasicFileAttributes
+                                    (->link-opts []))
+        fpath (str file)
+        fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
+        fpath (str/replace fpath \\ \/) ;; only use unix-style paths in jars
+        entry (doto (ZipEntry. fpath)
+                ;(.setSize (.size attrs))
+                ;(.setLastAccessTime (.lastAccessTime attrs))
+                (.setLastModifiedTime (.lastModifiedTime attrs)))]
+    (.putNextEntry output-stream entry)
+    (when-not dir
+      (with-open [fis (BufferedInputStream. (FileInputStream. file))]
+        (io/copy fis output-stream)))
+
+    (.closeEntry output-stream)))
+
+;; partially borrowed from tools.build
+(defn- copy-to-zip
+  [^ZipOutputStream jos f]
+  (let [files (file-seq (file f))]
+    (run! (fn [^File f]
+            (add-zip-entry jos f))
+          files)))
+
+;; partially borrowed from tools.build
+(defn zip
+  "Zips entry or entries into zip-file. An entry may be a file or
+  directory. Directories are included recursively and their names are
+  preserved in the zip file. Currently only accepts relative entries."
+  ([zip-file entries]
+   (zip zip-file entries nil))
+  ([zip-file entries _opts]
+   (let [entries (if (string? entries)
+                   [entries]
+                   entries)]
+     (assert (every? relative? entries)
+             "All entries must be relative")
+     (with-open [zos (ZipOutputStream.
+                      (FileOutputStream. (file zip-file)))]
+       (doseq [zpath entries]
+         (copy-to-zip zos zpath))))))
+
+;;;; End zip
 
 (defmacro with-temp-dir
   "Evaluate body with binding-name bound to a temporary directory.
