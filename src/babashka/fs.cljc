@@ -466,6 +466,37 @@
         prefix
         attrs)))))
 
+(defn create-temp-file
+  "Creates an empty temporary file using Files#createTempFile.
+
+  (create-temp-file): creates temp file with random prefix and suffix.
+  (create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]}):
+
+  create temp file in path with prefix. If prefix and suffix are not
+  provided, random ones are generated. If path is not provided, the
+  directory is created as if called
+  with (create-temp-dir). The :posix-file-permissions option is a
+  string like \"rwx------\"."
+  ([]
+   (Files/createTempFile
+    (str (java.util.UUID/randomUUID))
+    (str (java.util.UUID/randomUUID))
+    (make-array FileAttribute 0)))
+  ([{:keys [:path :prefix :suffix :posix-file-permissions]}]
+   (let [attrs (posix->attrs posix-file-permissions)
+         prefix (or prefix (str (java.util.UUID/randomUUID)))
+         suffix (or suffix (str (java.util.UUID/randomUUID)))]
+     (if path
+       (Files/createTempFile
+        (as-path path)
+        prefix
+        suffix
+        attrs)
+       (Files/createTempFile
+        prefix
+        suffix
+        attrs)))))
+
 (defn create-sym-link
   "Create a soft link from path to target."
   [path target]
