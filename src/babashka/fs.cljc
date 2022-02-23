@@ -588,16 +588,33 @@
   (let [f (fn [[k v]] (if (string? k) [(key-fn k) v] [k v]))]
     (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
 
+(defn read-attributes*
+  "Reads attributes via Files/readAttributes."
+  ([path attributes]
+   (read-attributes* path attributes nil))
+  ([path attributes {:keys [:nofollow-links]}]
+   (let [p (as-path path)
+         link-opts (->link-opts {:nofollow-links nofollow-links})
+         attrs
+         ;; prevent reflection warning
+         (if (instance? String attributes)
+           (Files/readAttributes p
+                                 ^String attributes
+                                 link-opts)
+           (Files/readAttributes p
+                                 ^Class attributes
+                                 link-opts))]
+     attrs)))
+
 (defn read-attributes
-  "Reads attributes via Files/readAttributes. Keywordizes string keys into keywords. This can be changed by passing a :key-fn in the options map."
+  "Same as read-attributes* but turns attributes into a map and keywordizes keys.
+  Keywordizing can be changed by passing a :key-fn in the options map."
   ([path attributes]
    (read-attributes path attributes nil))
-  ([path ^String attributes {:keys [:nofollow-links :key-fn]}]
-   (->>  (Files/readAttributes (as-path path)
-                               attributes
-                               (->link-opts {:nofollow-links nofollow-links}))
-         (into {})
-         (keyize (or key-fn keyword)))))
+  ([path attributes {:keys [:nofollow-links :key-fn] :as opts}]
+   (->> (read-attributes* path attributes opts)
+        (into {})
+        (keyize (or key-fn keyword)))))
 
 (defn set-attribute
   ([path attribute value]
