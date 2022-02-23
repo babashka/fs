@@ -883,16 +883,11 @@
   ([^ZipOutputStream jos f]
    (copy-to-zip jos f f))
   ([^ZipOutputStream jos f _path]
-   (let [files (file-seq (file f))
-         root-path (if (relative? f)
-                     nil
-                     (if (directory? f)
-                       (parent f)
-                       f))]
+   (let [files (file-seq (file f))]
      (run! (fn [^File f]
              (let [rel-path (str (if (relative? f)
                                    f
-                                   (relativize root-path f)))]
+                                   (relativize "." f)))]
                (when-not (= rel-path "")
                  ;; (println "  Adding" rel-path)
                  (add-zip-entry jos rel-path f))))
