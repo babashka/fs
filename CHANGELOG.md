@@ -2,6 +2,16 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## v0.1.3
+
+- Compatibility improvements for `com.google.cloud/google-cloud-nio`: convert
+  `URI` to `Path` directly without going through `URL`
+- Add `create-temp-file`
+- Add initial version of `zip`
+- Add `read-attributes*` without conversion into map
+- Run `create-dirs` for the `dest` directory in `copy-tree` to ensure it exists ([@duzunov](https://github.com/duzunov))
+- Document `list-dir` `glob-or-accept` argument ([@holyjak](https://github.com/holyjak))
+
 ## v0.1.2
 
 - Add `with-temp-dir` macro [#37](https://github.com/babashka/fs/issues/37) ([@hugoduncan](https://github.com/hugoduncan))
