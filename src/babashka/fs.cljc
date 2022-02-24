@@ -470,14 +470,11 @@
 (defn create-temp-file
   "Creates an empty temporary file using Files#createTempFile.
 
-  (create-temp-file): creates temp file with random prefix and suffix.
-  (create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]}):
-
-  create temp file in path with prefix. If prefix and suffix are not
-  provided, random ones are generated. If path is not provided, the
-  directory is created as if called
-  with (create-temp-dir). The :posix-file-permissions option is a
-  string like \"rwx------\"."
+  - (create-temp-file): creates temp file with random prefix and suffix.
+  - (create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]}): create
+  temp file in path with prefix. If prefix and suffix are not
+  provided, random ones are generated. The :posix-file-permissions
+  option is a string like \"rwx------\"."
   ([]
    (Files/createTempFile
     (str (java.util.UUID/randomUUID))
