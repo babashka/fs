@@ -25,14 +25,11 @@ option. Supports same options as copy.</pre></div></div><div class="public ancho
 create temp dir in path with prefix. If prefix is not provided, a random one
 is generated. If path is not provided, the directory is created as if called with (create-temp-dir). The :posix-file-permissions option is a string like "rwx------".</pre></div></div><div class="public anchor" id="var-create-temp-file"><h3>create-temp-file</h3><div class="usage"><code>(create-temp-file)</code><code>(create-temp-file {:keys [:path :prefix :suffix :posix-file-permissions]})</code></div><div class="doc"><pre class="plaintext">Creates an empty temporary file using Files#createTempFile.
 
-(create-temp-file): creates temp file with random prefix and suffix.
-(create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]}):
-
-create temp file in path with prefix. If prefix and suffix are not
-provided, random ones are generated. If path is not provided, the
-directory is created as if called
-with (create-temp-dir). The :posix-file-permissions option is a
-string like "rwx------".</pre></div></div><div class="public anchor" id="var-creation-time"><h3>creation-time</h3><div class="usage"><code>(creation-time f)</code><code>(creation-time f {:keys [nofollow-links], :as opts})</code></div><div class="doc"><pre class="plaintext">Returns creation time as FileTime.
+- (create-temp-file): creates temp file with random prefix and suffix.
+- (create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]}): create
+temp file in path with prefix. If prefix and suffix are not
+provided, random ones are generated. The :posix-file-permissions
+option is a string like "rwx------".</pre></div></div><div class="public anchor" id="var-creation-time"><h3>creation-time</h3><div class="usage"><code>(creation-time f)</code><code>(creation-time f {:keys [nofollow-links], :as opts})</code></div><div class="doc"><pre class="plaintext">Returns creation time as FileTime.
 </pre></div></div><div class="public anchor" id="var-delete"><h3>delete</h3><div class="usage"><code>(delete f)</code></div><div class="doc"><pre class="plaintext">Deletes f. Returns nil if the delete was successful,
 throws otherwise. Does not follow symlinks.</pre></div></div><div class="public anchor" id="var-delete-if-exists"><h3>delete-if-exists</h3><div class="usage"><code>(delete-if-exists f)</code></div><div class="doc"><pre class="plaintext">Deletes f if it exists. Returns true if the delete was successful,
 false if f didn't exist. Does not follow symlinks.</pre></div></div><div class="public anchor" id="var-delete-on-exit"><h3>delete-on-exit</h3><div class="usage"><code>(delete-on-exit f)</code></div><div class="doc"><pre class="plaintext">Requests delete on exit via File#deleteOnExit. Returns f.
