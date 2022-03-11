@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## v0.1.4
+
+- Add `windows?` predicate
+
 ## v0.1.3
 
 - Compatibility improvements for `com.google.cloud/google-cloud-nio`: convert
