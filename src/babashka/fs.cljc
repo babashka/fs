@@ -234,7 +234,7 @@
 (def ^:const file-separator File/separator)
 (def ^:const path-separator File/pathSeparator)
 
-(def ^:private windows?
+(def ^:private win?
   (-> (System/getProperty "os.name")
       (str/lower-case)
       (str/includes? "win")))
@@ -257,7 +257,7 @@
   ([root pattern] (match root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth recursive]}]
    (let [base-path (-> root absolutize normalize)
-         base-path (if windows?
+         base-path (if win?
                      (str/replace base-path file-separator (str "\\" file-separator))
                      base-path)
          skip-hidden? (not hidden)
@@ -266,7 +266,7 @@
          [prefix pattern] (str/split pattern #":")
          pattern (str base-path
                       ;; we need to escape the file separator on Windows
-                      (when windows? "\\")
+                      (when win? "\\")
                       file-separator
                       pattern)
          pattern (str prefix ":" pattern)
@@ -766,7 +766,7 @@
   ([program opts]
    ;; :win-exts is unsupported, if you read and use
    ;; this, let me know, it may break.
-   (let [exts (if windows?
+   (let [exts (if win?
                 (let [exts (or (:win-exts opts)
                                ["com" "exe" "bat" "cmd"])
                       ext (extension program)]
@@ -983,3 +983,8 @@
           (home (subs path-str 1))
           (path (home (subs path-str 1 sep)) (subs path-str (inc sep)))))
       (as-path f))))
+
+(defn windows?
+  "Returns true if OS is Windows."
+  []
+  (str/starts-with? (System/getProperty "os.name") "Windows"))
