@@ -282,7 +282,7 @@
     ;; on Windows we can find the executable on the path without the .exe extension
     (is (= java (fs/which "java")))
     (is (contains? (set (fs/which-all "java")) java))
-    (fs/create-dirs "on-path")
+    (fs/create-dirs "on-path/path-subdir")
     (if windows?
       (doto (fs/file "on-path" "foo.foo.bat")
         (spit "echo hello"))
@@ -297,6 +297,10 @@
       (testing "can find foo.cmd.bat"
         (spit "on-path/foo.cmd.bat" "echo hello")
         (is (= (fs/which "foo.cmd") (fs/which "foo.cmd.bat")))))
+    (testing "'which' shouldn't find directories"
+      (is (nil? (fs/which "path-subdir"))))
+    (testing "given a relative path, 'which' shouldn't search path entries"
+      (is (nil? (fs/which "./foo.foo"))))
     (fs/delete-tree "on-path")))
 
 (deftest predicate-test

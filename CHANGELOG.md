@@ -2,6 +2,12 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- [#51](https://github.com/babashka/fs/issues/51): Update `which` function to more closely mimic unix `which`:
+  - do not identify directories as matches
+  - if the argument is a relative path (more than just a file/command name), then don't search path entries
+
 ## v0.1.4
 
 - Add `windows?` predicate

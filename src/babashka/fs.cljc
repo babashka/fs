@@ -758,6 +758,13 @@
   []
   (split-paths (System/getenv "PATH")))
 
+(defn- filename-only? 
+  "Returns true if `f` is exactly a file name (i.e. with no absolute or
+  relative path information."
+  [f]
+  (let [f-as-path (as-path f)]
+    (= f-as-path (.getFileName f-as-path))))
+
 (defn which
   "Locates a program in (exec-paths) similar to the which Unix command.
   On Windows it tries to resolve in the order of: .com, .exe, .bat,
@@ -775,16 +782,22 @@
                     ;; first search with that and then try the others to find e.g. foo.bat.cmd
                     (into [nil] exts)
                     exts))
-                [nil])]
-     (loop [paths (babashka.fs/exec-paths)
+                [nil])
+         ;; if program is exactly a file name, then search all the path entries
+         ;; otherwise, only search relative to current directory (absolute paths will throw)
+         candidate-paths (if (filename-only? program)
+                           (babashka.fs/exec-paths)
+                           [nil])]
+     (loop [paths candidate-paths
             results []]
-       (if-let [p (first paths)]
-         (let [fs (loop [exts exts
+       (if (seq paths)
+         (let [p (first paths)
+               fs (loop [exts exts
                          candidates []]
                     (if (seq exts)
                       (let [ext (first exts)
                             f (babashka.fs/path p (str program (when ext (str "." ext))))]
-                        (if (executable? f)
+                        (if (and (executable? f) (not (directory? f)))
                           (recur (rest exts)
                                  (conj candidates f))
                           (recur (rest exts)
