@@ -253,7 +253,7 @@
   - :max-depth: max depth to descend into directory structure.
 
   Examples:
-  (fs/match \".\" \"regex:.*\\.clj\" {:recursive true})"
+  (fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})"
   ([root pattern] (match root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth recursive]}]
    (let [base-path (-> root absolutize normalize)
