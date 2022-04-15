@@ -31,34 +31,34 @@
       (or (fvr-lookup x)
           (throw (Exception. "Expected: one of :continue, :skip-subtree, :skip-siblings, :terminate.")))))
 
-(defn- ^Path as-path
-  [path]
+(defn- as-path
+  ^Path [path]
   (if (instance? Path path) path
       (if (instance? URI path)
         (java.nio.file.Paths/get ^URI path)
         (.toPath (io/file path)))))
 
-(defn- ^java.io.File as-file
+(defn- as-file
   "Coerces a path into a file if it isn't already one."
-  [path]
+  ^java.io.File [path]
   (if (instance? Path path) (.toFile ^Path path)
       (io/file path)))
 
-(defn ^Path path
+(defn path
   "Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent."
-  ([f]
+  (^Path [f]
    (as-path f))
-  ([parent child]
+  (^Path [parent child]
    (as-path (io/file (as-file parent) (as-file child))))
-  ([parent child & more]
+  (^Path [parent child & more]
    (reduce path (path parent child) more)))
 
-(defn ^File file
+(defn file
   "Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent."
-  ([f] (as-file f))
-  ([f & fs]
+  (^File [f] (as-file f))
+  (^File [f & fs]
    (apply io/file (map as-file (cons f fs)))))
 
 (defn- ->link-opts ^"[Ljava.nio.file.LinkOption;"
@@ -68,10 +68,10 @@
                 nofollow-links
                 (conj LinkOption/NOFOLLOW_LINKS))))
 
-(defn ^Path real-path
+(defn real-path
   "Converts f into real path via Path#toRealPath."
-  ([f] (real-path f nil))
-  ([f {:keys [:nofollow-links]}]
+  (^Path [f] (real-path f nil))
+  (^Path [f {:keys [:nofollow-links]}]
    (.toRealPath (as-path f) (->link-opts nofollow-links))))
 
 ;;;; Predicates
@@ -139,9 +139,9 @@
   "Converts f into an absolute path via Path#toAbsolutePath."
   [f] (.toAbsolutePath (as-path f)))
 
-(defn ^Path relativize
+(defn relativize
   "Returns relative path by comparing this with other."
-  [this other]
+  ^Path [this other]
   (.relativize (as-path this) (as-path other)))
 
 (defn normalize
@@ -149,13 +149,13 @@
   [f]
   (.normalize (as-path f)))
 
-(defn ^Path canonicalize
+(defn canonicalize
   "Returns the canonical path via
   java.io.File#getCanonicalPath. If :nofollow-links is set, then it
   will fall back on absolutize + normalize. This function can be used
   as an alternative to real-path which requires files to exist."
-  ([f] (canonicalize f nil))
-  ([f {:keys [:nofollow-links]}]
+  (^Path [f] (canonicalize f nil))
+  (^Path [f {:keys [:nofollow-links]}]
    (if nofollow-links
      (-> f absolutize normalize)
      (as-path (.getCanonicalPath (as-file f))))))
@@ -758,7 +758,7 @@
   []
   (split-paths (System/getenv "PATH")))
 
-(defn- filename-only? 
+(defn- filename-only?
   "Returns true if `f` is exactly a file name (i.e. with no absolute or
   relative path information."
   [f]
@@ -912,8 +912,8 @@
         fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
         fpath (str/replace fpath \\ \/) ;; only use unix-style paths in jars
         entry (doto (ZipEntry. fpath)
-                ;(.setSize (.size attrs))
-                ;(.setLastAccessTime (.lastAccessTime attrs))
+                                        ;(.setSize (.size attrs))
+                                        ;(.setLastAccessTime (.lastAccessTime attrs))
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
     (.putNextEntry output-stream entry)
     (when-not dir
@@ -972,15 +972,15 @@
 (def ^:private cached-users-dir
   (delay (parent @cached-home-dir)))
 
-(defn ^Path home
+(defn home
   "With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args."
-  ([] @cached-home-dir)
-  ([user] (if (empty? user) @cached-home-dir
-              (path @cached-users-dir user))))
+  (^Path [] @cached-home-dir)
+  (^Path [user] (if (empty? user) @cached-home-dir
+                    (path @cached-users-dir user))))
 
-(defn ^Path expand-home
+(defn expand-home
   "If `path` begins with a tilde (`~`), expand the tilde to the value
   of the `user.home` system property. If the `path` begins with a
   tilde immediately followed by some characters, they are assumed to
@@ -988,7 +988,7 @@
   directory. This is (naively) assumed to be a directory with the same
   name as the user relative to the parent of the current value of
   `user.home`."
-  [f]
+  ^Path [f]
   (let [path-str (str f)]
     (if (.startsWith path-str "~")
       (let [sep (.indexOf path-str File/separator)]
