@@ -2,7 +2,9 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
-## Unreleased
+## v0.1.5
+
+- Support glob patterns on Windows with forward slashes
 
 - [#51](https://github.com/babashka/fs/issues/51): Update `which` function to more closely mimic unix `which`:
   - do not identify directories as matches
