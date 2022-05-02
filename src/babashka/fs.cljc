@@ -268,15 +268,17 @@
                       ;; we need to escape the file separator on Windows
                       (when win? "\\")
                       file-separator
-                      pattern)
+                      (if win?
+                        (str/replace pattern "/" "\\\\")
+                        pattern))
          pattern (str prefix ":" pattern)
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
                   pattern)
          match (fn [^Path path]
-                 (if (.matches matcher path)
-                   (swap! results conj! path)
-                   nil))]
+                 (when (.matches matcher path)
+                   (swap! results conj! path))
+                 nil)]
      (walk-file-tree
       base-path
       {:max-depth max-depth
@@ -323,7 +325,9 @@
   ([root pattern opts]
    (let [recursive (:recursive opts
                                (or (str/includes? pattern "**")
-                                   (str/includes? pattern file-separator)))]
+                                   (str/includes? pattern file-separator)
+                                   (when win?
+                                     (str/includes? pattern "/"))))]
      (match root (str "glob:" pattern) (assoc opts :recursive recursive)))))
 
 (defn- ->copy-opts ^"[Ljava.nio.file.CopyOption;"
