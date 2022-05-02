@@ -112,7 +112,15 @@
           _ (spit (fs/file nested-dir "dude.txt") "contents")]
       (is (= 1 (count (if windows?
                         (fs/glob tmp-dir1 "foo\\\\bar\\\\baz\\\\*")
-                        (fs/glob tmp-dir1 "foo/bar/baz/*"))))))))
+                        (fs/glob tmp-dir1 "foo/bar/baz/*")))))))
+  (testing "windows globbing now can be similar to unix"
+    (when windows?
+      (let [tmp-dir1 (temp-dir)
+            nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
+            _ (fs/create-dirs nested-dir)
+            _ (spit (fs/file nested-dir "dude.clj") "contents")
+            _ (spit (fs/file nested-dir "dude2.clj") "contents")]
+        (is (= 2 (count (fs/glob tmp-dir1 "foo/bar/baz/*.clj"))))))))
 
 (deftest create-dir-test
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
