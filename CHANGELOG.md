@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## v0.1.6
+
+- Add `cwd`
+
 ## v0.1.5
 
 - Support glob patterns on Windows with forward slashes

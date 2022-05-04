@@ -1007,5 +1007,6 @@
   (str/starts-with? (System/getProperty "os.name") "Windows"))
 
 (defn cwd
+  "Returns current working directory as path"
   []
   (as-path (System/getProperty "user.dir")))
