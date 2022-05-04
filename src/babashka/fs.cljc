@@ -1005,3 +1005,7 @@
   "Returns true if OS is Windows."
   []
   (str/starts-with? (System/getProperty "os.name") "Windows"))
+
+(defn cwd
+  []
+  (as-path (System/getProperty "user.dir")))
