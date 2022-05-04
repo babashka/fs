@@ -4,7 +4,7 @@ set -eo pipefail
 
 lein codox
 
-cd gh-pages
+cd codox
 git add .
 git commit -m "update doc"
-git push origin gh-pages
+git push origin master
