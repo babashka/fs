@@ -20,7 +20,7 @@ The main inspirations for this library are
 
 ## API docs
 
-API docs are available at [babashka.org/fs](https://babashka.org/fs).  Most
+API docs are available at [babashka.org/fs/codox](https://babashka.org/fs).  Most
 functions take a string, `java.io.File` or `java.nio.file.Path` as input and
 return a `java.nio.file.Path`. Coercion into a `File` or `Path` can be done
 using `fs/file` and `fs/path`.

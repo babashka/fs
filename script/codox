@@ -7,4 +7,4 @@ lein codox
 cd codox
 git add .
 git commit -m "update doc"
-git push origin master
+# git push origin master
