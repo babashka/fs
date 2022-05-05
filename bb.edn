@@ -1,4 +1,12 @@
-{:tasks
+{:pods {clj-kondo/clj-kondo {:version "2022.02.09"}}
+ :deps {io.github.borkdude/quickdoc {:git/sha "f384873f73ec426157bdfa9171fe18218aed4677"}}
+
+ :tasks
  {:requires ([babashka.fs :as fs])
   test (clojure {:extra-env {"PATH" (str "on-path" fs/path-separator (System/getenv "PATH"))}}
-                "-M:test")}}
+                "-M:test")
+
+  quickdoc {:doc "Invoke quickdoc"
+            :requires ([quickdoc.api :as api])
+            :task (api/quickdoc {:git/branch "main"
+                                 :github/repo "https://github.com/babashka/process"})}}}
