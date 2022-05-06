@@ -1,5 +1,5 @@
 {:pods {clj-kondo/clj-kondo {:version "2022.02.09"}}
- :deps {io.github.borkdude/quickdoc {:git/sha "f384873f73ec426157bdfa9171fe18218aed4677"}}
+ :deps {io.github.borkdude/quickdoc {:git/sha "b0b8af270264551da85cd3ebb4030eec3bf0c45b"}}
 
  :tasks
  {:requires ([babashka.fs :as fs])
@@ -9,4 +9,5 @@
   quickdoc {:doc "Invoke quickdoc"
             :requires ([quickdoc.api :as api])
             :task (api/quickdoc {:git/branch "master"
-                                 :github/repo "https://github.com/babashka/fs"})}}}
+                                 :github/repo "https://github.com/babashka/fs"
+                                 :collapse-vars true})}}}

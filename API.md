@@ -1,35 +1,77 @@
 ## babashka.fs
+<details>
+
+
+<summary><code> absolute? </code></summary>
+
+
 ### `absolute?`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns true if f represents an absolute path.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L103-L105)
+[Source](null/blob/master/src/babashka/fs.cljc#L103-L105)
+</details>
+
+
+<details>
+
+
+<summary><code> absolutize </code></summary>
+
+
 ### `absolutize`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Converts f into an absolute path via Path#toAbsolutePath.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L138-L140)
+[Source](null/blob/master/src/babashka/fs.cljc#L138-L140)
+</details>
+
+
+<details>
+
+
+<summary><code> canonicalize </code></summary>
+
+
 ### `canonicalize`
-<code>[f]</code><br>
-<code>[f {:keys [:nofollow-links]}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [:nofollow-links]}]</code><br>
 
 Returns the canonical path via
   java.io.File#getCanonicalPath. If :nofollow-links is set, then it
   will fall back on absolutize + normalize. This function can be used
   as an alternative to real-path which requires files to exist.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L152-L161)
+[Source](null/blob/master/src/babashka/fs.cljc#L152-L161)
+</details>
+
+
+<details>
+
+
+<summary><code> components </code></summary>
+
+
 ### `components`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns a seq of all components of f.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L133-L136)
+[Source](null/blob/master/src/babashka/fs.cljc#L133-L136)
+</details>
+
+
+<details>
+
+
+<summary><code> copy </code></summary>
+
+
 ### `copy`
-<code>[src dest]</code><br>
-<code>[src dest {:keys [:replace-existing :copy-attributes :nofollow-links]}]</code><br>
+> <code>[src dest]</code><br>
+> <code>[src dest {:keys [:replace-existing :copy-attributes :nofollow-links]}]</code><br>
 
 Copies src file to dest dir or file.
   Options:
@@ -37,52 +79,115 @@ Copies src file to dest dir or file.
   - :copy-attributes
   - :nofollow-links (used to determine to copy symbolic link itself or not).
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L342-L358)
+[Source](null/blob/master/src/babashka/fs.cljc#L342-L358)
+</details>
+
+
+<details>
+
+
+<summary><code> copy-tree </code></summary>
+
+
 ### `copy-tree`
-<code>[src dest]</code><br>
-<code>[src dest {:keys [:replace-existing :copy-attributes :nofollow-links] :as opts}]</code><br>
+> <code>[src dest]</code><br>
+> <code>[src dest {:keys [:replace-existing :copy-attributes :nofollow-links], :as opts}]</code><br>
 
 Copies entire file tree from src to dest. Creates dest if needed
   using create-dirs, passing it the :posix-file-permissions
   option. Supports same options as copy.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L405-L443)
+[Source](null/blob/master/src/babashka/fs.cljc#L405-L443)
+</details>
+
+
+<details>
+
+
+<summary><code> create-dir </code></summary>
+
+
 ### `create-dir`
-<code>[path]</code><br>
-<code>[path {:keys [:posix-file-permissions]}]</code><br>
+> <code>[path]</code><br>
+> <code>[path {:keys [:posix-file-permissions]}]</code><br>
 
 Creates dir using Files#createDirectory. Does not create parents.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L391-L397)
+[Source](null/blob/master/src/babashka/fs.cljc#L391-L397)
+</details>
+
+
+<details>
+
+
+<summary><code> create-dirs </code></summary>
+
+
 ### `create-dirs`
-<code>[path]</code><br>
-<code>[path {:keys [:posix-file-permissions]}]</code><br>
+> <code>[path]</code><br>
+> <code>[path {:keys [:posix-file-permissions]}]</code><br>
 
 Creates directories using Files#createDirectories. Also creates parents if needed.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L399-L403)
+[Source](null/blob/master/src/babashka/fs.cljc#L399-L403)
+</details>
+
+
+<details>
+
+
+<summary><code> create-file </code></summary>
+
+
 ### `create-file`
-<code>[path]</code><br>
-<code>[path {:keys [:posix-file-permissions]}]</code><br>
+> <code>[path]</code><br>
+> <code>[path {:keys [:posix-file-permissions]}]</code><br>
 
 Creates empty file using Files#createFile.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L546-L552)
+[Source](null/blob/master/src/babashka/fs.cljc#L546-L552)
+</details>
+
+
+<details>
+
+
+<summary><code> create-link </code></summary>
+
+
 ### `create-link`
-<code>[path target]</code><br>
+> <code>[path target]</code><br>
 
 Create a hard link from path to target.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L510-L515)
+[Source](null/blob/master/src/babashka/fs.cljc#L510-L515)
+</details>
+
+
+<details>
+
+
+<summary><code> create-sym-link </code></summary>
+
+
 ### `create-sym-link`
-<code>[path target]</code><br>
+> <code>[path target]</code><br>
 
 Create a soft link from path to target.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L502-L508)
+[Source](null/blob/master/src/babashka/fs.cljc#L502-L508)
+</details>
+
+
+<details>
+
+
+<summary><code> create-temp-dir </code></summary>
+
+
 ### `create-temp-dir`
-<code>[]</code><br>
-<code>[{:keys [:prefix :path :posix-file-permissions]}]</code><br>
+> <code>[]</code><br>
+> <code>[{:keys [:prefix :path :posix-file-permissions]}]</code><br>
 
 Creates a temporary directory using Files#createDirectories.
 
@@ -92,10 +197,19 @@ Creates a temporary directory using Files#createDirectories.
   create temp dir in path with prefix. If prefix is not provided, a random one
   is generated. If path is not provided, the directory is created as if called with (create-temp-dir). The :posix-file-permissions option is a string like "rwx------".
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L450-L472)
+[Source](null/blob/master/src/babashka/fs.cljc#L450-L472)
+</details>
+
+
+<details>
+
+
+<summary><code> create-temp-file </code></summary>
+
+
 ### `create-temp-file`
-<code>[]</code><br>
-<code>[{:keys [:path :prefix :suffix :posix-file-permissions]}]</code><br>
+> <code>[]</code><br>
+> <code>[{:keys [:path :prefix :suffix :posix-file-permissions]}]</code><br>
 
 Creates an empty temporary file using Files#createTempFile.
 
@@ -105,81 +219,189 @@ Creates an empty temporary file using Files#createTempFile.
   provided, random ones are generated. The :posix-file-permissions
   option is a string like "rwx------".
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L474-L500)
+[Source](null/blob/master/src/babashka/fs.cljc#L474-L500)
+</details>
+
+
+<details>
+
+
+<summary><code> creation-time </code></summary>
+
+
 ### `creation-time`
-<code>[f]</code><br>
-<code>[f {:keys [nofollow-links] :as opts}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [nofollow-links], :as opts}]</code><br>
 
 Returns creation time as FileTime.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L700-L705)
+[Source](null/blob/master/src/babashka/fs.cljc#L700-L705)
+</details>
+
+
+<details>
+
+
+<summary><code> cwd </code></summary>
+
+
 ### `cwd`
-<code>[]</code><br>
+> <code>[]</code><br>
 
 Returns current working directory as path
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1009-L1012)
+[Source](null/blob/master/src/babashka/fs.cljc#L1009-L1012)
+</details>
+
+
+<details>
+
+
+<summary><code> delete </code></summary>
+
+
 ### `delete`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L517-L523)
+[Source](null/blob/master/src/babashka/fs.cljc#L517-L523)
+</details>
+
+
+<details>
+
+
+<summary><code> delete-if-exists </code></summary>
+
+
 ### `delete-if-exists`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Deletes f if it exists. Returns true if the delete was successful,
   false if f didn't exist. Does not follow symlinks.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L525-L529)
+[Source](null/blob/master/src/babashka/fs.cljc#L525-L529)
+</details>
+
+
+<details>
+
+
+<summary><code> delete-on-exit </code></summary>
+
+
 ### `delete-on-exit`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Requests delete on exit via File#deleteOnExit. Returns f.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L578-L582)
+[Source](null/blob/master/src/babashka/fs.cljc#L578-L582)
+</details>
+
+
+<details>
+
+
+<summary><code> delete-tree </code></summary>
+
+
 ### `delete-tree`
-<code>[root]</code><br>
+> <code>[root]</code><br>
 
 Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow symlinks.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L534-L544)
+[Source](null/blob/master/src/babashka/fs.cljc#L534-L544)
+</details>
+
+
+<details>
+
+
+<summary><code> directory? </code></summary>
+
+
 ### `directory?`
-<code>[f]</code><br>
-<code>[f {:keys [:nofollow-links]}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [:nofollow-links]}]</code><br>
 
 Returns true if f is a directory, using Files/isDirectory.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L86-L91)
+[Source](null/blob/master/src/babashka/fs.cljc#L86-L91)
+</details>
+
+
+<details>
+
+
+<summary><code> ends-with? </code></summary>
+
+
 ### `ends-with?`
-<code>[this other]</code><br>
+> <code>[this other]</code><br>
 
 Returns true if path this ends with path other.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L833-L836)
+[Source](null/blob/master/src/babashka/fs.cljc#L833-L836)
+</details>
+
+
+<details>
+
+
+<summary><code> exec-paths </code></summary>
+
+
 ### `exec-paths`
-<code>[]</code><br>
+> <code>[]</code><br>
 
 Returns executable paths (using the PATH environment variable). Same
   as (split-paths (System/getenv "PATH")).
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L759-L763)
+[Source](null/blob/master/src/babashka/fs.cljc#L759-L763)
+</details>
+
+
+<details>
+
+
+<summary><code> executable? </code></summary>
+
+
 ### `executable?`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns true if f is executable.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L107-L109)
+[Source](null/blob/master/src/babashka/fs.cljc#L107-L109)
+</details>
+
+
+<details>
+
+
+<summary><code> exists? </code></summary>
+
+
 ### `exists?`
-<code>[f]</code><br>
-<code>[f {:keys [:nofollow-links]}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [:nofollow-links]}]</code><br>
 
 Returns true if f exists.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L123-L129)
+[Source](null/blob/master/src/babashka/fs.cljc#L123-L129)
+</details>
+
+
+<details>
+
+
+<summary><code> expand-home </code></summary>
+
+
 ### `expand-home`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 If `path` begins with a tilde (`~`), expand the tilde to the value
   of the `user.home` system property. If the `path` begins with a
@@ -189,50 +411,122 @@ If `path` begins with a tilde (`~`), expand the tilde to the value
   name as the user relative to the parent of the current value of
   `user.home`.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L987-L1002)
+[Source](null/blob/master/src/babashka/fs.cljc#L987-L1002)
+</details>
+
+
+<details>
+
+
+<summary><code> extension </code></summary>
+
+
 ### `extension`
-<code>[path]</code><br>
+> <code>[path]</code><br>
 
 Returns the extension of a file
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L749-L752)
+[Source](null/blob/master/src/babashka/fs.cljc#L749-L752)
+</details>
+
+
+<details>
+
+
+<summary><code> file </code></summary>
+
+
 ### `file`
-<code>[f]</code><br>
-<code>[f & fs]</code><br>
+> <code>[f]</code><br>
+> <code>[f & fs]</code><br>
 
 Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L57-L62)
+[Source](null/blob/master/src/babashka/fs.cljc#L57-L62)
+</details>
+
+
+<details>
+
+
+<summary><code> file-name </code></summary>
+
+
 ### `file-name`
-<code>[x]</code><br>
+> <code>[x]</code><br>
 
 Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") returns "baz".
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L163-L166)
+[Source](null/blob/master/src/babashka/fs.cljc#L163-L166)
+</details>
+
+
+<details>
+
+
+<summary><code> file-separator </code></summary>
+
+
 ### `file-separator`
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L234-L234)
+[Source](null/blob/master/src/babashka/fs.cljc#L234-L234)
+</details>
+
+
+<details>
+
+
+<summary><code> file-time->instant </code></summary>
+
+
 ### `file-time->instant`
-<code>[ft]</code><br>
+> <code>[ft]</code><br>
 
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L661-L664)
+[Source](null/blob/master/src/babashka/fs.cljc#L661-L664)
+</details>
+
+
+<details>
+
+
+<summary><code> file-time->millis </code></summary>
+
+
 ### `file-time->millis`
-<code>[ft]</code><br>
+> <code>[ft]</code><br>
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L671-L674)
-### `get-attribute`
-<code>[path attribute]</code><br>
-<code>[path attribute {:keys [:nofollow-links]}]</code><br>
+[Source](null/blob/master/src/babashka/fs.cljc#L671-L674)
+</details>
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L611-L617)
+
+<details>
+
+
+<summary><code> get-attribute </code></summary>
+
+
+### `get-attribute`
+> <code>[path attribute]</code><br>
+> <code>[path attribute {:keys [:nofollow-links]}]</code><br>
+
+[Source](null/blob/master/src/babashka/fs.cljc#L611-L617)
+</details>
+
+
+<details>
+
+
+<summary><code> glob </code></summary>
+
+
 ### `glob`
-<code>[root pattern]</code><br>
-<code>[root pattern opts]</code><br>
+> <code>[root pattern]</code><br>
+> <code>[root pattern opts]</code><br>
 
 Given a file and glob pattern, returns matches as vector of
   files. Patterns containing ** or / will cause a recursive walk over
@@ -250,53 +544,116 @@ Given a file and glob pattern, returns matches as vector of
   Examples:
   (fs/glob "." "**.clj")
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L308-L331)
+[Source](null/blob/master/src/babashka/fs.cljc#L308-L331)
+</details>
+
+
+<details>
+
+
+<summary><code> hidden? </code></summary>
+
+
 ### `hidden?`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns true if f is hidden.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L99-L101)
+[Source](null/blob/master/src/babashka/fs.cljc#L99-L101)
+</details>
+
+
+<details>
+
+
+<summary><code> home </code></summary>
+
+
 ### `home`
-<code>[]</code><br>
-<code>[user]</code><br>
+> <code>[]</code><br>
+> <code>[user]</code><br>
 
 With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L979-L985)
+[Source](null/blob/master/src/babashka/fs.cljc#L979-L985)
+</details>
+
+
+<details>
+
+
+<summary><code> instant->file-time </code></summary>
+
+
 ### `instant->file-time`
-<code>[instant]</code><br>
+> <code>[instant]</code><br>
 
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L666-L669)
+[Source](null/blob/master/src/babashka/fs.cljc#L666-L669)
+</details>
+
+
+<details>
+
+
+<summary><code> last-modified-time </code></summary>
+
+
 ### `last-modified-time`
-<code>[f]</code><br>
-<code>[f {:keys [nofollow-links] :as opts}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [nofollow-links], :as opts}]</code><br>
 
 Returns last modified time as a java.nio.file.attribute.FileTime.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L686-L691)
+[Source](null/blob/master/src/babashka/fs.cljc#L686-L691)
+</details>
+
+
+<details>
+
+
+<summary><code> list-dir </code></summary>
+
+
 ### `list-dir`
-<code>[dir]</code><br>
-<code>[dir glob-or-accept]</code><br>
+> <code>[dir]</code><br>
+> <code>[dir glob-or-accept]</code><br>
 
 Returns all paths in dir as vector. For descending into subdirectories use glob.
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L224-L232)
+[Source](null/blob/master/src/babashka/fs.cljc#L224-L232)
+</details>
+
+
+<details>
+
+
+<summary><code> list-dirs </code></summary>
+
+
 ### `list-dirs`
-<code>[dirs glob-or-accept]</code><br>
+> <code>[dirs glob-or-accept]</code><br>
 
 Similar to list-dir but accepts multiple roots and returns the concatenated results.
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L714-L718)
+[Source](null/blob/master/src/babashka/fs.cljc#L714-L718)
+</details>
+
+
+<details>
+
+
+<summary><code> match </code></summary>
+
+
 ### `match`
-<code>[root pattern]</code><br>
-<code>[root pattern {:keys [hidden follow-links max-depth recursive]}]</code><br>
+> <code>[root pattern]</code><br>
+> <code>[root pattern {:keys [hidden follow-links max-depth recursive]}]</code><br>
 
 Given a file and match pattern, returns matches as vector of
   files. Pattern interpretation is done using the rules described in
@@ -313,15 +670,33 @@ Given a file and match pattern, returns matches as vector of
   Examples:
   (fs/match "." "regex:.*\\.clj" {:recursive true})
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L242-L306)
+[Source](null/blob/master/src/babashka/fs.cljc#L242-L306)
+</details>
+
+
+<details>
+
+
+<summary><code> millis->file-time </code></summary>
+
+
 ### `millis->file-time`
-<code>[millis]</code><br>
+> <code>[millis]</code><br>
 
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L676-L679)
+[Source](null/blob/master/src/babashka/fs.cljc#L676-L679)
+</details>
+
+
+<details>
+
+
+<summary><code> modified-since </code></summary>
+
+
 ### `modified-since`
-<code>[anchor file-set]</code><br>
+> <code>[anchor file-set]</code><br>
 
 Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
   The anchor path can be a regular file or directory, in which case
@@ -330,197 +705,476 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
   collection of files (e.g. returned by glob). Directories are
   searched recursively.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L865-L874)
+[Source](null/blob/master/src/babashka/fs.cljc#L865-L874)
+</details>
+
+
+<details>
+
+
+<summary><code> move </code></summary>
+
+
 ### `move`
-<code>[source target]</code><br>
-<code>[source target {:keys [:replace-existing :atomic-move :nofollow-links]}]</code><br>
+> <code>[source target]</code><br>
+> <code>[source target {:keys [:replace-existing :atomic-move :nofollow-links]}]</code><br>
 
 Move or rename a file to a target dir or file via Files/move.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L554-L567)
+[Source](null/blob/master/src/babashka/fs.cljc#L554-L567)
+</details>
+
+
+<details>
+
+
+<summary><code> normalize </code></summary>
+
+
 ### `normalize`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Normalizes f via Path#normalize.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L147-L150)
+[Source](null/blob/master/src/babashka/fs.cljc#L147-L150)
+</details>
+
+
+<details>
+
+
+<summary><code> parent </code></summary>
+
+
 ### `parent`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns parent of f, is it exists.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L569-L572)
+[Source](null/blob/master/src/babashka/fs.cljc#L569-L572)
+</details>
+
+
+<details>
+
+
+<summary><code> path </code></summary>
+
+
 ### `path`
-<code>[f]</code><br>
-<code>[parent child]</code><br>
-<code>[parent child & more]</code><br>
+> <code>[f]</code><br>
+> <code>[parent child]</code><br>
+> <code>[parent child & more]</code><br>
 
 Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L47-L55)
+[Source](null/blob/master/src/babashka/fs.cljc#L47-L55)
+</details>
+
+
+<details>
+
+
+<summary><code> path-separator </code></summary>
+
+
 ### `path-separator`
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L235-L235)
+[Source](null/blob/master/src/babashka/fs.cljc#L235-L235)
+</details>
+
+
+<details>
+
+
+<summary><code> posix->str </code></summary>
+
+
 ### `posix->str`
-<code>[p]</code><br>
+> <code>[p]</code><br>
 
 Converts a set of PosixFilePermission to a string.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L360-L363)
+[Source](null/blob/master/src/babashka/fs.cljc#L360-L363)
+</details>
+
+
+<details>
+
+
+<summary><code> posix-file-permissions </code></summary>
+
+
 ### `posix-file-permissions`
-<code>[f]</code><br>
-<code>[f {:keys [:nofollow-links]}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [:nofollow-links]}]</code><br>
 
 Gets f's posix file permissions. Use posix->str to view as a string.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L589-L593)
+[Source](null/blob/master/src/babashka/fs.cljc#L589-L593)
+</details>
+
+
+<details>
+
+
+<summary><code> read-all-bytes </code></summary>
+
+
 ### `read-all-bytes`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns contents of file as byte array.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L600-L603)
-### `read-all-lines`
-<code>[f]</code><br>
+[Source](null/blob/master/src/babashka/fs.cljc#L600-L603)
+</details>
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L605-L607)
+
+<details>
+
+
+<summary><code> read-all-lines </code></summary>
+
+
+### `read-all-lines`
+> <code>[f]</code><br>
+
+[Source](null/blob/master/src/babashka/fs.cljc#L605-L607)
+</details>
+
+
+<details>
+
+
+<summary><code> read-attributes </code></summary>
+
+
 ### `read-attributes`
-<code>[path attributes]</code><br>
-<code>[path attributes {:keys [:nofollow-links :key-fn] :as opts}]</code><br>
+> <code>[path attributes]</code><br>
+> <code>[path attributes {:keys [:nofollow-links :key-fn], :as opts}]</code><br>
 
 Same as read-attributes* but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L642-L650)
+[Source](null/blob/master/src/babashka/fs.cljc#L642-L650)
+</details>
+
+
+<details>
+
+
+<summary><code> read-attributes* </code></summary>
+
+
 ### `read-attributes*`
-<code>[path attributes]</code><br>
-<code>[path attributes {:keys [:nofollow-links]}]</code><br>
+> <code>[path attributes]</code><br>
+> <code>[path attributes {:keys [:nofollow-links]}]</code><br>
 
 Reads attributes via Files/readAttributes.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L624-L640)
+[Source](null/blob/master/src/babashka/fs.cljc#L624-L640)
+</details>
+
+
+<details>
+
+
+<summary><code> readable? </code></summary>
+
+
 ### `readable?`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns true if f is readable
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L111-L113)
+[Source](null/blob/master/src/babashka/fs.cljc#L111-L113)
+</details>
+
+
+<details>
+
+
+<summary><code> real-path </code></summary>
+
+
 ### `real-path`
-<code>[f]</code><br>
-<code>[f {:keys [:nofollow-links]}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [:nofollow-links]}]</code><br>
 
 Converts f into real path via Path#toRealPath.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L71-L75)
+[Source](null/blob/master/src/babashka/fs.cljc#L71-L75)
+</details>
+
+
+<details>
+
+
+<summary><code> regular-file? </code></summary>
+
+
 ### `regular-file?`
-<code>[f]</code><br>
-<code>[f {:keys [:nofollow-links]}]</code><br>
+> <code>[f]</code><br>
+> <code>[f {:keys [:nofollow-links]}]</code><br>
 
 Returns true if f is a regular file, using Files/isRegularFile.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L79-L84)
+[Source](null/blob/master/src/babashka/fs.cljc#L79-L84)
+</details>
+
+
+<details>
+
+
+<summary><code> relative? </code></summary>
+
+
 ### `relative?`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns true if f represents a relative path.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L119-L121)
+[Source](null/blob/master/src/babashka/fs.cljc#L119-L121)
+</details>
+
+
+<details>
+
+
+<summary><code> relativize </code></summary>
+
+
 ### `relativize`
-<code>[this other]</code><br>
+> <code>[this other]</code><br>
 
 Returns relative path by comparing this with other.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L142-L145)
+[Source](null/blob/master/src/babashka/fs.cljc#L142-L145)
+</details>
+
+
+<details>
+
+
+<summary><code> same-file? </code></summary>
+
+
 ### `same-file?`
-<code>[this other]</code><br>
+> <code>[this other]</code><br>
 
 Returns true if this is the same file as other.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L595-L598)
-### `set-attribute`
-<code>[path attribute value]</code><br>
-<code>[path attribute value {:keys [:nofollow-links]}]</code><br>
+[Source](null/blob/master/src/babashka/fs.cljc#L595-L598)
+</details>
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L652-L659)
+
+<details>
+
+
+<summary><code> set-attribute </code></summary>
+
+
+### `set-attribute`
+> <code>[path attribute value]</code><br>
+> <code>[path attribute value {:keys [:nofollow-links]}]</code><br>
+
+[Source](null/blob/master/src/babashka/fs.cljc#L652-L659)
+</details>
+
+
+<details>
+
+
+<summary><code> set-creation-time </code></summary>
+
+
 ### `set-creation-time`
-<code>[f time]</code><br>
-<code>[f time {:keys [nofollow-links] :as opts}]</code><br>
+> <code>[f time]</code><br>
+> <code>[f time {:keys [nofollow-links], :as opts}]</code><br>
 
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L707-L712)
+[Source](null/blob/master/src/babashka/fs.cljc#L707-L712)
+</details>
+
+
+<details>
+
+
+<summary><code> set-last-modified-time </code></summary>
+
+
 ### `set-last-modified-time`
-<code>[f time]</code><br>
-<code>[f time {:keys [nofollow-links] :as opts}]</code><br>
+> <code>[f time]</code><br>
+> <code>[f time {:keys [nofollow-links], :as opts}]</code><br>
 
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L693-L698)
+[Source](null/blob/master/src/babashka/fs.cljc#L693-L698)
+</details>
+
+
+<details>
+
+
+<summary><code> set-posix-file-permissions </code></summary>
+
+
 ### `set-posix-file-permissions`
-<code>[f posix-file-permissions]</code><br>
+> <code>[f posix-file-permissions]</code><br>
 
 Sets posix file permissions on f. Accepts a string like "rwx------" or a set of PosixFilePermission.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L584-L587)
-### `size`
-<code>[f]</code><br>
+[Source](null/blob/master/src/babashka/fs.cljc#L584-L587)
+</details>
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L574-L576)
+
+<details>
+
+
+<summary><code> size </code></summary>
+
+
+### `size`
+> <code>[f]</code><br>
+
+[Source](null/blob/master/src/babashka/fs.cljc#L574-L576)
+</details>
+
+
+<details>
+
+
+<summary><code> split-ext </code></summary>
+
+
 ### `split-ext`
-<code>[path]</code><br>
+> <code>[path]</code><br>
 
 Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L720-L730)
+[Source](null/blob/master/src/babashka/fs.cljc#L720-L730)
+</details>
+
+
+<details>
+
+
+<summary><code> split-paths </code></summary>
+
+
 ### `split-paths`
-<code>[joined-paths]</code><br>
+> <code>[joined-paths]</code><br>
 
 Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L754-L757)
+[Source](null/blob/master/src/babashka/fs.cljc#L754-L757)
+</details>
+
+
+<details>
+
+
+<summary><code> starts-with? </code></summary>
+
+
 ### `starts-with?`
-<code>[this other]</code><br>
+> <code>[this other]</code><br>
 
 Returns true if path this starts with path other.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L828-L831)
+[Source](null/blob/master/src/babashka/fs.cljc#L828-L831)
+</details>
+
+
+<details>
+
+
+<summary><code> str->posix </code></summary>
+
+
 ### `str->posix`
-<code>[s]</code><br>
+> <code>[s]</code><br>
 
 Converts a string to a set of PosixFilePermission.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L365-L368)
+[Source](null/blob/master/src/babashka/fs.cljc#L365-L368)
+</details>
+
+
+<details>
+
+
+<summary><code> strip-ext </code></summary>
+
+
 ### `strip-ext`
-<code>[path]</code><br>
-<code>[path {:keys [ext]}]</code><br>
+> <code>[path]</code><br>
+> <code>[path {:keys [ext]}]</code><br>
 
 Returns the path with the extension removed. If provided, a specific extension will be removed.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L732-L747)
-### `sym-link?`
-<code>[f]</code><br>
+[Source](null/blob/master/src/babashka/fs.cljc#L732-L747)
+</details>
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L531-L532)
+
+<details>
+
+
+<summary><code> sym-link? </code></summary>
+
+
+### `sym-link?`
+> <code>[f]</code><br>
+
+[Source](null/blob/master/src/babashka/fs.cljc#L531-L532)
+</details>
+
+
+<details>
+
+
+<summary><code> temp-dir </code></summary>
+
+
 ### `temp-dir`
-<code>[]</code><br>
+> <code>[]</code><br>
 
 Returns java.io.tmpdir property as path.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L445-L448)
+[Source](null/blob/master/src/babashka/fs.cljc#L445-L448)
+</details>
+
+
+<details>
+
+
+<summary><code> unzip </code></summary>
+
+
 ### `unzip`
-<code>[zip-file]</code><br>
-<code>[zip-file dest]</code><br>
-<code>[zip-file dest {:keys [replace-existing]}]</code><br>
+> <code>[zip-file]</code><br>
+> <code>[zip-file dest]</code><br>
+> <code>[zip-file dest {:keys [replace-existing]}]</code><br>
 
 zip-file: zip archive to unzip (required)
    dest: destination directory (defaults to ".")
    Options:
      :replace-existing true/false: overwrite existing files
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L880-L907)
+[Source](null/blob/master/src/babashka/fs.cljc#L880-L907)
+</details>
+
+
+<details>
+
+
+<summary><code> walk-file-tree </code></summary>
+
+
 ### `walk-file-tree`
-<code>[f {:keys [:pre-visit-dir :post-visit-dir :visit-file :visit-file-failed :follow-links :max-depth]}]</code><br>
+> <code>[f {:keys [:pre-visit-dir :post-visit-dir :visit-file :visit-file-failed :follow-links :max-depth]}]</code><br>
 
 Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   :post-visit-dir, :visit-file, :visit-file-failed. All visitor functions
@@ -528,29 +1182,65 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   values: :continue, :skip-subtree, :skip-siblings, :terminate. A
   different return value will throw.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L170-L204)
+[Source](null/blob/master/src/babashka/fs.cljc#L170-L204)
+</details>
+
+
+<details>
+
+
+<summary><code> which </code></summary>
+
+
 ### `which`
-<code>[program]</code><br>
-<code>[program opts]</code><br>
+> <code>[program]</code><br>
+> <code>[program opts]</code><br>
 
 Locates a program in (exec-paths) similar to the which Unix command.
   On Windows it tries to resolve in the order of: .com, .exe, .bat,
   .cmd.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L772-L815)
-### `which-all`
-<code>[program]</code><br>
-<code>[program opts]</code><br>
+[Source](null/blob/master/src/babashka/fs.cljc#L772-L815)
+</details>
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L817-L820)
+
+<details>
+
+
+<summary><code> which-all </code></summary>
+
+
+### `which-all`
+> <code>[program]</code><br>
+> <code>[program opts]</code><br>
+
+[Source](null/blob/master/src/babashka/fs.cljc#L817-L820)
+</details>
+
+
+<details>
+
+
+<summary><code> windows? </code></summary>
+
+
 ### `windows?`
-<code>[]</code><br>
+> <code>[]</code><br>
 
 Returns true if OS is Windows.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1004-L1007)
+[Source](null/blob/master/src/babashka/fs.cljc#L1004-L1007)
+</details>
+
+
+<details>
+
+
+<summary><code> with-temp-dir </code></summary>
+
+
 ### `with-temp-dir`
-<code>[[binding-name options & more] & body]</code><br>
+> <code>[[binding-name options & more] & body]</code><br>
 
 Macro.
 
@@ -562,19 +1252,40 @@ Evaluate body with binding-name bound to a temporary directory.
 
   `options` is a map with the keys as for create-temp-dir.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L957-L971)
+[Source](null/blob/master/src/babashka/fs.cljc#L957-L971)
+</details>
+
+
+<details>
+
+
+<summary><code> writable? </code></summary>
+
+
 ### `writable?`
-<code>[f]</code><br>
+> <code>[f]</code><br>
 
 Returns true if f is writable
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L115-L117)
+[Source](null/blob/master/src/babashka/fs.cljc#L115-L117)
+</details>
+
+
+<details>
+
+
+<summary><code> zip </code></summary>
+
+
 ### `zip`
-<code>[zip-file entries]</code><br>
-<code>[zip-file entries _opts]</code><br>
+> <code>[zip-file entries]</code><br>
+> <code>[zip-file entries _opts]</code><br>
 
 Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
   preserved in the zip file. Currently only accepts relative entries.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L938-L953)
+[Source](null/blob/master/src/babashka/fs.cljc#L938-L953)
+</details>
+
+
