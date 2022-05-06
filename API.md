@@ -397,7 +397,7 @@ Returns true if f exists.
 <details>
 
 
-<summary><code>expand-home</code> - If `path` begins with a tilde (`~`), expand the tilde to the value </summary>
+<summary><code>expand-home</code> - If <code>path</code> begins with a tilde (<code>~</code>), expand the tilde to the value </summary>
 
 
 ### `expand-home`
@@ -566,7 +566,7 @@ Returns true if f is hidden.
 <details>
 
 
-<summary><code>home</code> - With no arguments, returns the current value of the `user.home` </summary>
+<summary><code>home</code> - With no arguments, returns the current value of the <code>user.home</code> </summary>
 
 
 ### `home`

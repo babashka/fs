@@ -1,7 +1,7 @@
 {:pods {clj-kondo/clj-kondo {:version "2022.02.09"}}
  :deps {io.github.borkdude/quickdoc
         ;; {:local/root "/Users/borkdude/dev/quickdoc"}
-        {:git/sha "9fd3860702942d33b827df6bb264086b6521466c"}}
+        {:git/sha "0abd1b2fc6b548f07d4f2646b281cdd54e3d370e"}}
 
  :tasks
  {:requires ([babashka.fs :as fs])
