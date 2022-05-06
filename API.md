@@ -2,7 +2,7 @@
 <details>
 
 
-<summary><code>absolute?</code>  -  Returns true if f represents an absolute path. </summary>
+<summary><code>absolute?</code> - Returns true if f represents an absolute path. </summary>
 
 
 ### `absolute?`
@@ -17,7 +17,7 @@ Returns true if f represents an absolute path.
 <details>
 
 
-<summary><code>absolutize</code>  -  Converts f into an absolute path via Path#toAbsolutePath. </summary>
+<summary><code>absolutize</code> - Converts f into an absolute path via Path#toAbsolutePath. </summary>
 
 
 ### `absolutize`
@@ -32,7 +32,7 @@ Converts f into an absolute path via Path#toAbsolutePath.
 <details>
 
 
-<summary><code>canonicalize</code>  -  Returns the canonical path via </summary>
+<summary><code>canonicalize</code> - Returns the canonical path via </summary>
 
 
 ### `canonicalize`
@@ -51,7 +51,7 @@ Returns the canonical path via
 <details>
 
 
-<summary><code>components</code>  -  Returns a seq of all components of f. </summary>
+<summary><code>components</code> - Returns a seq of all components of f. </summary>
 
 
 ### `components`
@@ -66,7 +66,7 @@ Returns a seq of all components of f.
 <details>
 
 
-<summary><code>copy</code>  -  Copies src file to dest dir or file. </summary>
+<summary><code>copy</code> - Copies src file to dest dir or file. </summary>
 
 
 ### `copy`
@@ -86,7 +86,7 @@ Copies src file to dest dir or file.
 <details>
 
 
-<summary><code>copy-tree</code>  -  Copies entire file tree from src to dest </summary>
+<summary><code>copy-tree</code> - Copies entire file tree from src to dest </summary>
 
 
 ### `copy-tree`
@@ -104,7 +104,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 <details>
 
 
-<summary><code>create-dir</code>  -  Creates dir using Files#createDirectory </summary>
+<summary><code>create-dir</code> - Creates dir using Files#createDirectory </summary>
 
 
 ### `create-dir`
@@ -120,7 +120,7 @@ Creates dir using Files#createDirectory. Does not create parents.
 <details>
 
 
-<summary><code>create-dirs</code>  -  Creates directories using Files#createDirectories </summary>
+<summary><code>create-dirs</code> - Creates directories using Files#createDirectories </summary>
 
 
 ### `create-dirs`
@@ -136,7 +136,7 @@ Creates directories using Files#createDirectories. Also creates parents if neede
 <details>
 
 
-<summary><code>create-file</code>  -  Creates empty file using Files#createFile. </summary>
+<summary><code>create-file</code> - Creates empty file using Files#createFile. </summary>
 
 
 ### `create-file`
@@ -152,7 +152,7 @@ Creates empty file using Files#createFile.
 <details>
 
 
-<summary><code>create-link</code>  -  Create a hard link from path to target. </summary>
+<summary><code>create-link</code> - Create a hard link from path to target. </summary>
 
 
 ### `create-link`
@@ -167,7 +167,7 @@ Create a hard link from path to target.
 <details>
 
 
-<summary><code>create-sym-link</code>  -  Create a soft link from path to target. </summary>
+<summary><code>create-sym-link</code> - Create a soft link from path to target. </summary>
 
 
 ### `create-sym-link`
@@ -182,7 +182,7 @@ Create a soft link from path to target.
 <details>
 
 
-<summary><code>create-temp-dir</code>  -  Creates a temporary directory using Files#createDirectories. </summary>
+<summary><code>create-temp-dir</code> - Creates a temporary directory using Files#createDirectories. </summary>
 
 
 ### `create-temp-dir`
@@ -204,7 +204,7 @@ Creates a temporary directory using Files#createDirectories.
 <details>
 
 
-<summary><code>create-temp-file</code>  -  Creates an empty temporary file using Files#createTempFile. </summary>
+<summary><code>create-temp-file</code> - Creates an empty temporary file using Files#createTempFile. </summary>
 
 
 ### `create-temp-file`
@@ -226,7 +226,7 @@ Creates an empty temporary file using Files#createTempFile.
 <details>
 
 
-<summary><code>creation-time</code>  -  Returns creation time as FileTime. </summary>
+<summary><code>creation-time</code> - Returns creation time as FileTime. </summary>
 
 
 ### `creation-time`
@@ -242,7 +242,7 @@ Returns creation time as FileTime.
 <details>
 
 
-<summary><code>cwd</code>  -  Returns current working directory as path </summary>
+<summary><code>cwd</code> - Returns current working directory as path </summary>
 
 
 ### `cwd`
@@ -257,7 +257,7 @@ Returns current working directory as path
 <details>
 
 
-<summary><code>delete</code>  -  Deletes f </summary>
+<summary><code>delete</code> - Deletes f </summary>
 
 
 ### `delete`
@@ -273,7 +273,7 @@ Deletes f. Returns nil if the delete was successful,
 <details>
 
 
-<summary><code>delete-if-exists</code>  -  Deletes f if it exists </summary>
+<summary><code>delete-if-exists</code> - Deletes f if it exists </summary>
 
 
 ### `delete-if-exists`
@@ -289,7 +289,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 <details>
 
 
-<summary><code>delete-on-exit</code>  -  Requests delete on exit via File#deleteOnExit </summary>
+<summary><code>delete-on-exit</code> - Requests delete on exit via File#deleteOnExit </summary>
 
 
 ### `delete-on-exit`
@@ -304,7 +304,7 @@ Requests delete on exit via File#deleteOnExit. Returns f.
 <details>
 
 
-<summary><code>delete-tree</code>  -  Deletes a file tree using walk-file-tree </summary>
+<summary><code>delete-tree</code> - Deletes a file tree using walk-file-tree </summary>
 
 
 ### `delete-tree`
@@ -319,7 +319,7 @@ Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow sym
 <details>
 
 
-<summary><code>directory?</code>  -  Returns true if f is a directory, using Files/isDirectory. </summary>
+<summary><code>directory?</code> - Returns true if f is a directory, using Files/isDirectory. </summary>
 
 
 ### `directory?`
@@ -335,7 +335,7 @@ Returns true if f is a directory, using Files/isDirectory.
 <details>
 
 
-<summary><code>ends-with?</code>  -  Returns true if path this ends with path other. </summary>
+<summary><code>ends-with?</code> - Returns true if path this ends with path other. </summary>
 
 
 ### `ends-with?`
@@ -350,7 +350,7 @@ Returns true if path this ends with path other.
 <details>
 
 
-<summary><code>exec-paths</code>  -  Returns executable paths (using the PATH environment variable) </summary>
+<summary><code>exec-paths</code> - Returns executable paths (using the PATH environment variable) </summary>
 
 
 ### `exec-paths`
@@ -366,7 +366,7 @@ Returns executable paths (using the PATH environment variable). Same
 <details>
 
 
-<summary><code>executable?</code>  -  Returns true if f is executable. </summary>
+<summary><code>executable?</code> - Returns true if f is executable. </summary>
 
 
 ### `executable?`
@@ -381,7 +381,7 @@ Returns true if f is executable.
 <details>
 
 
-<summary><code>exists?</code>  -  Returns true if f exists. </summary>
+<summary><code>exists?</code> - Returns true if f exists. </summary>
 
 
 ### `exists?`
@@ -397,7 +397,7 @@ Returns true if f exists.
 <details>
 
 
-<summary><code>expand-home</code>  -  If `path` begins with a tilde (`~`), expand the tilde to the value </summary>
+<summary><code>expand-home</code> - If `path` begins with a tilde (`~`), expand the tilde to the value </summary>
 
 
 ### `expand-home`
@@ -418,7 +418,7 @@ If `path` begins with a tilde (`~`), expand the tilde to the value
 <details>
 
 
-<summary><code>extension</code>  -  Returns the extension of a file </summary>
+<summary><code>extension</code> - Returns the extension of a file </summary>
 
 
 ### `extension`
@@ -433,7 +433,7 @@ Returns the extension of a file
 <details>
 
 
-<summary><code>file</code>  -  Coerces f into a File </summary>
+<summary><code>file</code> - Coerces f into a File </summary>
 
 
 ### `file`
@@ -450,7 +450,7 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 <details>
 
 
-<summary><code>file-name</code>  -  Returns the name of the file or directory </summary>
+<summary><code>file-name</code> - Returns the name of the file or directory </summary>
 
 
 ### `file-name`
@@ -465,7 +465,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 <details>
 
 
-<summary><code>file-separator</code>  -  nil </summary>
+<summary><code>file-separator</code> </summary>
 
 
 ### `file-separator`
@@ -477,7 +477,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 <details>
 
 
-<summary><code>file-time->instant</code>  -  Converts a java.nio.file.attribute.FileTime to a java.time.Instant. </summary>
+<summary><code>file-time->instant</code> - Converts a java.nio.file.attribute.FileTime to a java.time.Instant. </summary>
 
 
 ### `file-time->instant`
@@ -492,7 +492,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 <details>
 
 
-<summary><code>file-time->millis</code>  -  Converts a java.nio.file.attribute.FileTime to epoch millis (long). </summary>
+<summary><code>file-time->millis</code> - Converts a java.nio.file.attribute.FileTime to epoch millis (long). </summary>
 
 
 ### `file-time->millis`
@@ -507,7 +507,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 <details>
 
 
-<summary><code>get-attribute</code>  -  nil </summary>
+<summary><code>get-attribute</code> </summary>
 
 
 ### `get-attribute`
@@ -521,7 +521,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 <details>
 
 
-<summary><code>glob</code>  -  Given a file and glob pattern, returns matches as vector of </summary>
+<summary><code>glob</code> - Given a file and glob pattern, returns matches as vector of </summary>
 
 
 ### `glob`
@@ -551,7 +551,7 @@ Given a file and glob pattern, returns matches as vector of
 <details>
 
 
-<summary><code>hidden?</code>  -  Returns true if f is hidden. </summary>
+<summary><code>hidden?</code> - Returns true if f is hidden. </summary>
 
 
 ### `hidden?`
@@ -566,7 +566,7 @@ Returns true if f is hidden.
 <details>
 
 
-<summary><code>home</code>  -  With no arguments, returns the current value of the `user.home` </summary>
+<summary><code>home</code> - With no arguments, returns the current value of the `user.home` </summary>
 
 
 ### `home`
@@ -584,7 +584,7 @@ With no arguments, returns the current value of the `user.home`
 <details>
 
 
-<summary><code>instant->file-time</code>  -  Converts a java.time.Instant to a java.nio.file.attribute.FileTime. </summary>
+<summary><code>instant->file-time</code> - Converts a java.time.Instant to a java.nio.file.attribute.FileTime. </summary>
 
 
 ### `instant->file-time`
@@ -599,7 +599,7 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 <details>
 
 
-<summary><code>last-modified-time</code>  -  Returns last modified time as a java.nio.file.attribute.FileTime. </summary>
+<summary><code>last-modified-time</code> - Returns last modified time as a java.nio.file.attribute.FileTime. </summary>
 
 
 ### `last-modified-time`
@@ -615,7 +615,7 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 <details>
 
 
-<summary><code>list-dir</code>  -  Returns all paths in dir as vector </summary>
+<summary><code>list-dir</code> - Returns all paths in dir as vector </summary>
 
 
 ### `list-dir`
@@ -632,7 +632,7 @@ Returns all paths in dir as vector. For descending into subdirectories use glob.
 <details>
 
 
-<summary><code>list-dirs</code>  -  Similar to list-dir but accepts multiple roots and returns the concatenated resu </summary>
+<summary><code>list-dirs</code> - Similar to list-dir but accepts multiple roots and returns the concatenated resu </summary>
 
 
 ### `list-dirs`
@@ -648,7 +648,7 @@ Similar to list-dir but accepts multiple roots and returns the concatenated resu
 <details>
 
 
-<summary><code>match</code>  -  Given a file and match pattern, returns matches as vector of </summary>
+<summary><code>match</code> - Given a file and match pattern, returns matches as vector of </summary>
 
 
 ### `match`
@@ -677,7 +677,7 @@ Given a file and match pattern, returns matches as vector of
 <details>
 
 
-<summary><code>millis->file-time</code>  -  Converts epoch millis (long) to a java.nio.file.attribute.FileTime. </summary>
+<summary><code>millis->file-time</code> - Converts epoch millis (long) to a java.nio.file.attribute.FileTime. </summary>
 
 
 ### `millis->file-time`
@@ -692,7 +692,7 @@ Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 <details>
 
 
-<summary><code>modified-since</code>  -  Returns seq of regular files (non-directories, non-symlinks) from file-set that  </summary>
+<summary><code>modified-since</code> - Returns seq of regular files (non-directories, non-symlinks) from file-set that  </summary>
 
 
 ### `modified-since`
@@ -712,7 +712,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 <details>
 
 
-<summary><code>move</code>  -  Move or rename a file to a target dir or file via Files/move. </summary>
+<summary><code>move</code> - Move or rename a file to a target dir or file via Files/move. </summary>
 
 
 ### `move`
@@ -728,7 +728,7 @@ Move or rename a file to a target dir or file via Files/move.
 <details>
 
 
-<summary><code>normalize</code>  -  Normalizes f via Path#normalize. </summary>
+<summary><code>normalize</code> - Normalizes f via Path#normalize. </summary>
 
 
 ### `normalize`
@@ -743,7 +743,7 @@ Normalizes f via Path#normalize.
 <details>
 
 
-<summary><code>parent</code>  -  Returns parent of f, is it exists. </summary>
+<summary><code>parent</code> - Returns parent of f, is it exists. </summary>
 
 
 ### `parent`
@@ -758,7 +758,7 @@ Returns parent of f, is it exists.
 <details>
 
 
-<summary><code>path</code>  -  Coerces f into a Path </summary>
+<summary><code>path</code> - Coerces f into a Path </summary>
 
 
 ### `path`
@@ -776,7 +776,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 <details>
 
 
-<summary><code>path-separator</code>  -  nil </summary>
+<summary><code>path-separator</code> </summary>
 
 
 ### `path-separator`
@@ -788,7 +788,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 <details>
 
 
-<summary><code>posix->str</code>  -  Converts a set of PosixFilePermission to a string. </summary>
+<summary><code>posix->str</code> - Converts a set of PosixFilePermission to a string. </summary>
 
 
 ### `posix->str`
@@ -803,7 +803,7 @@ Converts a set of PosixFilePermission to a string.
 <details>
 
 
-<summary><code>posix-file-permissions</code>  -  Gets f's posix file permissions </summary>
+<summary><code>posix-file-permissions</code> - Gets f's posix file permissions </summary>
 
 
 ### `posix-file-permissions`
@@ -819,7 +819,7 @@ Gets f's posix file permissions. Use posix->str to view as a string.
 <details>
 
 
-<summary><code>read-all-bytes</code>  -  Returns contents of file as byte array. </summary>
+<summary><code>read-all-bytes</code> - Returns contents of file as byte array. </summary>
 
 
 ### `read-all-bytes`
@@ -834,7 +834,7 @@ Returns contents of file as byte array.
 <details>
 
 
-<summary><code>read-all-lines</code>  -  nil </summary>
+<summary><code>read-all-lines</code> </summary>
 
 
 ### `read-all-lines`
@@ -847,7 +847,7 @@ Returns contents of file as byte array.
 <details>
 
 
-<summary><code>read-attributes</code>  -  Same as read-attributes* but turns attributes into a map and keywordizes keys. </summary>
+<summary><code>read-attributes</code> - Same as read-attributes* but turns attributes into a map and keywordizes keys. </summary>
 
 
 ### `read-attributes`
@@ -864,7 +864,7 @@ Same as read-attributes* but turns attributes into a map and keywordizes keys.
 <details>
 
 
-<summary><code>read-attributes*</code>  -  Reads attributes via Files/readAttributes. </summary>
+<summary><code>read-attributes*</code> - Reads attributes via Files/readAttributes. </summary>
 
 
 ### `read-attributes*`
@@ -880,7 +880,7 @@ Reads attributes via Files/readAttributes.
 <details>
 
 
-<summary><code>readable?</code>  -  Returns true if f is readable </summary>
+<summary><code>readable?</code> - Returns true if f is readable </summary>
 
 
 ### `readable?`
@@ -895,7 +895,7 @@ Returns true if f is readable
 <details>
 
 
-<summary><code>real-path</code>  -  Converts f into real path via Path#toRealPath. </summary>
+<summary><code>real-path</code> - Converts f into real path via Path#toRealPath. </summary>
 
 
 ### `real-path`
@@ -911,7 +911,7 @@ Converts f into real path via Path#toRealPath.
 <details>
 
 
-<summary><code>regular-file?</code>  -  Returns true if f is a regular file, using Files/isRegularFile. </summary>
+<summary><code>regular-file?</code> - Returns true if f is a regular file, using Files/isRegularFile. </summary>
 
 
 ### `regular-file?`
@@ -927,7 +927,7 @@ Returns true if f is a regular file, using Files/isRegularFile.
 <details>
 
 
-<summary><code>relative?</code>  -  Returns true if f represents a relative path. </summary>
+<summary><code>relative?</code> - Returns true if f represents a relative path. </summary>
 
 
 ### `relative?`
@@ -942,7 +942,7 @@ Returns true if f represents a relative path.
 <details>
 
 
-<summary><code>relativize</code>  -  Returns relative path by comparing this with other. </summary>
+<summary><code>relativize</code> - Returns relative path by comparing this with other. </summary>
 
 
 ### `relativize`
@@ -957,7 +957,7 @@ Returns relative path by comparing this with other.
 <details>
 
 
-<summary><code>same-file?</code>  -  Returns true if this is the same file as other. </summary>
+<summary><code>same-file?</code> - Returns true if this is the same file as other. </summary>
 
 
 ### `same-file?`
@@ -972,7 +972,7 @@ Returns true if this is the same file as other.
 <details>
 
 
-<summary><code>set-attribute</code>  -  nil </summary>
+<summary><code>set-attribute</code> </summary>
 
 
 ### `set-attribute`
@@ -986,7 +986,7 @@ Returns true if this is the same file as other.
 <details>
 
 
-<summary><code>set-creation-time</code>  -  Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr </summary>
+<summary><code>set-creation-time</code> - Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr </summary>
 
 
 ### `set-creation-time`
@@ -1002,7 +1002,7 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 <details>
 
 
-<summary><code>set-last-modified-time</code>  -  Sets last modified time of f to time (millis, java.time.Instant or java.nio.file </summary>
+<summary><code>set-last-modified-time</code> - Sets last modified time of f to time (millis, java.time.Instant or java.nio.file </summary>
 
 
 ### `set-last-modified-time`
@@ -1018,7 +1018,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 <details>
 
 
-<summary><code>set-posix-file-permissions</code>  -  Sets posix file permissions on f </summary>
+<summary><code>set-posix-file-permissions</code> - Sets posix file permissions on f </summary>
 
 
 ### `set-posix-file-permissions`
@@ -1033,7 +1033,7 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 <details>
 
 
-<summary><code>size</code>  -  nil </summary>
+<summary><code>size</code> </summary>
 
 
 ### `size`
@@ -1046,7 +1046,7 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 <details>
 
 
-<summary><code>split-ext</code>  -  Splits a path into a vec of [path-without-ext ext] </summary>
+<summary><code>split-ext</code> - Splits a path into a vec of [path-without-ext ext] </summary>
 
 
 ### `split-ext`
@@ -1061,7 +1061,7 @@ Splits a path into a vec of [path-without-ext ext]. Works with strings, files, o
 <details>
 
 
-<summary><code>split-paths</code>  -  Splits a string joined by the OS-specific path-seperator into a vec of paths. </summary>
+<summary><code>split-paths</code> - Splits a string joined by the OS-specific path-seperator into a vec of paths. </summary>
 
 
 ### `split-paths`
@@ -1076,7 +1076,7 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 <details>
 
 
-<summary><code>starts-with?</code>  -  Returns true if path this starts with path other. </summary>
+<summary><code>starts-with?</code> - Returns true if path this starts with path other. </summary>
 
 
 ### `starts-with?`
@@ -1091,7 +1091,7 @@ Returns true if path this starts with path other.
 <details>
 
 
-<summary><code>str->posix</code>  -  Converts a string to a set of PosixFilePermission. </summary>
+<summary><code>str->posix</code> - Converts a string to a set of PosixFilePermission. </summary>
 
 
 ### `str->posix`
@@ -1106,7 +1106,7 @@ Converts a string to a set of PosixFilePermission.
 <details>
 
 
-<summary><code>strip-ext</code>  -  Returns the path with the extension removed </summary>
+<summary><code>strip-ext</code> - Returns the path with the extension removed </summary>
 
 
 ### `strip-ext`
@@ -1122,7 +1122,7 @@ Returns the path with the extension removed. If provided, a specific extension w
 <details>
 
 
-<summary><code>sym-link?</code>  -  nil </summary>
+<summary><code>sym-link?</code> </summary>
 
 
 ### `sym-link?`
@@ -1135,7 +1135,7 @@ Returns the path with the extension removed. If provided, a specific extension w
 <details>
 
 
-<summary><code>temp-dir</code>  -  Returns java.io.tmpdir property as path. </summary>
+<summary><code>temp-dir</code> - Returns java.io.tmpdir property as path. </summary>
 
 
 ### `temp-dir`
@@ -1150,7 +1150,7 @@ Returns java.io.tmpdir property as path.
 <details>
 
 
-<summary><code>unzip</code>  -  zip-file: zip archive to unzip (required) </summary>
+<summary><code>unzip</code> - zip-file: zip archive to unzip (required) </summary>
 
 
 ### `unzip`
@@ -1170,7 +1170,7 @@ zip-file: zip archive to unzip (required)
 <details>
 
 
-<summary><code>walk-file-tree</code>  -  Walks f using Files/walkFileTree </summary>
+<summary><code>walk-file-tree</code> - Walks f using Files/walkFileTree </summary>
 
 
 ### `walk-file-tree`
@@ -1189,7 +1189,7 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
 <details>
 
 
-<summary><code>which</code>  -  Locates a program in (exec-paths) similar to the which Unix command. </summary>
+<summary><code>which</code> - Locates a program in (exec-paths) similar to the which Unix command. </summary>
 
 
 ### `which`
@@ -1207,7 +1207,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
 <details>
 
 
-<summary><code>which-all</code>  -  nil </summary>
+<summary><code>which-all</code> </summary>
 
 
 ### `which-all`
@@ -1221,7 +1221,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
 <details>
 
 
-<summary><code>windows?</code>  -  Returns true if OS is Windows. </summary>
+<summary><code>windows?</code> - Returns true if OS is Windows. </summary>
 
 
 ### `windows?`
@@ -1236,7 +1236,7 @@ Returns true if OS is Windows.
 <details>
 
 
-<summary><code>with-temp-dir</code>  -  Evaluate body with binding-name bound to a temporary directory. </summary>
+<summary><code>with-temp-dir</code> - Evaluate body with binding-name bound to a temporary directory. </summary>
 
 
 ### `with-temp-dir`
@@ -1259,7 +1259,7 @@ Evaluate body with binding-name bound to a temporary directory.
 <details>
 
 
-<summary><code>writable?</code>  -  Returns true if f is writable </summary>
+<summary><code>writable?</code> - Returns true if f is writable </summary>
 
 
 ### `writable?`
@@ -1274,7 +1274,7 @@ Returns true if f is writable
 <details>
 
 
-<summary><code>zip</code>  -  Zips entry or entries into zip-file </summary>
+<summary><code>zip</code> - Zips entry or entries into zip-file </summary>
 
 
 ### `zip`
