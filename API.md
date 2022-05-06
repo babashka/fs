@@ -86,7 +86,7 @@ Copies src file to dest dir or file.
 <details>
 
 
-<summary><code> copy-tree  -  Copies entire file tree from src to dest. Creates dest if needed </code></summary>
+<summary><code> copy-tree  -  Copies entire file tree from src to dest </code></summary>
 
 
 ### `copy-tree`
@@ -104,7 +104,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 <details>
 
 
-<summary><code> create-dir  -  Creates dir using Files#createDirectory. Does not create parents. </code></summary>
+<summary><code> create-dir  -  Creates dir using Files#createDirectory </code></summary>
 
 
 ### `create-dir`
@@ -120,7 +120,7 @@ Creates dir using Files#createDirectory. Does not create parents.
 <details>
 
 
-<summary><code> create-dirs  -  Creates directories using Files#createDirectories. Also creates parents if neede </code></summary>
+<summary><code> create-dirs  -  Creates directories using Files#createDirectories </code></summary>
 
 
 ### `create-dirs`
@@ -257,7 +257,7 @@ Returns current working directory as path
 <details>
 
 
-<summary><code> delete  -  Deletes f. Returns nil if the delete was successful, </code></summary>
+<summary><code> delete  -  Deletes f </code></summary>
 
 
 ### `delete`
@@ -273,7 +273,7 @@ Deletes f. Returns nil if the delete was successful,
 <details>
 
 
-<summary><code> delete-if-exists  -  Deletes f if it exists. Returns true if the delete was successful, </code></summary>
+<summary><code> delete-if-exists  -  Deletes f if it exists </code></summary>
 
 
 ### `delete-if-exists`
@@ -289,7 +289,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 <details>
 
 
-<summary><code> delete-on-exit  -  Requests delete on exit via File#deleteOnExit. Returns f. </code></summary>
+<summary><code> delete-on-exit  -  Requests delete on exit via File#deleteOnExit </code></summary>
 
 
 ### `delete-on-exit`
@@ -304,7 +304,7 @@ Requests delete on exit via File#deleteOnExit. Returns f.
 <details>
 
 
-<summary><code> delete-tree  -  Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow sym </code></summary>
+<summary><code> delete-tree  -  Deletes a file tree using walk-file-tree </code></summary>
 
 
 ### `delete-tree`
@@ -350,7 +350,7 @@ Returns true if path this ends with path other.
 <details>
 
 
-<summary><code> exec-paths  -  Returns executable paths (using the PATH environment variable). Same </code></summary>
+<summary><code> exec-paths  -  Returns executable paths (using the PATH environment variable) </code></summary>
 
 
 ### `exec-paths`
@@ -433,7 +433,7 @@ Returns the extension of a file
 <details>
 
 
-<summary><code> file  -  Coerces f into a File. Multiple-arg versions treat the first argument </code></summary>
+<summary><code> file  -  Coerces f into a File </code></summary>
 
 
 ### `file`
@@ -450,7 +450,7 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 <details>
 
 
-<summary><code> file-name  -  Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return </code></summary>
+<summary><code> file-name  -  Returns the name of the file or directory </code></summary>
 
 
 ### `file-name`
@@ -615,7 +615,7 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 <details>
 
 
-<summary><code> list-dir  -  Returns all paths in dir as vector. For descending into subdirectories use glob. </code></summary>
+<summary><code> list-dir  -  Returns all paths in dir as vector </code></summary>
 
 
 ### `list-dir`
@@ -758,7 +758,7 @@ Returns parent of f, is it exists.
 <details>
 
 
-<summary><code> path  -  Coerces f into a Path. Multiple-arg versions treat the first argument as </code></summary>
+<summary><code> path  -  Coerces f into a Path </code></summary>
 
 
 ### `path`
@@ -803,7 +803,7 @@ Converts a set of PosixFilePermission to a string.
 <details>
 
 
-<summary><code> posix-file-permissions  -  Gets f's posix file permissions. Use posix->str to view as a string. </code></summary>
+<summary><code> posix-file-permissions  -  Gets f's posix file permissions </code></summary>
 
 
 ### `posix-file-permissions`
@@ -1018,7 +1018,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 <details>
 
 
-<summary><code> set-posix-file-permissions  -  Sets posix file permissions on f. Accepts a string like "rwx------" or a set of  </code></summary>
+<summary><code> set-posix-file-permissions  -  Sets posix file permissions on f </code></summary>
 
 
 ### `set-posix-file-permissions`
@@ -1046,7 +1046,7 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 <details>
 
 
-<summary><code> split-ext  -  Splits a path into a vec of [path-without-ext ext]. Works with strings, files, o </code></summary>
+<summary><code> split-ext  -  Splits a path into a vec of [path-without-ext ext] </code></summary>
 
 
 ### `split-ext`
@@ -1106,7 +1106,7 @@ Converts a string to a set of PosixFilePermission.
 <details>
 
 
-<summary><code> strip-ext  -  Returns the path with the extension removed. If provided, a specific extension w </code></summary>
+<summary><code> strip-ext  -  Returns the path with the extension removed </code></summary>
 
 
 ### `strip-ext`
@@ -1170,7 +1170,7 @@ zip-file: zip archive to unzip (required)
 <details>
 
 
-<summary><code> walk-file-tree  -  Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir, </code></summary>
+<summary><code> walk-file-tree  -  Walks f using Files/walkFileTree </code></summary>
 
 
 ### `walk-file-tree`
@@ -1274,7 +1274,7 @@ Returns true if f is writable
 <details>
 
 
-<summary><code> zip  -  Zips entry or entries into zip-file. An entry may be a file or </code></summary>
+<summary><code> zip  -  Zips entry or entries into zip-file </code></summary>
 
 
 ### `zip`
