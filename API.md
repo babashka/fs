@@ -6,7 +6,11 @@
 
 
 ### `absolute?`
-> <code>[f]</code><br>
+``` clojure
+
+(absolute? [f])
+```
+
 
 Returns true if f represents an absolute path.
 
@@ -21,7 +25,11 @@ Returns true if f represents an absolute path.
 
 
 ### `absolutize`
-> <code>[f]</code><br>
+``` clojure
+
+(absolutize [f])
+```
+
 
 Converts f into an absolute path via Path#toAbsolutePath.
 
@@ -36,8 +44,12 @@ Converts f into an absolute path via Path#toAbsolutePath.
 
 
 ### `canonicalize`
-> <code>[f]</code><br>
-> <code>[f {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(canonicalize [f])
+(canonicalize [f {:keys [:nofollow-links]}])
+```
+
 
 Returns the canonical path via
   java.io.File#getCanonicalPath. If :nofollow-links is set, then it
@@ -55,7 +67,11 @@ Returns the canonical path via
 
 
 ### `components`
-> <code>[f]</code><br>
+``` clojure
+
+(components [f])
+```
+
 
 Returns a seq of all components of f.
 
@@ -70,8 +86,12 @@ Returns a seq of all components of f.
 
 
 ### `copy`
-> <code>[src dest]</code><br>
-> <code>[src dest {:keys [:replace-existing :copy-attributes :nofollow-links]}]</code><br>
+``` clojure
+
+(copy [src dest])
+(copy [src dest {:keys [:replace-existing :copy-attributes :nofollow-links]}])
+```
+
 
 Copies src file to dest dir or file.
   Options:
@@ -90,8 +110,12 @@ Copies src file to dest dir or file.
 
 
 ### `copy-tree`
-> <code>[src dest]</code><br>
-> <code>[src dest {:keys [:replace-existing :copy-attributes :nofollow-links], :as opts}]</code><br>
+``` clojure
+
+(copy-tree [src dest])
+(copy-tree [src dest {:keys [:replace-existing :copy-attributes :nofollow-links], :as opts}])
+```
+
 
 Copies entire file tree from src to dest. Creates dest if needed
   using create-dirs, passing it the :posix-file-permissions
@@ -108,8 +132,12 @@ Copies entire file tree from src to dest. Creates dest if needed
 
 
 ### `create-dir`
-> <code>[path]</code><br>
-> <code>[path {:keys [:posix-file-permissions]}]</code><br>
+``` clojure
+
+(create-dir [path])
+(create-dir [path {:keys [:posix-file-permissions]}])
+```
+
 
 Creates dir using Files#createDirectory. Does not create parents.
 
@@ -124,8 +152,12 @@ Creates dir using Files#createDirectory. Does not create parents.
 
 
 ### `create-dirs`
-> <code>[path]</code><br>
-> <code>[path {:keys [:posix-file-permissions]}]</code><br>
+``` clojure
+
+(create-dirs [path])
+(create-dirs [path {:keys [:posix-file-permissions]}])
+```
+
 
 Creates directories using Files#createDirectories. Also creates parents if needed.
 
@@ -140,8 +172,12 @@ Creates directories using Files#createDirectories. Also creates parents if neede
 
 
 ### `create-file`
-> <code>[path]</code><br>
-> <code>[path {:keys [:posix-file-permissions]}]</code><br>
+``` clojure
+
+(create-file [path])
+(create-file [path {:keys [:posix-file-permissions]}])
+```
+
 
 Creates empty file using Files#createFile.
 
@@ -156,7 +192,11 @@ Creates empty file using Files#createFile.
 
 
 ### `create-link`
-> <code>[path target]</code><br>
+``` clojure
+
+(create-link [path target])
+```
+
 
 Create a hard link from path to target.
 
@@ -171,7 +211,11 @@ Create a hard link from path to target.
 
 
 ### `create-sym-link`
-> <code>[path target]</code><br>
+``` clojure
+
+(create-sym-link [path target])
+```
+
 
 Create a soft link from path to target.
 
@@ -186,8 +230,12 @@ Create a soft link from path to target.
 
 
 ### `create-temp-dir`
-> <code>[]</code><br>
-> <code>[{:keys [:prefix :path :posix-file-permissions]}]</code><br>
+``` clojure
+
+(create-temp-dir [])
+(create-temp-dir [{:keys [:prefix :path :posix-file-permissions]}])
+```
+
 
 Creates a temporary directory using Files#createDirectories.
 
@@ -208,8 +256,12 @@ Creates a temporary directory using Files#createDirectories.
 
 
 ### `create-temp-file`
-> <code>[]</code><br>
-> <code>[{:keys [:path :prefix :suffix :posix-file-permissions]}]</code><br>
+``` clojure
+
+(create-temp-file [])
+(create-temp-file [{:keys [:path :prefix :suffix :posix-file-permissions]}])
+```
+
 
 Creates an empty temporary file using Files#createTempFile.
 
@@ -230,8 +282,12 @@ Creates an empty temporary file using Files#createTempFile.
 
 
 ### `creation-time`
-> <code>[f]</code><br>
-> <code>[f {:keys [nofollow-links], :as opts}]</code><br>
+``` clojure
+
+(creation-time [f])
+(creation-time [f {:keys [nofollow-links], :as opts}])
+```
+
 
 Returns creation time as FileTime.
 
@@ -246,7 +302,11 @@ Returns creation time as FileTime.
 
 
 ### `cwd`
-> <code>[]</code><br>
+``` clojure
+
+(cwd [])
+```
+
 
 Returns current working directory as path
 
@@ -261,7 +321,11 @@ Returns current working directory as path
 
 
 ### `delete`
-> <code>[f]</code><br>
+``` clojure
+
+(delete [f])
+```
+
 
 Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks.
@@ -277,7 +341,11 @@ Deletes f. Returns nil if the delete was successful,
 
 
 ### `delete-if-exists`
-> <code>[f]</code><br>
+``` clojure
+
+(delete-if-exists [f])
+```
+
 
 Deletes f if it exists. Returns true if the delete was successful,
   false if f didn't exist. Does not follow symlinks.
@@ -293,7 +361,11 @@ Deletes f if it exists. Returns true if the delete was successful,
 
 
 ### `delete-on-exit`
-> <code>[f]</code><br>
+``` clojure
+
+(delete-on-exit [f])
+```
+
 
 Requests delete on exit via File#deleteOnExit. Returns f.
 
@@ -308,7 +380,11 @@ Requests delete on exit via File#deleteOnExit. Returns f.
 
 
 ### `delete-tree`
-> <code>[root]</code><br>
+``` clojure
+
+(delete-tree [root])
+```
+
 
 Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow symlinks.
 
@@ -323,8 +399,12 @@ Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow sym
 
 
 ### `directory?`
-> <code>[f]</code><br>
-> <code>[f {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(directory? [f])
+(directory? [f {:keys [:nofollow-links]}])
+```
+
 
 Returns true if f is a directory, using Files/isDirectory.
 
@@ -339,7 +419,11 @@ Returns true if f is a directory, using Files/isDirectory.
 
 
 ### `ends-with?`
-> <code>[this other]</code><br>
+``` clojure
+
+(ends-with? [this other])
+```
+
 
 Returns true if path this ends with path other.
 
@@ -354,7 +438,11 @@ Returns true if path this ends with path other.
 
 
 ### `exec-paths`
-> <code>[]</code><br>
+``` clojure
+
+(exec-paths [])
+```
+
 
 Returns executable paths (using the PATH environment variable). Same
   as (split-paths (System/getenv "PATH")).
@@ -370,7 +458,11 @@ Returns executable paths (using the PATH environment variable). Same
 
 
 ### `executable?`
-> <code>[f]</code><br>
+``` clojure
+
+(executable? [f])
+```
+
 
 Returns true if f is executable.
 
@@ -385,8 +477,12 @@ Returns true if f is executable.
 
 
 ### `exists?`
-> <code>[f]</code><br>
-> <code>[f {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(exists? [f])
+(exists? [f {:keys [:nofollow-links]}])
+```
+
 
 Returns true if f exists.
 
@@ -401,7 +497,11 @@ Returns true if f exists.
 
 
 ### `expand-home`
-> <code>[f]</code><br>
+``` clojure
+
+(expand-home [f])
+```
+
 
 If `path` begins with a tilde (`~`), expand the tilde to the value
   of the `user.home` system property. If the `path` begins with a
@@ -422,7 +522,11 @@ If `path` begins with a tilde (`~`), expand the tilde to the value
 
 
 ### `extension`
-> <code>[path]</code><br>
+``` clojure
+
+(extension [path])
+```
+
 
 Returns the extension of a file
 
@@ -437,8 +541,12 @@ Returns the extension of a file
 
 
 ### `file`
-> <code>[f]</code><br>
-> <code>[f & fs]</code><br>
+``` clojure
+
+(file [f])
+(file [f & fs])
+```
+
 
 Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent.
@@ -454,7 +562,11 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 
 
 ### `file-name`
-> <code>[x]</code><br>
+``` clojure
+
+(file-name [x])
+```
+
 
 Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") returns "baz".
 
@@ -481,7 +593,11 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 
 
 ### `file-time->instant`
-> <code>[ft]</code><br>
+``` clojure
+
+(file-time->instant [ft])
+```
+
 
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
@@ -496,7 +612,11 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
 
 ### `file-time->millis`
-> <code>[ft]</code><br>
+``` clojure
+
+(file-time->millis [ft])
+```
+
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
@@ -511,8 +631,12 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
 
 ### `get-attribute`
-> <code>[path attribute]</code><br>
-> <code>[path attribute {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(get-attribute [path attribute])
+(get-attribute [path attribute {:keys [:nofollow-links]}])
+```
+
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L611-L617)
 </details>
@@ -525,8 +649,12 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
 
 ### `glob`
-> <code>[root pattern]</code><br>
-> <code>[root pattern opts]</code><br>
+``` clojure
+
+(glob [root pattern])
+(glob [root pattern opts])
+```
+
 
 Given a file and glob pattern, returns matches as vector of
   files. Patterns containing ** or / will cause a recursive walk over
@@ -555,7 +683,11 @@ Given a file and glob pattern, returns matches as vector of
 
 
 ### `hidden?`
-> <code>[f]</code><br>
+``` clojure
+
+(hidden? [f])
+```
+
 
 Returns true if f is hidden.
 
@@ -570,8 +702,12 @@ Returns true if f is hidden.
 
 
 ### `home`
-> <code>[]</code><br>
-> <code>[user]</code><br>
+``` clojure
+
+(home [])
+(home [user])
+```
+
 
 With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
@@ -588,7 +724,11 @@ With no arguments, returns the current value of the `user.home`
 
 
 ### `instant->file-time`
-> <code>[instant]</code><br>
+``` clojure
+
+(instant->file-time [instant])
+```
+
 
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 
@@ -603,8 +743,12 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 
 
 ### `last-modified-time`
-> <code>[f]</code><br>
-> <code>[f {:keys [nofollow-links], :as opts}]</code><br>
+``` clojure
+
+(last-modified-time [f])
+(last-modified-time [f {:keys [nofollow-links], :as opts}])
+```
+
 
 Returns last modified time as a java.nio.file.attribute.FileTime.
 
@@ -619,8 +763,12 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 
 
 ### `list-dir`
-> <code>[dir]</code><br>
-> <code>[dir glob-or-accept]</code><br>
+``` clojure
+
+(list-dir [dir])
+(list-dir [dir glob-or-accept])
+```
+
 
 Returns all paths in dir as vector. For descending into subdirectories use glob.
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
@@ -636,7 +784,11 @@ Returns all paths in dir as vector. For descending into subdirectories use glob.
 
 
 ### `list-dirs`
-> <code>[dirs glob-or-accept]</code><br>
+``` clojure
+
+(list-dirs [dirs glob-or-accept])
+```
+
 
 Similar to list-dir but accepts multiple roots and returns the concatenated results.
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
@@ -652,8 +804,12 @@ Similar to list-dir but accepts multiple roots and returns the concatenated resu
 
 
 ### `match`
-> <code>[root pattern]</code><br>
-> <code>[root pattern {:keys [hidden follow-links max-depth recursive]}]</code><br>
+``` clojure
+
+(match [root pattern])
+(match [root pattern {:keys [hidden follow-links max-depth recursive]}])
+```
+
 
 Given a file and match pattern, returns matches as vector of
   files. Pattern interpretation is done using the rules described in
@@ -681,7 +837,11 @@ Given a file and match pattern, returns matches as vector of
 
 
 ### `millis->file-time`
-> <code>[millis]</code><br>
+``` clojure
+
+(millis->file-time [millis])
+```
+
 
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 
@@ -696,7 +856,11 @@ Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 
 
 ### `modified-since`
-> <code>[anchor file-set]</code><br>
+``` clojure
+
+(modified-since [anchor file-set])
+```
+
 
 Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
   The anchor path can be a regular file or directory, in which case
@@ -716,8 +880,12 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 
 
 ### `move`
-> <code>[source target]</code><br>
-> <code>[source target {:keys [:replace-existing :atomic-move :nofollow-links]}]</code><br>
+``` clojure
+
+(move [source target])
+(move [source target {:keys [:replace-existing :atomic-move :nofollow-links]}])
+```
+
 
 Move or rename a file to a target dir or file via Files/move.
 
@@ -732,7 +900,11 @@ Move or rename a file to a target dir or file via Files/move.
 
 
 ### `normalize`
-> <code>[f]</code><br>
+``` clojure
+
+(normalize [f])
+```
+
 
 Normalizes f via Path#normalize.
 
@@ -747,7 +919,11 @@ Normalizes f via Path#normalize.
 
 
 ### `parent`
-> <code>[f]</code><br>
+``` clojure
+
+(parent [f])
+```
+
 
 Returns parent of f, is it exists.
 
@@ -762,9 +938,13 @@ Returns parent of f, is it exists.
 
 
 ### `path`
-> <code>[f]</code><br>
-> <code>[parent child]</code><br>
-> <code>[parent child & more]</code><br>
+``` clojure
+
+(path [f])
+(path [parent child])
+(path [parent child & more])
+```
+
 
 Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent.
@@ -792,7 +972,11 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 
 
 ### `posix->str`
-> <code>[p]</code><br>
+``` clojure
+
+(posix->str [p])
+```
+
 
 Converts a set of PosixFilePermission to a string.
 
@@ -807,8 +991,12 @@ Converts a set of PosixFilePermission to a string.
 
 
 ### `posix-file-permissions`
-> <code>[f]</code><br>
-> <code>[f {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(posix-file-permissions [f])
+(posix-file-permissions [f {:keys [:nofollow-links]}])
+```
+
 
 Gets f's posix file permissions. Use posix->str to view as a string.
 
@@ -823,7 +1011,11 @@ Gets f's posix file permissions. Use posix->str to view as a string.
 
 
 ### `read-all-bytes`
-> <code>[f]</code><br>
+``` clojure
+
+(read-all-bytes [f])
+```
+
 
 Returns contents of file as byte array.
 
@@ -838,7 +1030,11 @@ Returns contents of file as byte array.
 
 
 ### `read-all-lines`
-> <code>[f]</code><br>
+``` clojure
+
+(read-all-lines [f])
+```
+
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L605-L607)
 </details>
@@ -851,8 +1047,12 @@ Returns contents of file as byte array.
 
 
 ### `read-attributes`
-> <code>[path attributes]</code><br>
-> <code>[path attributes {:keys [:nofollow-links :key-fn], :as opts}]</code><br>
+``` clojure
+
+(read-attributes [path attributes])
+(read-attributes [path attributes {:keys [:nofollow-links :key-fn], :as opts}])
+```
+
 
 Same as read-attributes* but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
@@ -868,8 +1068,12 @@ Same as read-attributes* but turns attributes into a map and keywordizes keys.
 
 
 ### `read-attributes*`
-> <code>[path attributes]</code><br>
-> <code>[path attributes {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(read-attributes* [path attributes])
+(read-attributes* [path attributes {:keys [:nofollow-links]}])
+```
+
 
 Reads attributes via Files/readAttributes.
 
@@ -884,7 +1088,11 @@ Reads attributes via Files/readAttributes.
 
 
 ### `readable?`
-> <code>[f]</code><br>
+``` clojure
+
+(readable? [f])
+```
+
 
 Returns true if f is readable
 
@@ -899,8 +1107,12 @@ Returns true if f is readable
 
 
 ### `real-path`
-> <code>[f]</code><br>
-> <code>[f {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(real-path [f])
+(real-path [f {:keys [:nofollow-links]}])
+```
+
 
 Converts f into real path via Path#toRealPath.
 
@@ -915,8 +1127,12 @@ Converts f into real path via Path#toRealPath.
 
 
 ### `regular-file?`
-> <code>[f]</code><br>
-> <code>[f {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(regular-file? [f])
+(regular-file? [f {:keys [:nofollow-links]}])
+```
+
 
 Returns true if f is a regular file, using Files/isRegularFile.
 
@@ -931,7 +1147,11 @@ Returns true if f is a regular file, using Files/isRegularFile.
 
 
 ### `relative?`
-> <code>[f]</code><br>
+``` clojure
+
+(relative? [f])
+```
+
 
 Returns true if f represents a relative path.
 
@@ -946,7 +1166,11 @@ Returns true if f represents a relative path.
 
 
 ### `relativize`
-> <code>[this other]</code><br>
+``` clojure
+
+(relativize [this other])
+```
+
 
 Returns relative path by comparing this with other.
 
@@ -961,7 +1185,11 @@ Returns relative path by comparing this with other.
 
 
 ### `same-file?`
-> <code>[this other]</code><br>
+``` clojure
+
+(same-file? [this other])
+```
+
 
 Returns true if this is the same file as other.
 
@@ -976,8 +1204,12 @@ Returns true if this is the same file as other.
 
 
 ### `set-attribute`
-> <code>[path attribute value]</code><br>
-> <code>[path attribute value {:keys [:nofollow-links]}]</code><br>
+``` clojure
+
+(set-attribute [path attribute value])
+(set-attribute [path attribute value {:keys [:nofollow-links]}])
+```
+
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L652-L659)
 </details>
@@ -990,8 +1222,12 @@ Returns true if this is the same file as other.
 
 
 ### `set-creation-time`
-> <code>[f time]</code><br>
-> <code>[f time {:keys [nofollow-links], :as opts}]</code><br>
+``` clojure
+
+(set-creation-time [f time])
+(set-creation-time [f time {:keys [nofollow-links], :as opts}])
+```
+
 
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 
@@ -1006,8 +1242,12 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 
 
 ### `set-last-modified-time`
-> <code>[f time]</code><br>
-> <code>[f time {:keys [nofollow-links], :as opts}]</code><br>
+``` clojure
+
+(set-last-modified-time [f time])
+(set-last-modified-time [f time {:keys [nofollow-links], :as opts}])
+```
+
 
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 
@@ -1022,7 +1262,11 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 
 
 ### `set-posix-file-permissions`
-> <code>[f posix-file-permissions]</code><br>
+``` clojure
+
+(set-posix-file-permissions [f posix-file-permissions])
+```
+
 
 Sets posix file permissions on f. Accepts a string like "rwx------" or a set of PosixFilePermission.
 
@@ -1037,7 +1281,11 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 
 
 ### `size`
-> <code>[f]</code><br>
+``` clojure
+
+(size [f])
+```
+
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L574-L576)
 </details>
@@ -1050,7 +1298,11 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 
 
 ### `split-ext`
-> <code>[path]</code><br>
+``` clojure
+
+(split-ext [path])
+```
+
 
 Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths.
 
@@ -1065,7 +1317,11 @@ Splits a path into a vec of [path-without-ext ext]. Works with strings, files, o
 
 
 ### `split-paths`
-> <code>[joined-paths]</code><br>
+``` clojure
+
+(split-paths [joined-paths])
+```
+
 
 Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
@@ -1080,7 +1336,11 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
 
 ### `starts-with?`
-> <code>[this other]</code><br>
+``` clojure
+
+(starts-with? [this other])
+```
+
 
 Returns true if path this starts with path other.
 
@@ -1095,7 +1355,11 @@ Returns true if path this starts with path other.
 
 
 ### `str->posix`
-> <code>[s]</code><br>
+``` clojure
+
+(str->posix [s])
+```
+
 
 Converts a string to a set of PosixFilePermission.
 
@@ -1110,8 +1374,12 @@ Converts a string to a set of PosixFilePermission.
 
 
 ### `strip-ext`
-> <code>[path]</code><br>
-> <code>[path {:keys [ext]}]</code><br>
+``` clojure
+
+(strip-ext [path])
+(strip-ext [path {:keys [ext]}])
+```
+
 
 Returns the path with the extension removed. If provided, a specific extension will be removed.
 
@@ -1126,7 +1394,11 @@ Returns the path with the extension removed. If provided, a specific extension w
 
 
 ### `sym-link?`
-> <code>[f]</code><br>
+``` clojure
+
+(sym-link? [f])
+```
+
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L531-L532)
 </details>
@@ -1139,7 +1411,11 @@ Returns the path with the extension removed. If provided, a specific extension w
 
 
 ### `temp-dir`
-> <code>[]</code><br>
+``` clojure
+
+(temp-dir [])
+```
+
 
 Returns java.io.tmpdir property as path.
 
@@ -1154,9 +1430,13 @@ Returns java.io.tmpdir property as path.
 
 
 ### `unzip`
-> <code>[zip-file]</code><br>
-> <code>[zip-file dest]</code><br>
-> <code>[zip-file dest {:keys [replace-existing]}]</code><br>
+``` clojure
+
+(unzip [zip-file])
+(unzip [zip-file dest])
+(unzip [zip-file dest {:keys [replace-existing]}])
+```
+
 
 zip-file: zip archive to unzip (required)
    dest: destination directory (defaults to ".")
@@ -1174,7 +1454,11 @@ zip-file: zip archive to unzip (required)
 
 
 ### `walk-file-tree`
-> <code>[f {:keys [:pre-visit-dir :post-visit-dir :visit-file :visit-file-failed :follow-links :max-depth]}]</code><br>
+``` clojure
+
+(walk-file-tree [f {:keys [:pre-visit-dir :post-visit-dir :visit-file :visit-file-failed :follow-links :max-depth]}])
+```
+
 
 Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   :post-visit-dir, :visit-file, :visit-file-failed. All visitor functions
@@ -1193,8 +1477,12 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
 
 
 ### `which`
-> <code>[program]</code><br>
-> <code>[program opts]</code><br>
+``` clojure
+
+(which [program])
+(which [program opts])
+```
+
 
 Locates a program in (exec-paths) similar to the which Unix command.
   On Windows it tries to resolve in the order of: .com, .exe, .bat,
@@ -1211,8 +1499,12 @@ Locates a program in (exec-paths) similar to the which Unix command.
 
 
 ### `which-all`
-> <code>[program]</code><br>
-> <code>[program opts]</code><br>
+``` clojure
+
+(which-all [program])
+(which-all [program opts])
+```
+
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L817-L820)
 </details>
@@ -1225,7 +1517,11 @@ Locates a program in (exec-paths) similar to the which Unix command.
 
 
 ### `windows?`
-> <code>[]</code><br>
+``` clojure
+
+(windows? [])
+```
+
 
 Returns true if OS is Windows.
 
@@ -1240,7 +1536,11 @@ Returns true if OS is Windows.
 
 
 ### `with-temp-dir`
-> <code>[[binding-name options & more] & body]</code><br>
+``` clojure
+
+(with-temp-dir [[binding-name options & more] & body])
+```
+
 
 Macro.
 
@@ -1263,7 +1563,11 @@ Evaluate body with binding-name bound to a temporary directory.
 
 
 ### `writable?`
-> <code>[f]</code><br>
+``` clojure
+
+(writable? [f])
+```
+
 
 Returns true if f is writable
 
@@ -1278,8 +1582,12 @@ Returns true if f is writable
 
 
 ### `zip`
-> <code>[zip-file entries]</code><br>
-> <code>[zip-file entries _opts]</code><br>
+``` clojure
+
+(zip [zip-file entries])
+(zip [zip-file entries _opts])
+```
+
 
 Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
