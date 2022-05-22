@@ -743,17 +743,16 @@
   ([path]
    (-> path split-ext first))
   ([path {:keys [ext]}]
-   (let [name (file-name path)
+   (let [name (str path)
          ext (str "." ext)
          ext-index (str/last-index-of name ext)
          has-ext? (and ext-index
                        (pos? ext-index)
                        (= ext-index (- (count name) (count ext))))]
      (if has-ext?
-       (-> (parent path)
-           (babashka.fs/path (subs name 0 ext-index))
+       (-> (subs name 0 ext-index)
            str)
-       path))))
+       (str path)))))
 
 (defn extension
   "Returns the extension of a file"
