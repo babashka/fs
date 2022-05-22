@@ -1,5 +1,88 @@
-## babashka.fs
-### `absolute?`
+# Table of contents
+-  [`babashka.fs`](#babashkafs)
+    -  [`absolute?`](#absolute?) - Returns true if f represents an absolute path.
+    -  [`absolutize`](#absolutize) - Converts f into an absolute path via Path#toAbsolutePath.
+    -  [`canonicalize`](#canonicalize) - Returns the canonical path via
+    -  [`components`](#components) - Returns a seq of all components of f.
+    -  [`copy`](#copy) - Copies src file to dest dir or file.
+    -  [`copy-tree`](#copy-tree) - Copies entire file tree from src to dest
+    -  [`create-dir`](#create-dir) - Creates dir using Files#createDirectory
+    -  [`create-dirs`](#create-dirs) - Creates directories using Files#createDirectories
+    -  [`create-file`](#create-file) - Creates empty file using Files#createFile.
+    -  [`create-link`](#create-link) - Create a hard link from path to target.
+    -  [`create-sym-link`](#create-sym-link) - Create a soft link from path to target.
+    -  [`create-temp-dir`](#create-temp-dir) - Creates a temporary directory using Files#createDirectories.
+    -  [`create-temp-file`](#create-temp-file) - Creates an empty temporary file using Files#createTempFile.
+    -  [`creation-time`](#creation-time) - Returns creation time as FileTime.
+    -  [`cwd`](#cwd) - Returns current working directory as path
+    -  [`delete`](#delete) - Deletes f
+    -  [`delete-if-exists`](#delete-if-exists) - Deletes f if it exists
+    -  [`delete-on-exit`](#delete-on-exit) - Requests delete on exit via File#deleteOnExit
+    -  [`delete-tree`](#delete-tree) - Deletes a file tree using walk-file-tree
+    -  [`directory?`](#directory?) - Returns true if f is a directory, using Files/isDirectory.
+    -  [`ends-with?`](#ends-with?) - Returns true if path this ends with path other.
+    -  [`exec-paths`](#exec-paths) - Returns executable paths (using the PATH environment variable)
+    -  [`executable?`](#executable?) - Returns true if f is executable.
+    -  [`exists?`](#exists?) - Returns true if f exists.
+    -  [`expand-home`](#expand-home) - If <code>path</code> begins with a tilde (<code>~</code>), expand the tilde to the value
+    -  [`extension`](#extension) - Returns the extension of a file
+    -  [`file`](#file) - Coerces f into a File
+    -  [`file-name`](#file-name) - Returns the name of the file or directory
+    -  [`file-separator`](#file-separator)
+    -  [`file-time->instant`](#file-time->instant) - Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
+    -  [`file-time->millis`](#file-time->millis) - Converts a java.nio.file.attribute.FileTime to epoch millis (long).
+    -  [`get-attribute`](#get-attribute)
+    -  [`glob`](#glob) - Given a file and glob pattern, returns matches as vector of
+    -  [`hidden?`](#hidden?) - Returns true if f is hidden.
+    -  [`home`](#home) - With no arguments, returns the current value of the <code>user.home</code>
+    -  [`instant->file-time`](#instant->file-time) - Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
+    -  [`last-modified-time`](#last-modified-time) - Returns last modified time as a java.nio.file.attribute.FileTime.
+    -  [`list-dir`](#list-dir) - Returns all paths in dir as vector
+    -  [`list-dirs`](#list-dirs) - Similar to list-dir but accepts multiple roots and returns the concatenated resu
+    -  [`match`](#match) - Given a file and match pattern, returns matches as vector of
+    -  [`millis->file-time`](#millis->file-time) - Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
+    -  [`modified-since`](#modified-since) - Returns seq of regular files (non-directories, non-symlinks) from file-set that 
+    -  [`move`](#move) - Move or rename a file to a target dir or file via Files/move.
+    -  [`normalize`](#normalize) - Normalizes f via Path#normalize.
+    -  [`parent`](#parent) - Returns parent of f, is it exists.
+    -  [`path`](#path) - Coerces f into a Path
+    -  [`path-separator`](#path-separator)
+    -  [`posix->str`](#posix->str) - Converts a set of PosixFilePermission to a string.
+    -  [`posix-file-permissions`](#posix-file-permissions) - Gets f's posix file permissions
+    -  [`read-all-bytes`](#read-all-bytes) - Returns contents of file as byte array.
+    -  [`read-all-lines`](#read-all-lines) - Read all lines from a file.
+    -  [`read-attributes`](#read-attributes) - Same as read-attributes* but turns attributes into a map and keywordizes keys.
+    -  [`read-attributes*`](#read-attributes-1) - Reads attributes via Files/readAttributes.
+    -  [`readable?`](#readable?) - Returns true if f is readable
+    -  [`real-path`](#real-path) - Converts f into real path via Path#toRealPath.
+    -  [`regular-file?`](#regular-file?) - Returns true if f is a regular file, using Files/isRegularFile.
+    -  [`relative?`](#relative?) - Returns true if f represents a relative path.
+    -  [`relativize`](#relativize) - Returns relative path by comparing this with other.
+    -  [`same-file?`](#same-file?) - Returns true if this is the same file as other.
+    -  [`set-attribute`](#set-attribute)
+    -  [`set-creation-time`](#set-creation-time) - Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
+    -  [`set-last-modified-time`](#set-last-modified-time) - Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
+    -  [`set-posix-file-permissions`](#set-posix-file-permissions) - Sets posix file permissions on f
+    -  [`size`](#size)
+    -  [`split-ext`](#split-ext) - Splits a path into a vec of [path-without-ext ext]
+    -  [`split-paths`](#split-paths) - Splits a string joined by the OS-specific path-seperator into a vec of paths.
+    -  [`starts-with?`](#starts-with?) - Returns true if path this starts with path other.
+    -  [`str->posix`](#str->posix) - Converts a string to a set of PosixFilePermission.
+    -  [`strip-ext`](#strip-ext) - Returns the path with the extension removed
+    -  [`sym-link?`](#sym-link?)
+    -  [`temp-dir`](#temp-dir) - Returns java.io.tmpdir property as path.
+    -  [`unzip`](#unzip) - zip-file: zip archive to unzip (required)
+    -  [`walk-file-tree`](#walk-file-tree) - Walks f using Files/walkFileTree
+    -  [`which`](#which) - Locates a program in (exec-paths) similar to the which Unix command.
+    -  [`which-all`](#which-all)
+    -  [`windows?`](#windows?) - Returns true if OS is Windows.
+    -  [`with-temp-dir`](#with-temp-dir) - Evaluate body with binding-name bound to a temporary directory.
+    -  [`writable?`](#writable?) - Returns true if f is writable
+    -  [`zip`](#zip) - Zips entry or entries into zip-file
+# babashka.fs 
+
+
+## `absolute?`
 ``` clojure
 
 (absolute? [f])
@@ -9,7 +92,7 @@
 Returns true if f represents an absolute path.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L104-L106)
-### `absolutize`
+## `absolutize`
 ``` clojure
 
 (absolutize [f])
@@ -19,7 +102,7 @@ Returns true if f represents an absolute path.
 Converts f into an absolute path via Path#toAbsolutePath.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L139-L141)
-### `canonicalize`
+## `canonicalize`
 ``` clojure
 
 (canonicalize [f])
@@ -33,7 +116,7 @@ Returns the canonical path via
   as an alternative to real-path which requires files to exist.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L153-L162)
-### `components`
+## `components`
 ``` clojure
 
 (components [f])
@@ -43,7 +126,7 @@ Returns the canonical path via
 Returns a seq of all components of f.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L134-L137)
-### `copy`
+## `copy`
 ``` clojure
 
 (copy [src dest])
@@ -58,7 +141,7 @@ Copies src file to dest dir or file.
   - :nofollow-links (used to determine to copy symbolic link itself or not).
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L343-L359)
-### `copy-tree`
+## `copy-tree`
 ``` clojure
 
 (copy-tree [src dest])
@@ -71,7 +154,7 @@ Copies entire file tree from src to dest. Creates dest if needed
   option. Supports same options as copy.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L406-L444)
-### `create-dir`
+## `create-dir`
 ``` clojure
 
 (create-dir [path])
@@ -82,7 +165,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 Creates dir using Files#createDirectory. Does not create parents.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L392-L398)
-### `create-dirs`
+## `create-dirs`
 ``` clojure
 
 (create-dirs [path])
@@ -93,7 +176,7 @@ Creates dir using Files#createDirectory. Does not create parents.
 Creates directories using Files#createDirectories. Also creates parents if needed.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L400-L404)
-### `create-file`
+## `create-file`
 ``` clojure
 
 (create-file [path])
@@ -104,7 +187,7 @@ Creates directories using Files#createDirectories. Also creates parents if neede
 Creates empty file using Files#createFile.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L547-L553)
-### `create-link`
+## `create-link`
 ``` clojure
 
 (create-link [path target])
@@ -114,7 +197,7 @@ Creates empty file using Files#createFile.
 Create a hard link from path to target.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L511-L516)
-### `create-sym-link`
+## `create-sym-link`
 ``` clojure
 
 (create-sym-link [path target])
@@ -124,7 +207,7 @@ Create a hard link from path to target.
 Create a soft link from path to target.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L503-L509)
-### `create-temp-dir`
+## `create-temp-dir`
 ``` clojure
 
 (create-temp-dir [])
@@ -141,7 +224,7 @@ Creates a temporary directory using Files#createDirectories.
   is generated. If path is not provided, the directory is created as if called with (create-temp-dir). The :posix-file-permissions option is a string like "rwx------".
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L451-L473)
-### `create-temp-file`
+## `create-temp-file`
 ``` clojure
 
 (create-temp-file [])
@@ -158,7 +241,7 @@ Creates an empty temporary file using Files#createTempFile.
   option is a string like "rwx------".
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L475-L501)
-### `creation-time`
+## `creation-time`
 ``` clojure
 
 (creation-time [f])
@@ -169,7 +252,7 @@ Creates an empty temporary file using Files#createTempFile.
 Returns creation time as FileTime.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L710-L715)
-### `cwd`
+## `cwd`
 ``` clojure
 
 (cwd [])
@@ -179,7 +262,7 @@ Returns creation time as FileTime.
 Returns current working directory as path
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1019-L1022)
-### `delete`
+## `delete`
 ``` clojure
 
 (delete [f])
@@ -190,7 +273,7 @@ Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L518-L524)
-### `delete-if-exists`
+## `delete-if-exists`
 ``` clojure
 
 (delete-if-exists [f])
@@ -201,7 +284,7 @@ Deletes f if it exists. Returns true if the delete was successful,
   false if f didn't exist. Does not follow symlinks.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L526-L530)
-### `delete-on-exit`
+## `delete-on-exit`
 ``` clojure
 
 (delete-on-exit [f])
@@ -211,7 +294,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 Requests delete on exit via File#deleteOnExit. Returns f.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L579-L583)
-### `delete-tree`
+## `delete-tree`
 ``` clojure
 
 (delete-tree [root])
@@ -221,7 +304,7 @@ Requests delete on exit via File#deleteOnExit. Returns f.
 Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow symlinks.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L535-L545)
-### `directory?`
+## `directory?`
 ``` clojure
 
 (directory? [f])
@@ -232,7 +315,7 @@ Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow sym
 Returns true if f is a directory, using Files/isDirectory.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L87-L92)
-### `ends-with?`
+## `ends-with?`
 ``` clojure
 
 (ends-with? [this other])
@@ -242,7 +325,7 @@ Returns true if f is a directory, using Files/isDirectory.
 Returns true if path this ends with path other.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L843-L846)
-### `exec-paths`
+## `exec-paths`
 ``` clojure
 
 (exec-paths [])
@@ -253,7 +336,7 @@ Returns executable paths (using the PATH environment variable). Same
   as (split-paths (System/getenv "PATH")).
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L769-L773)
-### `executable?`
+## `executable?`
 ``` clojure
 
 (executable? [f])
@@ -263,7 +346,7 @@ Returns executable paths (using the PATH environment variable). Same
 Returns true if f is executable.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L108-L110)
-### `exists?`
+## `exists?`
 ``` clojure
 
 (exists? [f])
@@ -274,7 +357,7 @@ Returns true if f is executable.
 Returns true if f exists.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L124-L130)
-### `expand-home`
+## `expand-home`
 ``` clojure
 
 (expand-home [f])
@@ -290,7 +373,7 @@ If `path` begins with a tilde (`~`), expand the tilde to the value
   `user.home`.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L997-L1012)
-### `extension`
+## `extension`
 ``` clojure
 
 (extension [path])
@@ -300,7 +383,7 @@ If `path` begins with a tilde (`~`), expand the tilde to the value
 Returns the extension of a file
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L759-L762)
-### `file`
+## `file`
 ``` clojure
 
 (file [f])
@@ -312,7 +395,7 @@ Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L58-L63)
-### `file-name`
+## `file-name`
 ``` clojure
 
 (file-name [x])
@@ -322,10 +405,10 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") returns "baz".
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L164-L167)
-### `file-separator`
+## `file-separator`
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L235-L235)
-### `file-time->instant`
+## `file-time->instant`
 ``` clojure
 
 (file-time->instant [ft])
@@ -335,7 +418,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L671-L674)
-### `file-time->millis`
+## `file-time->millis`
 ``` clojure
 
 (file-time->millis [ft])
@@ -345,7 +428,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L681-L684)
-### `get-attribute`
+## `get-attribute`
 ``` clojure
 
 (get-attribute [path attribute])
@@ -354,7 +437,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L621-L627)
-### `glob`
+## `glob`
 ``` clojure
 
 (glob [root pattern])
@@ -379,7 +462,7 @@ Given a file and glob pattern, returns matches as vector of
   (fs/glob "." "**.clj")
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L309-L332)
-### `hidden?`
+## `hidden?`
 ``` clojure
 
 (hidden? [f])
@@ -389,7 +472,7 @@ Given a file and glob pattern, returns matches as vector of
 Returns true if f is hidden.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L100-L102)
-### `home`
+## `home`
 ``` clojure
 
 (home [])
@@ -402,7 +485,7 @@ With no arguments, returns the current value of the `user.home`
   directory as found in the parent of home with no args.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L989-L995)
-### `instant->file-time`
+## `instant->file-time`
 ``` clojure
 
 (instant->file-time [instant])
@@ -412,7 +495,7 @@ With no arguments, returns the current value of the `user.home`
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L676-L679)
-### `last-modified-time`
+## `last-modified-time`
 ``` clojure
 
 (last-modified-time [f])
@@ -423,7 +506,7 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 Returns last modified time as a java.nio.file.attribute.FileTime.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L696-L701)
-### `list-dir`
+## `list-dir`
 ``` clojure
 
 (list-dir [dir])
@@ -435,7 +518,7 @@ Returns all paths in dir as vector. For descending into subdirectories use glob.
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L225-L233)
-### `list-dirs`
+## `list-dirs`
 ``` clojure
 
 (list-dirs [dirs glob-or-accept])
@@ -446,7 +529,7 @@ Similar to list-dir but accepts multiple roots and returns the concatenated resu
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L724-L728)
-### `match`
+## `match`
 ``` clojure
 
 (match [root pattern])
@@ -470,7 +553,7 @@ Given a file and match pattern, returns matches as vector of
   (fs/match "." "regex:.*\\.clj" {:recursive true})
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L243-L307)
-### `millis->file-time`
+## `millis->file-time`
 ``` clojure
 
 (millis->file-time [millis])
@@ -480,7 +563,7 @@ Given a file and match pattern, returns matches as vector of
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L686-L689)
-### `modified-since`
+## `modified-since`
 ``` clojure
 
 (modified-since [anchor file-set])
@@ -495,7 +578,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
   searched recursively.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L875-L884)
-### `move`
+## `move`
 ``` clojure
 
 (move [source target])
@@ -506,7 +589,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 Move or rename a file to a target dir or file via Files/move.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L555-L568)
-### `normalize`
+## `normalize`
 ``` clojure
 
 (normalize [f])
@@ -516,7 +599,7 @@ Move or rename a file to a target dir or file via Files/move.
 Normalizes f via Path#normalize.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L148-L151)
-### `parent`
+## `parent`
 ``` clojure
 
 (parent [f])
@@ -526,7 +609,7 @@ Normalizes f via Path#normalize.
 Returns parent of f, is it exists.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L570-L573)
-### `path`
+## `path`
 ``` clojure
 
 (path [f])
@@ -539,10 +622,10 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L48-L56)
-### `path-separator`
+## `path-separator`
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L236-L236)
-### `posix->str`
+## `posix->str`
 ``` clojure
 
 (posix->str [p])
@@ -552,7 +635,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 Converts a set of PosixFilePermission to a string.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L361-L364)
-### `posix-file-permissions`
+## `posix-file-permissions`
 ``` clojure
 
 (posix-file-permissions [f])
@@ -563,7 +646,7 @@ Converts a set of PosixFilePermission to a string.
 Gets f's posix file permissions. Use posix->str to view as a string.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L590-L594)
-### `read-all-bytes`
+## `read-all-bytes`
 ``` clojure
 
 (read-all-bytes [f])
@@ -573,7 +656,7 @@ Gets f's posix file permissions. Use posix->str to view as a string.
 Returns contents of file as byte array.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L601-L604)
-### `read-all-lines`
+## `read-all-lines`
 ``` clojure
 
 (read-all-lines [f])
@@ -584,7 +667,7 @@ Returns contents of file as byte array.
 Read all lines from a file.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L606-L617)
-### `read-attributes`
+## `read-attributes`
 ``` clojure
 
 (read-attributes [path attributes])
@@ -596,7 +679,7 @@ Same as read-attributes* but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L652-L660)
-### `read-attributes*`
+## `read-attributes*`
 ``` clojure
 
 (read-attributes* [path attributes])
@@ -607,7 +690,7 @@ Same as read-attributes* but turns attributes into a map and keywordizes keys.
 Reads attributes via Files/readAttributes.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L634-L650)
-### `readable?`
+## `readable?`
 ``` clojure
 
 (readable? [f])
@@ -617,7 +700,7 @@ Reads attributes via Files/readAttributes.
 Returns true if f is readable
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L112-L114)
-### `real-path`
+## `real-path`
 ``` clojure
 
 (real-path [f])
@@ -628,7 +711,7 @@ Returns true if f is readable
 Converts f into real path via Path#toRealPath.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L72-L76)
-### `regular-file?`
+## `regular-file?`
 ``` clojure
 
 (regular-file? [f])
@@ -639,7 +722,7 @@ Converts f into real path via Path#toRealPath.
 Returns true if f is a regular file, using Files/isRegularFile.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L80-L85)
-### `relative?`
+## `relative?`
 ``` clojure
 
 (relative? [f])
@@ -649,7 +732,7 @@ Returns true if f is a regular file, using Files/isRegularFile.
 Returns true if f represents a relative path.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L120-L122)
-### `relativize`
+## `relativize`
 ``` clojure
 
 (relativize [this other])
@@ -659,7 +742,7 @@ Returns true if f represents a relative path.
 Returns relative path by comparing this with other.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L143-L146)
-### `same-file?`
+## `same-file?`
 ``` clojure
 
 (same-file? [this other])
@@ -669,7 +752,7 @@ Returns relative path by comparing this with other.
 Returns true if this is the same file as other.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L596-L599)
-### `set-attribute`
+## `set-attribute`
 ``` clojure
 
 (set-attribute [path attribute value])
@@ -678,7 +761,7 @@ Returns true if this is the same file as other.
 
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L662-L669)
-### `set-creation-time`
+## `set-creation-time`
 ``` clojure
 
 (set-creation-time [f time])
@@ -689,7 +772,7 @@ Returns true if this is the same file as other.
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L717-L722)
-### `set-last-modified-time`
+## `set-last-modified-time`
 ``` clojure
 
 (set-last-modified-time [f time])
@@ -700,7 +783,7 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L703-L708)
-### `set-posix-file-permissions`
+## `set-posix-file-permissions`
 ``` clojure
 
 (set-posix-file-permissions [f posix-file-permissions])
@@ -710,7 +793,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 Sets posix file permissions on f. Accepts a string like "rwx------" or a set of PosixFilePermission.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L585-L588)
-### `size`
+## `size`
 ``` clojure
 
 (size [f])
@@ -718,7 +801,7 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L575-L577)
-### `split-ext`
+## `split-ext`
 ``` clojure
 
 (split-ext [path])
@@ -728,7 +811,7 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L740)
-### `split-paths`
+## `split-paths`
 ``` clojure
 
 (split-paths [joined-paths])
@@ -738,7 +821,7 @@ Splits a path into a vec of [path-without-ext ext]. Works with strings, files, o
 Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L764-L767)
-### `starts-with?`
+## `starts-with?`
 ``` clojure
 
 (starts-with? [this other])
@@ -748,7 +831,7 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 Returns true if path this starts with path other.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L838-L841)
-### `str->posix`
+## `str->posix`
 ``` clojure
 
 (str->posix [s])
@@ -758,7 +841,7 @@ Returns true if path this starts with path other.
 Converts a string to a set of PosixFilePermission.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L366-L369)
-### `strip-ext`
+## `strip-ext`
 ``` clojure
 
 (strip-ext [path])
@@ -769,7 +852,7 @@ Converts a string to a set of PosixFilePermission.
 Returns the path with the extension removed. If provided, a specific extension will be removed.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L742-L757)
-### `sym-link?`
+## `sym-link?`
 ``` clojure
 
 (sym-link? [f])
@@ -777,7 +860,7 @@ Returns the path with the extension removed. If provided, a specific extension w
 
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L532-L533)
-### `temp-dir`
+## `temp-dir`
 ``` clojure
 
 (temp-dir [])
@@ -787,7 +870,7 @@ Returns the path with the extension removed. If provided, a specific extension w
 Returns java.io.tmpdir property as path.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L446-L449)
-### `unzip`
+## `unzip`
 ``` clojure
 
 (unzip [zip-file])
@@ -802,7 +885,7 @@ zip-file: zip archive to unzip (required)
      :replace-existing true/false: overwrite existing files
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L890-L917)
-### `walk-file-tree`
+## `walk-file-tree`
 ``` clojure
 
 (walk-file-tree [f {:keys [:pre-visit-dir :post-visit-dir :visit-file :visit-file-failed :follow-links :max-depth]}])
@@ -816,7 +899,7 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   different return value will throw.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L171-L205)
-### `which`
+## `which`
 ``` clojure
 
 (which [program])
@@ -829,7 +912,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
   .cmd.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L782-L825)
-### `which-all`
+## `which-all`
 ``` clojure
 
 (which-all [program])
@@ -838,7 +921,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
 
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L827-L830)
-### `windows?`
+## `windows?`
 ``` clojure
 
 (windows? [])
@@ -848,7 +931,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
 Returns true if OS is Windows.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1014-L1017)
-### `with-temp-dir`
+## `with-temp-dir`
 ``` clojure
 
 (with-temp-dir [[binding-name options & more] & body])
@@ -866,7 +949,7 @@ Evaluate body with binding-name bound to a temporary directory.
   `options` is a map with the keys as for create-temp-dir.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L967-L981)
-### `writable?`
+## `writable?`
 ``` clojure
 
 (writable? [f])
@@ -876,7 +959,7 @@ Evaluate body with binding-name bound to a temporary directory.
 Returns true if f is writable
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L116-L118)
-### `zip`
+## `zip`
 ``` clojure
 
 (zip [zip-file entries])
@@ -889,4 +972,3 @@ Zips entry or entries into zip-file. An entry may be a file or
   preserved in the zip file. Currently only accepts relative entries.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L948-L963)
-<hr>
