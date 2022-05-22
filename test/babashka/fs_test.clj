@@ -1,13 +1,10 @@
 (ns babashka.fs-test
-  (:require #_[me.raynes.fs :as rfs]
-            [babashka.fs :as fs]
-            [clojure.java.io :as io]
-            [clojure.set :as set]
-            [clojure.string :as str]
-            [clojure.test :refer [deftest is testing]])
-  (:import
-   [java.io FileInputStream FileOutputStream]
-   [java.util.zip ZipEntry ZipOutputStream]))
+  (:require
+   [babashka.fs :as fs]
+   [clojure.java.io :as io]
+   [clojure.set :as set]
+   [clojure.string :as str]
+   [clojure.test :refer [deftest is testing]]))
 
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
@@ -17,11 +14,6 @@
   (if windows?
     (str/replace p "\\" "/")
     (str p)))
-
-(defn as-os-path [p]
-  (if windows?
-    (str/replace p "/" "\\")
-    (str/replace p "\\" "/")))
 
 (defn temp-dir []
   (-> (fs/create-temp-dir)
@@ -391,8 +383,8 @@
 (deftest split-ext-test
   (testing "strings"
     (is (= ["name" "clj"] (fs/split-ext "name.clj")))
-    (is (= [(as-os-path "/path/to/file") "ext"] (fs/split-ext "/path/to/file.ext")))
-    (is (= [(as-os-path "some/path/hi.tar") "gz"] (fs/split-ext "some/path/hi.tar.gz")))
+    (is (= ["/path/to/file" "ext"] (fs/split-ext "/path/to/file.ext")))
+    (is (= ["some/path/hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
     (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
     (is (= ["name" nil] (fs/split-ext "name"))))
 
@@ -411,8 +403,8 @@
   (is (= "file-name.html" (fs/strip-ext "file-name.html.template")))
   (is (= "file-name" (fs/strip-ext "file-name.html.template" {:ext "html.template"})))
   (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" {:ext "html"})))
-  (is (= (as-os-path "/path/to/file-name.html") (fs/strip-ext "/path/to/file-name.html.template")))
-  (is (= (as-os-path "path/to/file-name") (fs/strip-ext "path/to/file-name.html.template" {:ext "html.template"})))
+  (is (= "/path/to/file-name.html" (fs/strip-ext "/path/to/file-name.html.template")))
+  (is (= "path/to/file-name" (fs/strip-ext "path/to/file-name.html.template" {:ext "html.template"})))
   (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" {:ext "html"})))
   (is (= ".dotfile" (fs/strip-ext ".dotfile")))
   (is (= ".dotfile" (fs/strip-ext ".dotfile" {:ext "dotfile"})))
