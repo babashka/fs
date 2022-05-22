@@ -365,7 +365,9 @@
 
 (deftest read-all-lines-test
   (let [ls (fs/read-all-lines "README.md")]
-    (is (= ls (line-seq (io/reader (fs/file "README.md")))))))
+    (is (= ls (line-seq (io/reader (fs/file "README.md"))))))
+  (let [ls (fs/read-all-lines "test-resources/iso-8859.txt" {:charset "iso-8859-1"})]
+    (is (= ls ["áéíóú" "España"]))))
 
 (deftest get-attribute-test
   (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]

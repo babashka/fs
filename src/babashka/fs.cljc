@@ -14,6 +14,7 @@
             LinkOption Path
             FileVisitor]
            [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions]
+           [java.nio.charset Charset]
            [java.util.zip ZipInputStream ZipOutputStream ZipEntry]
            [java.io File BufferedInputStream FileInputStream FileOutputStream]))
 
@@ -603,8 +604,17 @@
   (Files/readAllBytes (as-path f)))
 
 (defn read-all-lines
-  [f]
-  (vec (Files/readAllLines (as-path f))))
+  "Read all lines from a file."
+  ([f]
+   (vec (Files/readAllLines (as-path f))))
+  ([f {:keys [charset]
+       :or {charset "utf-8"}}]
+   (vec (Files/readAllLines
+         (as-path f)
+         ^Charset
+         (if (string? charset)
+           (Charset/forName charset)
+           charset)))))
 
 ;;;; Attributes, from github.com/corasaurus-hex/fs
 
