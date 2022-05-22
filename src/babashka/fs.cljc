@@ -730,13 +730,12 @@
 (defn split-ext
   "Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths."
   [path]
-  (let [name (file-name path)
+  (let [name (str path)
         i (str/last-index-of name ".")
         ext (when (and i (pos? i)) (subs name (+ 1 i)))]
     (if ext
-      (let [new-name (subs name 0 i)
-            new-path (-> (parent path) (babashka.fs/path new-name) str)]
-        [new-path ext])
+      (let [new-name (subs name 0 i)]
+        [new-name ext])
       [path nil])))
 
 (defn strip-ext
