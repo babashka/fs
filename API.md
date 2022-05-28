@@ -678,7 +678,7 @@ Read all lines from a file.
 ```
 
 
-Same as [`read-attributes*`](#read-attributes1) but turns attributes into a map and keywordizes keys.
+Same as [`read-attributes*`](#read-attributes-1) but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L652-L660)
