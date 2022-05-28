@@ -650,7 +650,7 @@
      attrs)))
 
 (defn read-attributes
-  "Same as read-attributes* but turns attributes into a map and keywordizes keys.
+  "Same as `read-attributes*` but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map."
   ([path attributes]
    (read-attributes path attributes nil))

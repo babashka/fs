@@ -367,8 +367,8 @@ Returns true if f exists.
 ```
 
 
-If `path` begins with a tilde (`~`), expand the tilde to the value
-  of the `user.home` system property. If the `path` begins with a
+If [`path`](#path) begins with a tilde (`~`), expand the tilde to the value
+  of the `user.home` system property. If the [`path`](#path) begins with a
   tilde immediately followed by some characters, they are assumed to
   be a username. This is expanded to the path to that user's home
   directory. This is (naively) assumed to be a directory with the same
@@ -947,7 +947,7 @@ Macro.
 Evaluate body with binding-name bound to a temporary directory.
 
   The directory is created by passing `options` to create-temp-dir, and
-  will be removed with `delete-tree` on exit from the scope.
+  will be removed with [`delete-tree`](#delete-tree) on exit from the scope.
 
   `options` is a map with the keys as for create-temp-dir.
 

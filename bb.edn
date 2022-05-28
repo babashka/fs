@@ -12,4 +12,5 @@
             :requires ([quickdoc.api :as api])
             :task (api/quickdoc {:git/branch "master"
                                  :github/repo "https://github.com/babashka/fs"
-                                 :toc true})}}}
+                                 :toc true
+                                 :var-links true})}}}
