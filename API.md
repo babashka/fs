@@ -88,7 +88,7 @@
 ## `absolute?`
 ``` clojure
 
-(absolute? [f])
+(absolute? \[ \f \])
 ```
 
 
@@ -97,7 +97,7 @@ Returns true if f represents an absolute path.
 ## `absolutize`
 ``` clojure
 
-(absolutize [f])
+(absolutize \[ \f \])
 ```
 
 
@@ -106,8 +106,8 @@ Converts f into an absolute path via Path#toAbsolutePath.
 ## `canonicalize`
 ``` clojure
 
-(canonicalize [f])
-(canonicalize [f {:keys [:nofollow-links]}])
+(canonicalize \[ \f \])
+(canonicalize \[ \f \space \{ \: \k \e \y \s \space \[ \: \n \o \f \o \l \l \o \w \- \l \i \n \k \s \] \} \])
 ```
 
 
@@ -119,7 +119,7 @@ Returns the canonical path via
 ## `components`
 ``` clojure
 
-(components [f])
+(components \[ \f \])
 ```
 
 
@@ -128,8 +128,79 @@ Returns a seq of all components of f.
 ## `copy`
 ``` clojure
 
-(copy [src dest])
-(copy [src dest {:keys [:replace-existing :copy-attributes :nofollow-links]}])
+(copy \[ \s \r \c \space \d \e \s \t \])
+(copy
+ \[
+ \s
+ \r
+ \c
+ \space
+ \d
+ \e
+ \s
+ \t
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \r
+ \e
+ \p
+ \l
+ \a
+ \c
+ \e
+ \-
+ \e
+ \x
+ \i
+ \s
+ \t
+ \i
+ \n
+ \g
+ \space
+ \:
+ \c
+ \o
+ \p
+ \y
+ \-
+ \a
+ \t
+ \t
+ \r
+ \i
+ \b
+ \u
+ \t
+ \e
+ \s
+ \space
+ \:
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -142,8 +213,88 @@ Copies src file to dest dir or file.
 ## `copy-tree`
 ``` clojure
 
-(copy-tree [src dest])
-(copy-tree [src dest {:keys [:replace-existing :copy-attributes :nofollow-links], :as opts}])
+(copy-tree \[ \s \r \c \space \d \e \s \t \])
+(copy-tree
+ \[
+ \s
+ \r
+ \c
+ \space
+ \d
+ \e
+ \s
+ \t
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \r
+ \e
+ \p
+ \l
+ \a
+ \c
+ \e
+ \-
+ \e
+ \x
+ \i
+ \s
+ \t
+ \i
+ \n
+ \g
+ \space
+ \:
+ \c
+ \o
+ \p
+ \y
+ \-
+ \a
+ \t
+ \t
+ \r
+ \i
+ \b
+ \u
+ \t
+ \e
+ \s
+ \space
+ \:
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \space
+ \:
+ \a
+ \s
+ \space
+ \o
+ \p
+ \t
+ \s
+ \}
+ \])
 ```
 
 
@@ -154,8 +305,48 @@ Copies entire file tree from src to dest. Creates dest if needed
 ## `create-dir`
 ``` clojure
 
-(create-dir [path])
-(create-dir [path {:keys [:posix-file-permissions]}])
+(create-dir \[ \p \a \t \h \])
+(create-dir
+ \[
+ \p
+ \a
+ \t
+ \h
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \p
+ \o
+ \s
+ \i
+ \x
+ \-
+ \f
+ \i
+ \l
+ \e
+ \-
+ \p
+ \e
+ \r
+ \m
+ \i
+ \s
+ \s
+ \i
+ \o
+ \n
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -164,8 +355,48 @@ Creates dir using `Files#createDirectory`. Does not create parents.
 ## `create-dirs`
 ``` clojure
 
-(create-dirs [path])
-(create-dirs [path {:keys [:posix-file-permissions]}])
+(create-dirs \[ \p \a \t \h \])
+(create-dirs
+ \[
+ \p
+ \a
+ \t
+ \h
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \p
+ \o
+ \s
+ \i
+ \x
+ \-
+ \f
+ \i
+ \l
+ \e
+ \-
+ \p
+ \e
+ \r
+ \m
+ \i
+ \s
+ \s
+ \i
+ \o
+ \n
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -174,8 +405,48 @@ Creates directories using `Files#createDirectories`. Also creates parents if nee
 ## `create-file`
 ``` clojure
 
-(create-file [path])
-(create-file [path {:keys [:posix-file-permissions]}])
+(create-file \[ \p \a \t \h \])
+(create-file
+ \[
+ \p
+ \a
+ \t
+ \h
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \p
+ \o
+ \s
+ \i
+ \x
+ \-
+ \f
+ \i
+ \l
+ \e
+ \-
+ \p
+ \e
+ \r
+ \m
+ \i
+ \s
+ \s
+ \i
+ \o
+ \n
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -184,7 +455,7 @@ Creates empty file using `Files#createFile`.
 ## `create-link`
 ``` clojure
 
-(create-link [path target])
+(create-link \[ \p \a \t \h \space \t \a \r \g \e \t \])
 ```
 
 
@@ -193,7 +464,7 @@ Create a hard link from path to target.
 ## `create-sym-link`
 ``` clojure
 
-(create-sym-link [path target])
+(create-sym-link \[ \p \a \t \h \space \t \a \r \g \e \t \])
 ```
 
 
@@ -202,8 +473,57 @@ Create a soft link from path to target.
 ## `create-temp-dir`
 ``` clojure
 
-(create-temp-dir [])
-(create-temp-dir [{:keys [:prefix :path :posix-file-permissions]}])
+(create-temp-dir \[ \])
+(create-temp-dir
+ \[
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \p
+ \r
+ \e
+ \f
+ \i
+ \x
+ \space
+ \:
+ \p
+ \a
+ \t
+ \h
+ \space
+ \:
+ \p
+ \o
+ \s
+ \i
+ \x
+ \-
+ \f
+ \i
+ \l
+ \e
+ \-
+ \p
+ \e
+ \r
+ \m
+ \i
+ \s
+ \s
+ \i
+ \o
+ \n
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -218,8 +538,65 @@ Creates a temporary directory using Files#createDirectories.
 ## `create-temp-file`
 ``` clojure
 
-(create-temp-file [])
-(create-temp-file [{:keys [:path :prefix :suffix :posix-file-permissions]}])
+(create-temp-file \[ \])
+(create-temp-file
+ \[
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \p
+ \a
+ \t
+ \h
+ \space
+ \:
+ \p
+ \r
+ \e
+ \f
+ \i
+ \x
+ \space
+ \:
+ \s
+ \u
+ \f
+ \f
+ \i
+ \x
+ \space
+ \:
+ \p
+ \o
+ \s
+ \i
+ \x
+ \-
+ \f
+ \i
+ \l
+ \e
+ \-
+ \p
+ \e
+ \r
+ \m
+ \i
+ \s
+ \s
+ \i
+ \o
+ \n
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -234,8 +611,45 @@ Creates an empty temporary file using Files#createTempFile.
 ## `creation-time`
 ``` clojure
 
-(creation-time [f])
-(creation-time [f {:keys [nofollow-links], :as opts}])
+(creation-time \[ \f \])
+(creation-time
+ \[
+ \f
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \space
+ \:
+ \a
+ \s
+ \space
+ \o
+ \p
+ \t
+ \s
+ \}
+ \])
 ```
 
 
@@ -244,7 +658,7 @@ Returns creation time as FileTime.
 ## `cwd`
 ``` clojure
 
-(cwd [])
+(cwd \[ \])
 ```
 
 
@@ -253,7 +667,7 @@ Returns current working directory as path
 ## `delete`
 ``` clojure
 
-(delete [f])
+(delete \[ \f \])
 ```
 
 
@@ -263,7 +677,7 @@ Deletes f. Returns nil if the delete was successful,
 ## `delete-if-exists`
 ``` clojure
 
-(delete-if-exists [f])
+(delete-if-exists \[ \f \])
 ```
 
 
@@ -273,7 +687,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 ## `delete-on-exit`
 ``` clojure
 
-(delete-on-exit [f])
+(delete-on-exit \[ \f \])
 ```
 
 
@@ -282,7 +696,7 @@ Requests delete on exit via `File#deleteOnExit`. Returns f.
 ## `delete-tree`
 ``` clojure
 
-(delete-tree [root])
+(delete-tree \[ \r \o \o \t \])
 ```
 
 
@@ -291,8 +705,8 @@ Deletes a file tree using [`walk-file-tree`](#walk-file-tree). Similar to `rm -r
 ## `directory?`
 ``` clojure
 
-(directory? [f])
-(directory? [f {:keys [:nofollow-links]}])
+(directory? \[ \f \])
+(directory? \[ \f \space \{ \: \k \e \y \s \space \[ \: \n \o \f \o \l \l \o \w \- \l \i \n \k \s \] \} \])
 ```
 
 
@@ -301,7 +715,7 @@ Returns true if f is a directory, using Files/isDirectory.
 ## `ends-with?`
 ``` clojure
 
-(ends-with? [this other])
+(ends-with? \[ \t \h \i \s \space \o \t \h \e \r \])
 ```
 
 
@@ -310,7 +724,7 @@ Returns true if path this ends with path other.
 ## `exec-paths`
 ``` clojure
 
-(exec-paths [])
+(exec-paths \[ \])
 ```
 
 
@@ -320,7 +734,7 @@ Returns executable paths (using the PATH environment variable). Same
 ## `executable?`
 ``` clojure
 
-(executable? [f])
+(executable? \[ \f \])
 ```
 
 
@@ -329,8 +743,8 @@ Returns true if f is executable.
 ## `exists?`
 ``` clojure
 
-(exists? [f])
-(exists? [f {:keys [:nofollow-links]}])
+(exists? \[ \f \])
+(exists? \[ \f \space \{ \: \k \e \y \s \space \[ \: \n \o \f \o \l \l \o \w \- \l \i \n \k \s \] \} \])
 ```
 
 
@@ -339,7 +753,7 @@ Returns true if f exists.
 ## `expand-home`
 ``` clojure
 
-(expand-home [f])
+(expand-home \[ \f \])
 ```
 
 
@@ -354,7 +768,7 @@ If [`path`](#path) begins with a tilde (`~`), expand the tilde to the value
 ## `extension`
 ``` clojure
 
-(extension [path])
+(extension \[ \p \a \t \h \])
 ```
 
 
@@ -363,8 +777,8 @@ Returns the extension of a file
 ## `file`
 ``` clojure
 
-(file [f])
-(file [f & fs])
+(file \[ \f \])
+(file \[ \f \space \& \space \f \s \])
 ```
 
 
@@ -374,7 +788,7 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 ## `file-name`
 ``` clojure
 
-(file-name [x])
+(file-name \[ \x \])
 ```
 
 
@@ -385,7 +799,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 ## `file-time->instant`
 ``` clojure
 
-(file-time->instant [ft])
+(file-time->instant \[ \f \t \])
 ```
 
 
@@ -394,7 +808,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 ## `file-time->millis`
 ``` clojure
 
-(file-time->millis [ft])
+(file-time->millis \[ \f \t \])
 ```
 
 
@@ -403,16 +817,58 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 ## `get-attribute`
 ``` clojure
 
-(get-attribute [path attribute])
-(get-attribute [path attribute {:keys [:nofollow-links]}])
+(get-attribute \[ \p \a \t \h \space \a \t \t \r \i \b \u \t \e \])
+(get-attribute
+ \[
+ \p
+ \a
+ \t
+ \h
+ \space
+ \a
+ \t
+ \t
+ \r
+ \i
+ \b
+ \u
+ \t
+ \e
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \}
+ \])
 ```
 
 <sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L622-L628)</sub>
 ## `glob`
 ``` clojure
 
-(glob [root pattern])
-(glob [root pattern opts])
+(glob \[ \r \o \o \t \space \p \a \t \t \e \r \n \])
+(glob \[ \r \o \o \t \space \p \a \t \t \e \r \n \space \o \p \t \s \])
 ```
 
 
@@ -435,7 +891,7 @@ Given a file and glob pattern, returns matches as vector of
 ## `hidden?`
 ``` clojure
 
-(hidden? [f])
+(hidden? \[ \f \])
 ```
 
 
@@ -444,8 +900,8 @@ Returns true if f is hidden.
 ## `home`
 ``` clojure
 
-(home [])
-(home [user])
+(home \[ \])
+(home \[ \u \s \e \r \])
 ```
 
 
@@ -456,7 +912,7 @@ With no arguments, returns the current value of the `user.home`
 ## `instant->file-time`
 ``` clojure
 
-(instant->file-time [instant])
+(instant->file-time \[ \i \n \s \t \a \n \t \])
 ```
 
 
@@ -465,8 +921,45 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 ## `last-modified-time`
 ``` clojure
 
-(last-modified-time [f])
-(last-modified-time [f {:keys [nofollow-links], :as opts}])
+(last-modified-time \[ \f \])
+(last-modified-time
+ \[
+ \f
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \space
+ \:
+ \a
+ \s
+ \space
+ \o
+ \p
+ \t
+ \s
+ \}
+ \])
 ```
 
 
@@ -475,8 +968,8 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 ## `list-dir`
 ``` clojure
 
-(list-dir [dir])
-(list-dir [dir glob-or-accept])
+(list-dir \[ \d \i \r \])
+(list-dir \[ \d \i \r \space \g \l \o \b \- \o \r \- \a \c \c \e \p \t \])
 ```
 
 
@@ -486,7 +979,7 @@ Returns all paths in dir as vector. For descending into subdirectories use `glob
 ## `list-dirs`
 ``` clojure
 
-(list-dirs [dirs glob-or-accept])
+(list-dirs \[ \d \i \r \s \space \g \l \o \b \- \o \r \- \a \c \c \e \p \t \])
 ```
 
 
@@ -496,8 +989,72 @@ Similar to list-dir but accepts multiple roots and returns the concatenated resu
 ## `match`
 ``` clojure
 
-(match [root pattern])
-(match [root pattern {:keys [hidden follow-links max-depth recursive]}])
+(match \[ \r \o \o \t \space \p \a \t \t \e \r \n \])
+(match
+ \[
+ \r
+ \o
+ \o
+ \t
+ \space
+ \p
+ \a
+ \t
+ \t
+ \e
+ \r
+ \n
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \h
+ \i
+ \d
+ \d
+ \e
+ \n
+ \space
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \space
+ \m
+ \a
+ \x
+ \-
+ \d
+ \e
+ \p
+ \t
+ \h
+ \space
+ \r
+ \e
+ \c
+ \u
+ \r
+ \s
+ \i
+ \v
+ \e
+ \]
+ \}
+ \])
 ```
 
 
@@ -519,7 +1076,7 @@ Given a file and match pattern, returns matches as vector of
 ## `millis->file-time`
 ``` clojure
 
-(millis->file-time [millis])
+(millis->file-time \[ \m \i \l \l \i \s \])
 ```
 
 
@@ -528,7 +1085,7 @@ Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 ## `modified-since`
 ``` clojure
 
-(modified-since [anchor file-set])
+(modified-since \[ \a \n \c \h \o \r \space \f \i \l \e \- \s \e \t \])
 ```
 
 
@@ -542,8 +1099,80 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 ## `move`
 ``` clojure
 
-(move [source target])
-(move [source target {:keys [:replace-existing :atomic-move :nofollow-links]}])
+(move \[ \s \o \u \r \c \e \space \t \a \r \g \e \t \])
+(move
+ \[
+ \s
+ \o
+ \u
+ \r
+ \c
+ \e
+ \space
+ \t
+ \a
+ \r
+ \g
+ \e
+ \t
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \r
+ \e
+ \p
+ \l
+ \a
+ \c
+ \e
+ \-
+ \e
+ \x
+ \i
+ \s
+ \t
+ \i
+ \n
+ \g
+ \space
+ \:
+ \a
+ \t
+ \o
+ \m
+ \i
+ \c
+ \-
+ \m
+ \o
+ \v
+ \e
+ \space
+ \:
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -552,7 +1181,7 @@ Move or rename a file to a target dir or file via `Files/move`.
 ## `normalize`
 ``` clojure
 
-(normalize [f])
+(normalize \[ \f \])
 ```
 
 
@@ -561,7 +1190,7 @@ Normalizes f via Path#normalize.
 ## `parent`
 ``` clojure
 
-(parent [f])
+(parent \[ \f \])
 ```
 
 
@@ -570,9 +1199,9 @@ Returns parent of f, is it exists.
 ## `path`
 ``` clojure
 
-(path [f])
-(path [parent child])
-(path [parent child & more])
+(path \[ \f \])
+(path \[ \p \a \r \e \n \t \space \c \h \i \l \d \])
+(path \[ \p \a \r \e \n \t \space \c \h \i \l \d \space \& \space \m \o \r \e \])
 ```
 
 
@@ -584,7 +1213,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 ## `posix->str`
 ``` clojure
 
-(posix->str [p])
+(posix->str \[ \p \])
 ```
 
 
@@ -593,8 +1222,8 @@ Converts a set of PosixFilePermission to a string.
 ## `posix-file-permissions`
 ``` clojure
 
-(posix-file-permissions [f])
-(posix-file-permissions [f {:keys [:nofollow-links]}])
+(posix-file-permissions \[ \f \])
+(posix-file-permissions \[ \f \space \{ \: \k \e \y \s \space \[ \: \n \o \f \o \l \l \o \w \- \l \i \n \k \s \] \} \])
 ```
 
 
@@ -603,7 +1232,7 @@ Gets f's posix file permissions. Use posix->str to view as a string.
 ## `read-all-bytes`
 ``` clojure
 
-(read-all-bytes [f])
+(read-all-bytes \[ \f \])
 ```
 
 
@@ -612,8 +1241,51 @@ Returns contents of file as byte array.
 ## `read-all-lines`
 ``` clojure
 
-(read-all-lines [f])
-(read-all-lines [f {:keys [charset], :or {charset "utf-8"}}])
+(read-all-lines \[ \f \])
+(read-all-lines
+ \[
+ \f
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \c
+ \h
+ \a
+ \r
+ \s
+ \e
+ \t
+ \]
+ \space
+ \:
+ \o
+ \r
+ \space
+ \{
+ \c
+ \h
+ \a
+ \r
+ \s
+ \e
+ \t
+ \space
+ \"
+ \u
+ \t
+ \f
+ \-
+ \8
+ \"
+ \}
+ \}
+ \])
 ```
 
 
@@ -622,8 +1294,68 @@ Read all lines from a file.
 ## `read-attributes`
 ``` clojure
 
-(read-attributes [path attributes])
-(read-attributes [path attributes {:keys [:nofollow-links :key-fn], :as opts}])
+(read-attributes \[ \p \a \t \h \space \a \t \t \r \i \b \u \t \e \s \])
+(read-attributes
+ \[
+ \p
+ \a
+ \t
+ \h
+ \space
+ \a
+ \t
+ \t
+ \r
+ \i
+ \b
+ \u
+ \t
+ \e
+ \s
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \space
+ \:
+ \k
+ \e
+ \y
+ \-
+ \f
+ \n
+ \]
+ \space
+ \:
+ \a
+ \s
+ \space
+ \o
+ \p
+ \t
+ \s
+ \}
+ \])
 ```
 
 
@@ -633,8 +1365,51 @@ Same as [`read-attributes*`](#read-attributes-1) but turns attributes into a map
 ## `read-attributes*`
 ``` clojure
 
-(read-attributes* [path attributes])
-(read-attributes* [path attributes {:keys [:nofollow-links]}])
+(read-attributes* \[ \p \a \t \h \space \a \t \t \r \i \b \u \t \e \s \])
+(read-attributes*
+ \[
+ \p
+ \a
+ \t
+ \h
+ \space
+ \a
+ \t
+ \t
+ \r
+ \i
+ \b
+ \u
+ \t
+ \e
+ \s
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \}
+ \])
 ```
 
 
@@ -643,7 +1418,7 @@ Reads attributes via Files/readAttributes.
 ## `readable?`
 ``` clojure
 
-(readable? [f])
+(readable? \[ \f \])
 ```
 
 
@@ -652,8 +1427,8 @@ Returns true if f is readable
 ## `real-path`
 ``` clojure
 
-(real-path [f])
-(real-path [f {:keys [:nofollow-links]}])
+(real-path \[ \f \])
+(real-path \[ \f \space \{ \: \k \e \y \s \space \[ \: \n \o \f \o \l \l \o \w \- \l \i \n \k \s \] \} \])
 ```
 
 
@@ -662,8 +1437,8 @@ Converts f into real path via Path#toRealPath.
 ## `regular-file?`
 ``` clojure
 
-(regular-file? [f])
-(regular-file? [f {:keys [:nofollow-links]}])
+(regular-file? \[ \f \])
+(regular-file? \[ \f \space \{ \: \k \e \y \s \space \[ \: \n \o \f \o \l \l \o \w \- \l \i \n \k \s \] \} \])
 ```
 
 
@@ -672,7 +1447,7 @@ Returns true if f is a regular file, using Files/isRegularFile.
 ## `relative?`
 ``` clojure
 
-(relative? [f])
+(relative? \[ \f \])
 ```
 
 
@@ -681,7 +1456,7 @@ Returns true if f represents a relative path.
 ## `relativize`
 ``` clojure
 
-(relativize [this other])
+(relativize \[ \t \h \i \s \space \o \t \h \e \r \])
 ```
 
 
@@ -690,7 +1465,7 @@ Returns relative path by comparing this with other.
 ## `same-file?`
 ``` clojure
 
-(same-file? [this other])
+(same-file? \[ \t \h \i \s \space \o \t \h \e \r \])
 ```
 
 
@@ -699,16 +1474,106 @@ Returns true if this is the same file as other.
 ## `set-attribute`
 ``` clojure
 
-(set-attribute [path attribute value])
-(set-attribute [path attribute value {:keys [:nofollow-links]}])
+(set-attribute \[ \p \a \t \h \space \a \t \t \r \i \b \u \t \e \space \v \a \l \u \e \])
+(set-attribute
+ \[
+ \p
+ \a
+ \t
+ \h
+ \space
+ \a
+ \t
+ \t
+ \r
+ \i
+ \b
+ \u
+ \t
+ \e
+ \space
+ \v
+ \a
+ \l
+ \u
+ \e
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \}
+ \])
 ```
 
 <sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L663-L670)</sub>
 ## `set-creation-time`
 ``` clojure
 
-(set-creation-time [f time])
-(set-creation-time [f time {:keys [nofollow-links], :as opts}])
+(set-creation-time \[ \f \space \t \i \m \e \])
+(set-creation-time
+ \[
+ \f
+ \space
+ \t
+ \i
+ \m
+ \e
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \space
+ \:
+ \a
+ \s
+ \space
+ \o
+ \p
+ \t
+ \s
+ \}
+ \])
 ```
 
 
@@ -717,8 +1582,50 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 ## `set-last-modified-time`
 ``` clojure
 
-(set-last-modified-time [f time])
-(set-last-modified-time [f time {:keys [nofollow-links], :as opts}])
+(set-last-modified-time \[ \f \space \t \i \m \e \])
+(set-last-modified-time
+ \[
+ \f
+ \space
+ \t
+ \i
+ \m
+ \e
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \n
+ \o
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \]
+ \space
+ \:
+ \a
+ \s
+ \space
+ \o
+ \p
+ \t
+ \s
+ \}
+ \])
 ```
 
 
@@ -727,7 +1634,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 ## `set-posix-file-permissions`
 ``` clojure
 
-(set-posix-file-permissions [f posix-file-permissions])
+(set-posix-file-permissions \[ \f \space \p \o \s \i \x \- \f \i \l \e \- \p \e \r \m \i \s \s \i \o \n \s \])
 ```
 
 
@@ -736,7 +1643,7 @@ Sets posix file permissions on f. Accepts a string like `"rwx------"` or a set o
 ## `size`
 ``` clojure
 
-(size [f])
+(size \[ \f \])
 ```
 
 
@@ -745,7 +1652,7 @@ Returns the size of a file (in bytes).
 ## `split-ext`
 ``` clojure
 
-(split-ext [path])
+(split-ext \[ \p \a \t \h \])
 ```
 
 
@@ -754,7 +1661,7 @@ Splits a path into a vec of [path-without-ext ext]. Works with strings, files, o
 ## `split-paths`
 ``` clojure
 
-(split-paths [joined-paths])
+(split-paths \[ \j \o \i \n \e \d \- \p \a \t \h \s \])
 ```
 
 
@@ -763,7 +1670,7 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 ## `starts-with?`
 ``` clojure
 
-(starts-with? [this other])
+(starts-with? \[ \t \h \i \s \space \o \t \h \e \r \])
 ```
 
 
@@ -772,7 +1679,7 @@ Returns true if path this starts with path other.
 ## `str->posix`
 ``` clojure
 
-(str->posix [s])
+(str->posix \[ \s \])
 ```
 
 
@@ -781,8 +1688,8 @@ Converts a string to a set of PosixFilePermission.
 ## `strip-ext`
 ``` clojure
 
-(strip-ext [path])
-(strip-ext [path {:keys [ext]}])
+(strip-ext \[ \p \a \t \h \])
+(strip-ext \[ \p \a \t \h \space \{ \: \k \e \y \s \space \[ \e \x \t \] \} \])
 ```
 
 
@@ -791,14 +1698,14 @@ Returns the path with the extension removed. If provided, a specific extension w
 ## `sym-link?`
 ``` clojure
 
-(sym-link? [f])
+(sym-link? \[ \f \])
 ```
 
 <sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L532-L533)</sub>
 ## `temp-dir`
 ``` clojure
 
-(temp-dir [])
+(temp-dir \[ \])
 ```
 
 
@@ -807,9 +1714,51 @@ Returns `java.io.tmpdir` property as path.
 ## `unzip`
 ``` clojure
 
-(unzip [zip-file])
-(unzip [zip-file dest])
-(unzip [zip-file dest {:keys [replace-existing]}])
+(unzip \[ \z \i \p \- \f \i \l \e \])
+(unzip \[ \z \i \p \- \f \i \l \e \space \d \e \s \t \])
+(unzip
+ \[
+ \z
+ \i
+ \p
+ \-
+ \f
+ \i
+ \l
+ \e
+ \space
+ \d
+ \e
+ \s
+ \t
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \r
+ \e
+ \p
+ \l
+ \a
+ \c
+ \e
+ \-
+ \e
+ \x
+ \i
+ \s
+ \t
+ \i
+ \n
+ \g
+ \]
+ \}
+ \])
 ```
 
 
@@ -821,7 +1770,107 @@ zip-file: zip archive to unzip (required)
 ## `walk-file-tree`
 ``` clojure
 
-(walk-file-tree [f {:keys [:pre-visit-dir :post-visit-dir :visit-file :visit-file-failed :follow-links :max-depth]}])
+(walk-file-tree
+ \[
+ \f
+ \space
+ \{
+ \:
+ \k
+ \e
+ \y
+ \s
+ \space
+ \[
+ \:
+ \p
+ \r
+ \e
+ \-
+ \v
+ \i
+ \s
+ \i
+ \t
+ \-
+ \d
+ \i
+ \r
+ \space
+ \:
+ \p
+ \o
+ \s
+ \t
+ \-
+ \v
+ \i
+ \s
+ \i
+ \t
+ \-
+ \d
+ \i
+ \r
+ \space
+ \:
+ \v
+ \i
+ \s
+ \i
+ \t
+ \-
+ \f
+ \i
+ \l
+ \e
+ \space
+ \:
+ \v
+ \i
+ \s
+ \i
+ \t
+ \-
+ \f
+ \i
+ \l
+ \e
+ \-
+ \f
+ \a
+ \i
+ \l
+ \e
+ \d
+ \space
+ \:
+ \f
+ \o
+ \l
+ \l
+ \o
+ \w
+ \-
+ \l
+ \i
+ \n
+ \k
+ \s
+ \space
+ \:
+ \m
+ \a
+ \x
+ \-
+ \d
+ \e
+ \p
+ \t
+ \h
+ \]
+ \}
+ \])
 ```
 
 
@@ -834,8 +1883,8 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
 ## `which`
 ``` clojure
 
-(which [program])
-(which [program opts])
+(which \[ \p \r \o \g \r \a \m \])
+(which \[ \p \r \o \g \r \a \m \space \o \p \t \s \])
 ```
 
 
@@ -846,15 +1895,15 @@ Locates a program in (exec-paths) similar to the which Unix command.
 ## `which-all`
 ``` clojure
 
-(which-all [program])
-(which-all [program opts])
+(which-all \[ \p \r \o \g \r \a \m \])
+(which-all \[ \p \r \o \g \r \a \m \space \o \p \t \s \])
 ```
 
 <sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L826-L829)</sub>
 ## `windows?`
 ``` clojure
 
-(windows? [])
+(windows? \[ \])
 ```
 
 
@@ -863,7 +1912,45 @@ Returns true if OS is Windows.
 ## `with-temp-dir`
 ``` clojure
 
-(with-temp-dir [[binding-name options & more] & body])
+(with-temp-dir
+ \[
+ \[
+ \b
+ \i
+ \n
+ \d
+ \i
+ \n
+ \g
+ \-
+ \n
+ \a
+ \m
+ \e
+ \space
+ \o
+ \p
+ \t
+ \i
+ \o
+ \n
+ \s
+ \space
+ \&
+ \space
+ \m
+ \o
+ \r
+ \e
+ \]
+ \space
+ \&
+ \space
+ \b
+ \o
+ \d
+ \y
+ \])
 ```
 
 
@@ -880,7 +1967,7 @@ Evaluate body with binding-name bound to a temporary directory.
 ## `writable?`
 ``` clojure
 
-(writable? [f])
+(writable? \[ \f \])
 ```
 
 
@@ -889,8 +1976,8 @@ Returns true if f is writable
 ## `zip`
 ``` clojure
 
-(zip [zip-file entries])
-(zip [zip-file entries _opts])
+(zip \[ \z \i \p \- \f \i \l \e \space \e \n \t \r \i \e \s \])
+(zip \[ \z \i \p \- \f \i \l \e \space \e \n \t \r \i \e \s \space \_ \o \p \t \s \])
 ```
 
 
