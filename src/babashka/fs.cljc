@@ -152,9 +152,9 @@
 
 (defn canonicalize
   "Returns the canonical path via
-  java.io.File#getCanonicalPath. If :nofollow-links is set, then it
-  will fall back on absolutize + normalize. This function can be used
-  as an alternative to real-path which requires files to exist."
+  java.io.File#getCanonicalPath. If `:nofollow-links` is set, then it
+  will fall back on `absolutize` + `normalize.` This function can be used
+  as an alternative to `real-path` which requires files to exist."
   (^Path [f] (canonicalize f nil))
   (^Path [f {:keys [:nofollow-links]}]
    (if nofollow-links
@@ -223,7 +223,7 @@
 
 #?(:bb nil :clj
    (defn list-dir
-     "Returns all paths in dir as vector. For descending into subdirectories use glob.
+     "Returns all paths in dir as vector. For descending into subdirectories use `glob.`
      - `glob-or-accept` - a glob string such as \"*.edn\" or a (fn accept [^java.nio.file.Path p]) -> truthy"
      ([dir]
       (with-open [stream (directory-stream dir)]
@@ -247,14 +247,14 @@
 
   Options:
 
-  - :hidden: match hidden files. Note: on Windows files starting with
+  * `:hidden:` match hidden files - note: on Windows files starting with
   a dot are not hidden, unless their hidden attribute is set.
-  - :follow-links: follow symlinks
-  - :recursive: match recursively.
-  - :max-depth: max depth to descend into directory structure.
+  * `:follow-links:` - follow symlinks
+  * `:recursive:` - match recursively.
+  * `:max-depth:` - max depth to descend into directory structure.
 
   Examples:
-  (fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})"
+  `(fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})`"
   ([root pattern] (match root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth recursive]}]
    (let [base-path (-> root absolutize normalize)
@@ -308,20 +308,20 @@
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of
-  files. Patterns containing ** or / will cause a recursive walk over
+  files. Patterns containing `**` or `/` will cause a recursive walk over
   path, unless overriden with :recursive. Glob interpretation is done
   using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
 
   Options:
 
-  - :hidden: match hidden files. Note: on Windows files starting with
+  * `:hidden:` match hidden files. Note: on Windows files starting with
   a dot are not hidden, unless their hidden attribute is set.
-  - :follow-links: follow symlinks.
-  - :recursive: force recursive search.
+  * `:follow-links:` follow symlinks.
+  * `:recursive:` force recursive search.
 
   Examples:
-  (fs/glob \".\" \"**.clj\")"
+  `(fs/glob \".\" \"**.clj\")`"
   ([root pattern] (glob root pattern nil))
   ([root pattern opts]
    (let [recursive (:recursive opts
@@ -343,9 +343,9 @@
 (defn copy
   "Copies src file to dest dir or file.
   Options:
-  - :replace-existing
-  - :copy-attributes
-  - :nofollow-links (used to determine to copy symbolic link itself or not)."
+  * `:replace-existing`
+  * `:copy-attributes`
+  * `:nofollow-links` (used to determine to copy symbolic link itself or not)."
   ([src dest] (copy src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
@@ -390,7 +390,7 @@
     (into-array FileAttribute attrs)))
 
 (defn create-dir
-  "Creates dir using Files#createDirectory. Does not create parents."
+  "Creates dir using `Files#createDirectory`. Does not create parents."
   ([path]
    (create-dir path nil))
   ([path {:keys [:posix-file-permissions]}]
@@ -398,14 +398,14 @@
      (Files/createDirectory (as-path path) attrs))))
 
 (defn create-dirs
-  "Creates directories using Files#createDirectories. Also creates parents if needed."
+  "Creates directories using `Files#createDirectories`. Also creates parents if needed."
   ([path] (create-dirs path nil))
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
 
 (defn copy-tree
   "Copies entire file tree from src to dest. Creates dest if needed
-  using create-dirs, passing it the :posix-file-permissions
+  using `create-dirs`, passing it the `:posix-file-permissions`
   option. Supports same options as copy."
   ([src dest] (copy-tree src dest nil))
   ([src dest {:keys [:replace-existing
@@ -444,18 +444,18 @@
                                          :continue)}))))
 
 (defn temp-dir
-  "Returns java.io.tmpdir property as path."
+  "Returns `java.io.tmpdir` property as path."
   []
   (as-path (System/getProperty "java.io.tmpdir")))
 
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories.
 
-  (create-temp-dir): creates temp dir with random prefix.
-  (create-temp-dir {:keys [:prefix :path :posix-file-permissions]}):
+  `(create-temp-dir)`: creates temp dir with random prefix.
+  `(create-temp-dir {:keys [:prefix :path :posix-file-permissions]})`:
 
   create temp dir in path with prefix. If prefix is not provided, a random one
-  is generated. If path is not provided, the directory is created as if called with (create-temp-dir). The :posix-file-permissions option is a string like \"rwx------\"."
+  is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`. The `:posix-file-permissions` option is a string like `\"rwx------\"`."
   ([]
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
@@ -475,11 +475,11 @@
 (defn create-temp-file
   "Creates an empty temporary file using Files#createTempFile.
 
-  - (create-temp-file): creates temp file with random prefix and suffix.
-  - (create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]}): create
+  - `(create-temp-file)`: creates temp file with random prefix and suffix.
+  - `(create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]})`: create
   temp file in path with prefix. If prefix and suffix are not
-  provided, random ones are generated. The :posix-file-permissions
-  option is a string like \"rwx------\"."
+  provided, random ones are generated. The `:posix-file-permissions`
+  option is a string like `\"rwx------\"`."
   ([]
    (Files/createTempFile
     (str (java.util.UUID/randomUUID))
@@ -533,7 +533,7 @@
   (Files/isSymbolicLink (as-path f)))
 
 (defn delete-tree
-  "Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow symlinks."
+  "Deletes a file tree using `walk-file-tree`. Similar to `rm -rf`. Does not follow symlinks."
   [root]
   (when (exists? root)
     (walk-file-tree root
@@ -545,7 +545,7 @@
                                        :continue)})))
 
 (defn create-file
-  "Creates empty file using Files#createFile."
+  "Creates empty file using `Files#createFile`."
   ([path]
    (create-file path nil))
   ([path {:keys [:posix-file-permissions]}]
@@ -553,7 +553,7 @@
      (Files/createFile (as-path path) attrs))))
 
 (defn move
-  "Move or rename a file to a target dir or file via Files/move."
+  "Move or rename a file to a target dir or file via `Files/move`."
   ([source target] (move source target nil))
   ([source target {:keys [:replace-existing
                           :atomic-move
@@ -573,17 +573,18 @@
   (.getParent (as-path f)))
 
 (defn size
+  "Returns the size of a file (in bytes)."
   [f]
   (Files/size (as-path f)))
 
 (defn delete-on-exit
-  "Requests delete on exit via File#deleteOnExit. Returns f."
+  "Requests delete on exit via `File#deleteOnExit`. Returns f."
   [f]
   (.deleteOnExit (as-file f))
   f)
 
 (defn set-posix-file-permissions
-  "Sets posix file permissions on f. Accepts a string like \"rwx------\" or a set of PosixFilePermission."
+  "Sets posix file permissions on f. Accepts a string like `\"rwx------\"` or a set of PosixFilePermission."
   [f posix-file-permissions]
   (Files/setPosixFilePermissions (as-path f) (->posix-file-permissions posix-file-permissions)))
 
@@ -766,7 +767,7 @@
 
 (defn exec-paths
   "Returns executable paths (using the PATH environment variable). Same
-  as (split-paths (System/getenv \"PATH\"))."
+  as `(split-paths (System/getenv \"PATH\"))`."
   []
   (split-paths (System/getenv "PATH")))
 
@@ -889,7 +890,7 @@
   "zip-file: zip archive to unzip (required)
    dest: destination directory (defaults to \".\")
    Options:
-     :replace-existing true/false: overwrite existing files"
+   * `:replace-existing` - `true` / `false`: overwrite existing files"
   ([zip-file] (unzip zip-file "."))
   ([zip-file dest] (unzip zip-file dest nil))
   ([zip-file dest {:keys [replace-existing]}]
@@ -965,8 +966,8 @@
 (defmacro with-temp-dir
   "Evaluate body with binding-name bound to a temporary directory.
 
-  The directory is created by passing `options` to create-temp-dir, and
-  will be removed with `delete-tree` on exit from the scope.
+  The directory is created by passing `options` to `create-temp-dir`,
+  and will be removed with `delete-tree` on exit from the scope.
 
   `options` is a map with the keys as for create-temp-dir."
   {:arglists '[[[binding-name options] & body]]}
