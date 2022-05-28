@@ -1,5 +1,5 @@
 # Table of contents
--  [`babashka.fs`](#babashkafs)
+-  [`babashka.fs`](#babashkafs) 
     -  [`absolute?`](#absolute?) - Returns true if f represents an absolute path.
     -  [`absolutize`](#absolutize) - Converts f into an absolute path via Path#toAbsolutePath.
     -  [`canonicalize`](#canonicalize) - Returns the canonical path via
@@ -80,6 +80,9 @@
     -  [`writable?`](#writable?) - Returns true if f is writable
     -  [`zip`](#zip) - Zips entry or entries into zip-file
 # babashka.fs 
+
+
+
 
 
 ## `absolute?`
@@ -261,7 +264,7 @@ Returns creation time as FileTime.
 
 Returns current working directory as path
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1019-L1022)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1017-L1020)
 ## `delete`
 ``` clojure
 
@@ -324,7 +327,7 @@ Returns true if f is a directory, using Files/isDirectory.
 
 Returns true if path this ends with path other.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L843-L846)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L841-L844)
 ## `exec-paths`
 ``` clojure
 
@@ -335,7 +338,7 @@ Returns true if path this ends with path other.
 Returns executable paths (using the PATH environment variable). Same
   as (split-paths (System/getenv "PATH")).
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L769-L773)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L767-L771)
 ## `executable?`
 ``` clojure
 
@@ -372,7 +375,7 @@ If `path` begins with a tilde (`~`), expand the tilde to the value
   name as the user relative to the parent of the current value of
   `user.home`.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L997-L1012)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L995-L1010)
 ## `extension`
 ``` clojure
 
@@ -382,7 +385,7 @@ If `path` begins with a tilde (`~`), expand the tilde to the value
 
 Returns the extension of a file
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L759-L762)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L757-L760)
 ## `file`
 ``` clojure
 
@@ -484,7 +487,7 @@ With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L989-L995)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L987-L993)
 ## `instant->file-time`
 ``` clojure
 
@@ -577,7 +580,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
   collection of files (e.g. returned by glob). Directories are
   searched recursively.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L875-L884)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L873-L882)
 ## `move`
 ``` clojure
 
@@ -810,7 +813,7 @@ Sets posix file permissions on f. Accepts a string like "rwx------" or a set of 
 
 Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L740)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L739)
 ## `split-paths`
 ``` clojure
 
@@ -820,7 +823,7 @@ Splits a path into a vec of [path-without-ext ext]. Works with strings, files, o
 
 Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L764-L767)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L762-L765)
 ## `starts-with?`
 ``` clojure
 
@@ -830,7 +833,7 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
 Returns true if path this starts with path other.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L838-L841)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L836-L839)
 ## `str->posix`
 ``` clojure
 
@@ -851,7 +854,7 @@ Converts a string to a set of PosixFilePermission.
 
 Returns the path with the extension removed. If provided, a specific extension will be removed.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L742-L757)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L741-L755)
 ## `sym-link?`
 ``` clojure
 
@@ -884,7 +887,7 @@ zip-file: zip archive to unzip (required)
    Options:
      :replace-existing true/false: overwrite existing files
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L890-L917)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L888-L915)
 ## `walk-file-tree`
 ``` clojure
 
@@ -911,7 +914,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
   On Windows it tries to resolve in the order of: .com, .exe, .bat,
   .cmd.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L782-L825)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L780-L823)
 ## `which-all`
 ``` clojure
 
@@ -920,7 +923,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
 ```
 
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L827-L830)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L825-L828)
 ## `windows?`
 ``` clojure
 
@@ -930,7 +933,7 @@ Locates a program in (exec-paths) similar to the which Unix command.
 
 Returns true if OS is Windows.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1014-L1017)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1012-L1015)
 ## `with-temp-dir`
 ``` clojure
 
@@ -948,7 +951,7 @@ Evaluate body with binding-name bound to a temporary directory.
 
   `options` is a map with the keys as for create-temp-dir.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L967-L981)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L965-L979)
 ## `writable?`
 ``` clojure
 
@@ -971,4 +974,4 @@ Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
   preserved in the zip file. Currently only accepts relative entries.
 
-[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L948-L963)
+[Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L946-L961)
