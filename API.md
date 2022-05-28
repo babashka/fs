@@ -6,9 +6,9 @@
     -  [`components`](#components) - Returns a seq of all components of f.
     -  [`copy`](#copy) - Copies src file to dest dir or file.
     -  [`copy-tree`](#copy-tree) - Copies entire file tree from src to dest
-    -  [`create-dir`](#create-dir) - Creates dir using Files#createDirectory
-    -  [`create-dirs`](#create-dirs) - Creates directories using Files#createDirectories
-    -  [`create-file`](#create-file) - Creates empty file using Files#createFile.
+    -  [`create-dir`](#create-dir) - Creates dir using <code>Files#createDirectory</code>
+    -  [`create-dirs`](#create-dirs) - Creates directories using <code>Files#createDirectories</code>
+    -  [`create-file`](#create-file) - Creates empty file using <code>Files#createFile</code>.
     -  [`create-link`](#create-link) - Create a hard link from path to target.
     -  [`create-sym-link`](#create-sym-link) - Create a soft link from path to target.
     -  [`create-temp-dir`](#create-temp-dir) - Creates a temporary directory using Files#createDirectories.
@@ -17,8 +17,8 @@
     -  [`cwd`](#cwd) - Returns current working directory as path
     -  [`delete`](#delete) - Deletes f
     -  [`delete-if-exists`](#delete-if-exists) - Deletes f if it exists
-    -  [`delete-on-exit`](#delete-on-exit) - Requests delete on exit via File#deleteOnExit
-    -  [`delete-tree`](#delete-tree) - Deletes a file tree using walk-file-tree
+    -  [`delete-on-exit`](#delete-on-exit) - Requests delete on exit via <code>File#deleteOnExit</code>
+    -  [`delete-tree`](#delete-tree) - Deletes a file tree using <code>walk-file-tree</code>
     -  [`directory?`](#directory?) - Returns true if f is a directory, using Files/isDirectory.
     -  [`ends-with?`](#ends-with?) - Returns true if path this ends with path other.
     -  [`exec-paths`](#exec-paths) - Returns executable paths (using the PATH environment variable)
@@ -42,7 +42,7 @@
     -  [`match`](#match) - Given a file and match pattern, returns matches as vector of
     -  [`millis->file-time`](#millis->file-time) - Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
     -  [`modified-since`](#modified-since) - Returns seq of regular files (non-directories, non-symlinks) from file-set that 
-    -  [`move`](#move) - Move or rename a file to a target dir or file via Files/move.
+    -  [`move`](#move) - Move or rename a file to a target dir or file via <code>Files/move</code>.
     -  [`normalize`](#normalize) - Normalizes f via Path#normalize.
     -  [`parent`](#parent) - Returns parent of f, is it exists.
     -  [`path`](#path) - Coerces f into a Path
@@ -70,7 +70,7 @@
     -  [`str->posix`](#str->posix) - Converts a string to a set of PosixFilePermission.
     -  [`strip-ext`](#strip-ext) - Returns the path with the extension removed
     -  [`sym-link?`](#sym-link?)
-    -  [`temp-dir`](#temp-dir) - Returns java.io.tmpdir property as path.
+    -  [`temp-dir`](#temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
     -  [`unzip`](#unzip) - zip-file: zip archive to unzip (required)
     -  [`walk-file-tree`](#walk-file-tree) - Walks f using Files/walkFileTree
     -  [`which`](#which) - Locates a program in (exec-paths) similar to the which Unix command.
@@ -114,9 +114,9 @@ Converts f into an absolute path via Path#toAbsolutePath.
 
 
 Returns the canonical path via
-  java.io.File#getCanonicalPath. If :nofollow-links is set, then it
-  will fall back on absolutize + normalize. This function can be used
-  as an alternative to real-path which requires files to exist.
+  java.io.File#getCanonicalPath. If `:nofollow-links` is set, then it
+  will fall back on [`absolutize`](#absolutize) + [`normalize.`](#normalize) This function can be used
+  as an alternative to [`real-path`](#real-path) which requires files to exist.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L153-L162)
 ## `components`
@@ -139,9 +139,9 @@ Returns a seq of all components of f.
 
 Copies src file to dest dir or file.
   Options:
-  - :replace-existing
-  - :copy-attributes
-  - :nofollow-links (used to determine to copy symbolic link itself or not).
+  * `:replace-existing`
+  * `:copy-attributes`
+  * `:nofollow-links` (used to determine to copy symbolic link itself or not).
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L343-L359)
 ## `copy-tree`
@@ -153,7 +153,7 @@ Copies src file to dest dir or file.
 
 
 Copies entire file tree from src to dest. Creates dest if needed
-  using create-dirs, passing it the :posix-file-permissions
+  using [`create-dirs`](#create-dirs), passing it the `:posix-file-permissions`
   option. Supports same options as copy.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L406-L444)
@@ -165,7 +165,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 ```
 
 
-Creates dir using Files#createDirectory. Does not create parents.
+Creates dir using `Files#createDirectory`. Does not create parents.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L392-L398)
 ## `create-dirs`
@@ -176,7 +176,7 @@ Creates dir using Files#createDirectory. Does not create parents.
 ```
 
 
-Creates directories using Files#createDirectories. Also creates parents if needed.
+Creates directories using `Files#createDirectories`. Also creates parents if needed.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L400-L404)
 ## `create-file`
@@ -187,7 +187,7 @@ Creates directories using Files#createDirectories. Also creates parents if neede
 ```
 
 
-Creates empty file using Files#createFile.
+Creates empty file using `Files#createFile`.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L547-L553)
 ## `create-link`
@@ -220,11 +220,11 @@ Create a soft link from path to target.
 
 Creates a temporary directory using Files#createDirectories.
 
-  (create-temp-dir): creates temp dir with random prefix.
-  (create-temp-dir {:keys [:prefix :path :posix-file-permissions]}):
+  `(create-temp-dir)`: creates temp dir with random prefix.
+  `(create-temp-dir {:keys [:prefix :path :posix-file-permissions]})`:
 
   create temp dir in path with prefix. If prefix is not provided, a random one
-  is generated. If path is not provided, the directory is created as if called with (create-temp-dir). The :posix-file-permissions option is a string like "rwx------".
+  is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`. The `:posix-file-permissions` option is a string like `"rwx------"`.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L451-L473)
 ## `create-temp-file`
@@ -237,11 +237,11 @@ Creates a temporary directory using Files#createDirectories.
 
 Creates an empty temporary file using Files#createTempFile.
 
-  - (create-temp-file): creates temp file with random prefix and suffix.
-  - (create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]}): create
+  - `(create-temp-file)`: creates temp file with random prefix and suffix.
+  - `(create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]})`: create
   temp file in path with prefix. If prefix and suffix are not
-  provided, random ones are generated. The :posix-file-permissions
-  option is a string like "rwx------".
+  provided, random ones are generated. The `:posix-file-permissions`
+  option is a string like `"rwx------"`.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L475-L501)
 ## `creation-time`
@@ -294,7 +294,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 ```
 
 
-Requests delete on exit via File#deleteOnExit. Returns f.
+Requests delete on exit via `File#deleteOnExit`. Returns f.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L579-L583)
 ## `delete-tree`
@@ -304,7 +304,7 @@ Requests delete on exit via File#deleteOnExit. Returns f.
 ```
 
 
-Deletes a file tree using walk-file-tree. Similar to rm -rf. Does not follow symlinks.
+Deletes a file tree using [`walk-file-tree`](#walk-file-tree). Similar to `rm -rf`. Does not follow symlinks.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L535-L545)
 ## `directory?`
@@ -336,7 +336,7 @@ Returns true if path this ends with path other.
 
 
 Returns executable paths (using the PATH environment variable). Same
-  as (split-paths (System/getenv "PATH")).
+  as `(split-paths (System/getenv "PATH"))`.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L767-L771)
 ## `executable?`
@@ -449,20 +449,20 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
 
 Given a file and glob pattern, returns matches as vector of
-  files. Patterns containing ** or / will cause a recursive walk over
+  files. Patterns containing `**` or `/` will cause a recursive walk over
   path, unless overriden with :recursive. Glob interpretation is done
   using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
 
   Options:
 
-  - :hidden: match hidden files. Note: on Windows files starting with
+  * `:hidden:` match hidden files. Note: on Windows files starting with
   a dot are not hidden, unless their hidden attribute is set.
-  - :follow-links: follow symlinks.
-  - :recursive: force recursive search.
+  * `:follow-links:` follow symlinks.
+  * `:recursive:` force recursive search.
 
   Examples:
-  (fs/glob "." "**.clj")
+  `(fs/glob "." "**.clj")`
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L309-L332)
 ## `hidden?`
@@ -517,7 +517,7 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 ```
 
 
-Returns all paths in dir as vector. For descending into subdirectories use glob.
+Returns all paths in dir as vector. For descending into subdirectories use `glob.`
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L225-L233)
@@ -546,14 +546,14 @@ Given a file and match pattern, returns matches as vector of
 
   Options:
 
-  - :hidden: match hidden files. Note: on Windows files starting with
+  * `:hidden:` match hidden files - note: on Windows files starting with
   a dot are not hidden, unless their hidden attribute is set.
-  - :follow-links: follow symlinks
-  - :recursive: match recursively.
-  - :max-depth: max depth to descend into directory structure.
+  * `:follow-links:` - follow symlinks
+  * `:recursive:` - match recursively.
+  * `:max-depth:` - max depth to descend into directory structure.
 
   Examples:
-  (fs/match "." "regex:.*\\.clj" {:recursive true})
+  `(fs/match "." "regex:.*\\.clj" {:recursive true})`
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L243-L307)
 ## `millis->file-time`
@@ -589,7 +589,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 ```
 
 
-Move or rename a file to a target dir or file via Files/move.
+Move or rename a file to a target dir or file via `Files/move`.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L555-L568)
 ## `normalize`
@@ -793,7 +793,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 ```
 
 
-Sets posix file permissions on f. Accepts a string like "rwx------" or a set of PosixFilePermission.
+Sets posix file permissions on f. Accepts a string like `"rwx------"` or a set of PosixFilePermission.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L585-L588)
 ## `size`
@@ -870,7 +870,7 @@ Returns the path with the extension removed. If provided, a specific extension w
 ```
 
 
-Returns java.io.tmpdir property as path.
+Returns `java.io.tmpdir` property as path.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L446-L449)
 ## `unzip`
@@ -885,7 +885,7 @@ Returns java.io.tmpdir property as path.
 zip-file: zip archive to unzip (required)
    dest: destination directory (defaults to ".")
    Options:
-     :replace-existing true/false: overwrite existing files
+   * `:replace-existing` - `true` / `false`: overwrite existing files
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L888-L915)
 ## `walk-file-tree`
@@ -946,8 +946,8 @@ Macro.
 
 Evaluate body with binding-name bound to a temporary directory.
 
-  The directory is created by passing `options` to create-temp-dir, and
-  will be removed with [`delete-tree`](#delete-tree) on exit from the scope.
+  The directory is created by passing `options` to [`create-temp-dir`](#create-temp-dir),
+  and will be removed with [`delete-tree`](#delete-tree) on exit from the scope.
 
   `options` is a map with the keys as for create-temp-dir.
 
