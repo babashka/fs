@@ -51,7 +51,7 @@
     -  [`posix-file-permissions`](#posix-file-permissions) - Gets f's posix file permissions
     -  [`read-all-bytes`](#read-all-bytes) - Returns contents of file as byte array.
     -  [`read-all-lines`](#read-all-lines) - Read all lines from a file.
-    -  [`read-attributes`](#read-attributes) - Same as read-attributes* but turns attributes into a map and keywordizes keys.
+    -  [`read-attributes`](#read-attributes) - Same as <code>read-attributes*</code> but turns attributes into a map and keywordizes keys.
     -  [`read-attributes*`](#read-attributes-1) - Reads attributes via Files/readAttributes.
     -  [`readable?`](#readable?) - Returns true if f is readable
     -  [`real-path`](#real-path) - Converts f into real path via Path#toRealPath.
@@ -678,7 +678,7 @@ Read all lines from a file.
 ```
 
 
-Same as read-attributes* but turns attributes into a map and keywordizes keys.
+Same as `read-attributes*` but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
 
 [Source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L652-L660)
