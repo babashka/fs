@@ -516,7 +516,9 @@
     (is (= (fs/path (fs/home "raymond") "..")
            (fs/expand-home (fs/path "~raymond" ".."))))
     (is (= (fs/path (fs/home "raymond") ".")
-           (fs/expand-home (fs/path "~raymond" ".")))))
+           (fs/expand-home (fs/path "~raymond" "."))))
+    (is (= (fs/path (fs/home) "file")
+           (fs/expand-home "~/file"))))
   (testing "without nothing to expand"
     (doseq [input [["a" "b" "c"]
                    [""]

@@ -1002,13 +1002,14 @@
   name as the user relative to the parent of the current value of
   `user.home`."
   ^Path [f]
-  (let [path-str (str f)]
+  (let [p (as-path f)
+        path-str (str p)]
     (if (.startsWith path-str "~")
       (let [sep (.indexOf path-str File/separator)]
         (if (neg? sep)
           (home (subs path-str 1))
           (path (home (subs path-str 1 sep)) (subs path-str (inc sep)))))
-      (as-path f))))
+      p)))
 
 (defn windows?
   "Returns true if OS is Windows."
