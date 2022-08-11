@@ -289,14 +289,23 @@
       (doto (fs/file "on-path" "foo.foo")
         (spit "echo hello")
         (fs/set-posix-file-permissions "r-xr-x---")))
-    (is (fs/which "foo.foo"))
+    (if windows?
+      (is (= (fs/path "on-path/foo.foo.bat") (fs/which "foo.foo")))
+      (is (= (fs/path "on-path/foo.foo") (fs/which "foo.foo"))))
     (when windows?
       (testing "can find executable when including extension"
-        (is (= (fs/which "foo.foo") (fs/which "foo.foo.bat")))))
+        (let [expected (fs/path "on-path/foo.foo.bat")]
+          (is (= expected (fs/which "foo.foo") (fs/which "foo.foo.bat"))))))
     (when windows?
       (testing "can find foo.cmd.bat"
         (spit "on-path/foo.cmd.bat" "echo hello")
-        (is (= (fs/which "foo.cmd") (fs/which "foo.cmd.bat")))))
+        (let [expected (fs/path "on-path/foo.cmd.bat")]
+          (is (= expected (fs/which "foo.cmd") (fs/which "foo.cmd.bat"))))))
+    (when windows?
+      (testing "can overide win extension search"
+        (spit "on-path/foo.foo.ps1" "echo hello")
+        (let [expected (fs/path "on-path/foo.foo.ps1")]
+          (is (= expected (fs/which "foo.foo" {:win-exts ["ps1"]}))))))
     (testing "'which' shouldn't find directories"
       (is (nil? (fs/which "path-subdir"))))
     (testing "given a relative path, 'which' shouldn't search path entries"

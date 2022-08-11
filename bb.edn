@@ -1,11 +1,13 @@
-{:pods {clj-kondo/clj-kondo {:version "2022.02.09"}}
+{:min-bb-version "0.9.161"
+ :pods {clj-kondo/clj-kondo {:version "2022.02.09"}}
  :deps {io.github.borkdude/quickdoc
         #_{:local/root "/Users/borkdude/dev/quickdoc"}
         {:git/sha "ca5893c0d81f26443dd178a747d0851e75d39eca"}}
 
  :tasks
- {:requires ([babashka.fs :as fs])
-  test (clojure {:extra-env {"PATH" (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+ {:requires ([babashka.fs :as fs]
+             [clojure.string :as str])
+  test (clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
                 "-M:test")
 
   quickdoc {:doc "Invoke quickdoc"

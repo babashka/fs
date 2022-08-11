@@ -68,7 +68,7 @@ For convenience, the above use case is also supported using the `which` function
 ## Test
 
 ``` clojure
-$ clojure -M:test
+$ bb test
 ```
 
 <!-- ## Codox -->

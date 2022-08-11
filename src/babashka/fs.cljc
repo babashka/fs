@@ -779,13 +779,13 @@
     (= f-as-path (.getFileName f-as-path))))
 
 (defn which
-  "Locates a program in (exec-paths) similar to the which Unix command.
-  On Windows it tries to resolve in the order of: .com, .exe, .bat,
-  .cmd."
+  "Returns Path to first `program` found in (`exec-paths`), similar to the which Unix command.
+
+  On Windows, also searches for `program` with filename extensions specified in `:win-exts` `opt`.
+  Default is `[\"com\" \"exe\" \"bat\" \"cmd\"]`.
+  If `program` already includes an extension from `:win-exts`, it will be searched as-is first."
   ([program] (which program nil))
   ([program opts]
-   ;; :win-exts is unsupported, if you read and use
-   ;; this, let me know, it may break.
    (let [exts (if win?
                 (let [exts (or (:win-exts opts)
                                ["com" "exe" "bat" "cmd"])
@@ -824,6 +824,7 @@
          (if (:all opts) results (first results)))))))
 
 (defn which-all
+  "Returns every Path to `program` found in (`exec-paths`). See `which`."
   ([program] (which-all program nil))
   ([program opts]
    (which program (assoc opts :all true))))
