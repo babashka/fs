@@ -6,11 +6,8 @@
  :tasks
  {:requires ([babashka.fs :as fs]
              [clojure.string :as str])
-  test (let [windows? (-> (System/getProperty "os.name")
-                          (str/lower-case)
-                          (str/includes? "win"))]
-         (clojure {:extra-env {(if windows? "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
-                  "-M:test"))
+  test (clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+                "-M:test")
 
   quickdoc {:doc "Invoke quickdoc"
             :requires ([quickdoc.api :as api])
