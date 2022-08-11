@@ -2,6 +2,10 @@
 
 For a list of breaking changes, check [here](#breaking-changes).
 
+## Unreleased
+
+- [#65](https://github.com/babashka/fs/issues/65): Explicitly support `:win-exts` option on `which` function ([@lread](https://github.com/lread))
+
 ## v0.1.6
 
 - Add `cwd`
