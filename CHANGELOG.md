@@ -5,6 +5,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#65](https://github.com/babashka/fs/issues/65): Explicitly support `:win-exts` option on `which` function ([@lread](https://github.com/lread))
+- [clj-kondo#1782](https://github.com/clj-kondo/clj-kondo/issues/1782): `exists?` should never throw on illegal input path.
 
 ## v0.1.6
 

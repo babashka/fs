@@ -549,3 +549,9 @@
 (deftest uri->path-test
   (is (instance? java.nio.file.Path
                  (fs/path (.toURI (fs/file "."))))))
+
+(deftest invalid-path
+  (testing "illegal windows path"
+    ;; a `:` outside of the drive letter is illegal but should not
+    ;; throw.
+    (is (= (fs/exists? "c:/123:456") false))))
