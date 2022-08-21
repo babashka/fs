@@ -125,9 +125,12 @@
   "Returns true if f exists."
   ([f] (exists? f nil))
   ([f {:keys [:nofollow-links]}]
-   (Files/exists
-    (as-path f)
-    (->link-opts nofollow-links))))
+   (try
+     (Files/exists
+      (as-path f)
+      (->link-opts nofollow-links))
+     (catch Exception _e
+       false))))
 
 ;;;; End predicates
 
