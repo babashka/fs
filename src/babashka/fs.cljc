@@ -235,8 +235,8 @@
       (with-open [stream (directory-stream dir glob-or-accept)]
         (vec stream)))))
 
-(def ^:const file-separator File/separator)
-(def ^:const path-separator File/pathSeparator)
+(def file-separator File/separator)
+(def path-separator File/pathSeparator)
 
 (def ^:private win?
   (-> (System/getProperty "os.name")

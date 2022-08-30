@@ -4,8 +4,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+## v0.1.11
+
 - [#65](https://github.com/babashka/fs/issues/65): Explicitly support `:win-exts` option on `which` function ([@lread](https://github.com/lread))
 - [clj-kondo#1782](https://github.com/clj-kondo/clj-kondo/issues/1782): `exists?` should never throw on illegal input path.
+- Remove `^:const` to not cache OS-specific constants, so AOT-ed code can be
+  re-used in multiple OS-es.
 
 ## v0.1.6
 
