@@ -926,7 +926,7 @@ Writes `bytes` to [`path`](#path) via `java.nio.file.Files/write`.
 Writes `lines`, a seqable of strings to [`path`](#path) via `java.nio.file.Files/write`.
 
   Supported options:
-  * `:charset` (default "utf-8")
+  * `:charset` (default `"utf-8"`)
 
   Supported open options:
   * `:create` (default `true`)
