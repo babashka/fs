@@ -901,15 +901,15 @@ Returns true if f is writable
 
 Writes `bytes` to [`path`](#path) via `java.nio.file.Files/write`.
   Supported options:
-  * `:create` (default true)
-  * `:truncate-existing` (default true)
-  * `:write` (default true)
-  * `:append` (default false)
+  * `:create` (default `true`)
+  * `:truncate-existing` (default `true`)
+  * `:write` (default `true`)
+  * `:append` (default `false`)
   * or any `java.nio.file.StandardOption`.
 
   Examples:
 
-  ```
+  ``` clojure
   (fs/write-bytes f (.getBytes (String. "foo"))) ;; overwrites + truncates or creates new file
   (fs/write-bytes f (.getBytes (String. "foo")) {:append true})
   ```
