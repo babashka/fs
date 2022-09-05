@@ -71,7 +71,7 @@
     -  [`strip-ext`](#strip-ext) - Returns the path with the extension removed.
     -  [`sym-link?`](#sym-link?)
     -  [`temp-dir`](#temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
-    -  [`unzip`](#unzip) - zip-file: zip archive to unzip (required) dest: destination directory (defaults to ".") Options: * <code>:replace-existing</code> - <code>true</code> / <code>false</code>: overwrite existing files.
+    -  [`unzip`](#unzip) - Unzips <code>zip-file</code> to <code>dest</code> directory (default <code>"."</code>).
     -  [`walk-file-tree`](#walk-file-tree) - Walks f using Files/walkFileTree.
     -  [`which`](#which) - Returns Path to first <code>program</code> found in (<code>exec-paths</code>), similar to the which Unix command.
     -  [`which-all`](#which-all) - Returns every Path to <code>program</code> found in (<code>exec-paths</code>).
@@ -814,8 +814,8 @@ Returns `java.io.tmpdir` property as path.
 ```
 
 
-zip-file: zip archive to unzip (required)
-   dest: destination directory (defaults to ".")
+Unzips `zip-file` to `dest` directory (default `"."`).
+
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
 <br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L893-L920)</sub>

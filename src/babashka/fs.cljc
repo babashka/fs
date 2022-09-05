@@ -891,8 +891,8 @@
 ;;;; Zip
 
 (defn unzip
-  "zip-file: zip archive to unzip (required)
-   dest: destination directory (defaults to \".\")
+  "Unzips `zip-file` to `dest` directory (default `\".\"`).
+
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files"
   ([zip-file] (unzip zip-file "."))
