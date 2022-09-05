@@ -79,6 +79,7 @@
     -  [`with-temp-dir`](#with-temp-dir) - Evaluate body with binding-name bound to a temporary directory.
     -  [`writable?`](#writable?) - Returns true if f is writable.
     -  [`write-bytes`](#write-bytes) - Writes <code>bytes</code> to <code>path</code> via <code>java.nio.file.Files/write</code>.
+    -  [`write-lines`](#write-lines) - Writes <code>lines</code>, a seqable of strings to <code>path</code> via via <code>java.nio.file.Files/write</code> Supported options: * <code>:charset</code> (default "utf-8") Supported open options: * <code>:create</code> (default <code>true</code>) * <code>:truncate-existing</code> (default <code>true</code>) * <code>:write</code> (default <code>true</code>) * <code>:append</code> (default <code>false</code>) * or any <code>java.nio.file.StandardOption</code>.
     -  [`zip`](#zip) - Zips entry or entries into zip-file.
 # babashka.fs 
 
@@ -241,7 +242,7 @@ Creates an empty temporary file using Files#createTempFile.
 
 
 Returns creation time as FileTime.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L714-L719)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L716-L721)</sub>
 ## `cwd`
 ``` clojure
 
@@ -250,7 +251,7 @@ Returns creation time as FileTime.
 
 
 Returns current working directory as path
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1023-L1026)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1025-L1028)</sub>
 ## `delete`
 ``` clojure
 
@@ -307,7 +308,7 @@ Returns true if f is a directory, using Files/isDirectory.
 
 
 Returns true if path this ends with path other.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L846-L849)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L848-L851)</sub>
 ## `exec-paths`
 ``` clojure
 
@@ -317,7 +318,7 @@ Returns true if path this ends with path other.
 
 Returns executable paths (using the PATH environment variable). Same
   as `(split-paths (System/getenv "PATH"))`.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L771-L775)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L773-L777)</sub>
 ## `executable?`
 ``` clojure
 
@@ -351,7 +352,7 @@ If [`path`](#path) begins with a tilde (`~`), expand the tilde to the value
   directory. This is (naively) assumed to be a directory with the same
   name as the user relative to the parent of the current value of
   `user.home`.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1000-L1016)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1002-L1018)</sub>
 ## `extension`
 ``` clojure
 
@@ -360,7 +361,7 @@ If [`path`](#path) begins with a tilde (`~`), expand the tilde to the value
 
 
 Returns the extension of a file
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L761-L764)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L763-L766)</sub>
 ## `file`
 ``` clojure
 
@@ -391,7 +392,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 
 
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L675-L678)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L677-L680)</sub>
 ## `file-time->millis`
 ``` clojure
 
@@ -400,7 +401,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L685-L688)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L687-L690)</sub>
 ## `get-attribute`
 ``` clojure
 
@@ -408,7 +409,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 (get-attribute path attribute {:keys [:nofollow-links]})
 ```
 
-<sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L625-L631)</sub>
+<sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L627-L633)</sub>
 ## `glob`
 ``` clojure
 
@@ -453,7 +454,7 @@ Returns true if f is hidden.
 With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L992-L998)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L994-L1000)</sub>
 ## `instant->file-time`
 ``` clojure
 
@@ -462,7 +463,7 @@ With no arguments, returns the current value of the `user.home`
 
 
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L680-L683)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L682-L685)</sub>
 ## `last-modified-time`
 ``` clojure
 
@@ -472,7 +473,7 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 
 
 Returns last modified time as a java.nio.file.attribute.FileTime.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L700-L705)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L702-L707)</sub>
 ## `list-dir`
 ``` clojure
 
@@ -493,7 +494,7 @@ Returns all paths in dir as vector. For descending into subdirectories use `glob
 
 Similar to list-dir but accepts multiple roots and returns the concatenated results.
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L728-L732)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L734)</sub>
 ## `match`
 ``` clojure
 
@@ -525,7 +526,7 @@ Given a file and match pattern, returns matches as vector of
 
 
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L690-L693)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L692-L695)</sub>
 ## `modified-since`
 ``` clojure
 
@@ -539,7 +540,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
   to compare with.  The file-set may be a regular file, directory or
   collection of files (e.g. returned by glob). Directories are
   searched recursively.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L878-L887)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L880-L889)</sub>
 ## `move`
 ``` clojure
 
@@ -619,7 +620,7 @@ Returns contents of file as byte array.
 
 
 Read all lines from a file.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L610-L621)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L615-L623)</sub>
 ## `read-attributes`
 ``` clojure
 
@@ -630,7 +631,7 @@ Read all lines from a file.
 
 Same as [`read-attributes*`](#read-attributes-1) but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L656-L664)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L658-L666)</sub>
 ## `read-attributes*`
 ``` clojure
 
@@ -640,7 +641,7 @@ Same as [`read-attributes*`](#read-attributes-1) but turns attributes into a map
 
 
 Reads attributes via Files/readAttributes.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L638-L654)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L640-L656)</sub>
 ## `readable?`
 ``` clojure
 
@@ -704,7 +705,7 @@ Returns true if this is the same file as other.
 (set-attribute path attribute value {:keys [:nofollow-links]})
 ```
 
-<sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L666-L673)</sub>
+<sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L668-L675)</sub>
 ## `set-creation-time`
 ``` clojure
 
@@ -714,7 +715,7 @@ Returns true if this is the same file as other.
 
 
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L721-L726)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L723-L728)</sub>
 ## `set-last-modified-time`
 ``` clojure
 
@@ -724,7 +725,7 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 
 
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L707-L712)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L709-L714)</sub>
 ## `set-posix-file-permissions`
 ``` clojure
 
@@ -751,7 +752,7 @@ Returns the size of a file (in bytes).
 
 
 Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L734-L743)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L736-L745)</sub>
 ## `split-paths`
 ``` clojure
 
@@ -760,7 +761,7 @@ Splits a path into a vec of [path-without-ext ext]. Works with strings, files, o
 
 
 Splits a string joined by the OS-specific path-seperator into a vec of paths.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L766-L769)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L768-L771)</sub>
 ## `starts-with?`
 ``` clojure
 
@@ -769,7 +770,7 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
 
 Returns true if path this starts with path other.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L841-L844)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L843-L846)</sub>
 ## `str->posix`
 ``` clojure
 
@@ -788,7 +789,7 @@ Converts a string to a set of PosixFilePermission.
 
 
 Returns the path with the extension removed. If provided, a specific extension will be removed.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L745-L759)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L747-L761)</sub>
 ## `sym-link?`
 ``` clojure
 
@@ -818,7 +819,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
 
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L893-L920)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L895-L922)</sub>
 ## `walk-file-tree`
 ``` clojure
 
@@ -845,7 +846,7 @@ Returns Path to first `program` found in (`exec-paths`), similar to the which Un
   On Windows, also searches for `program` with filename extensions specified in `:win-exts` `opt`.
   Default is `["com" "exe" "bat" "cmd"]`.
   If `program` already includes an extension from `:win-exts`, it will be searched as-is first.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L784-L827)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L786-L829)</sub>
 ## `which-all`
 ``` clojure
 
@@ -855,7 +856,7 @@ Returns Path to first `program` found in (`exec-paths`), similar to the which Un
 
 
 Returns every Path to `program` found in (`exec-paths`). See [`which`](#which).
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L829-L833)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L831-L835)</sub>
 ## `windows?`
 ``` clojure
 
@@ -864,7 +865,7 @@ Returns every Path to `program` found in (`exec-paths`). See [`which`](#which).
 
 
 Returns true if OS is Windows.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1018-L1021)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1020-L1023)</sub>
 ## `with-temp-dir`
 ``` clojure
 
@@ -881,7 +882,7 @@ Evaluate body with binding-name bound to a temporary directory.
   and will be removed with [`delete-tree`](#delete-tree) on exit from the scope.
 
   `options` is a map with the keys as for create-temp-dir.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L970-L984)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L972-L986)</sub>
 ## `writable?`
 ``` clojure
 
@@ -913,7 +914,27 @@ Writes `bytes` to [`path`](#path) via `java.nio.file.Files/write`.
   (fs/write-bytes f (.getBytes (String. "foo"))) ;; overwrites + truncates or creates new file
   (fs/write-bytes f (.getBytes (String. "foo")) {:append true})
   ```
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1050-L1073)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1052-L1075)</sub>
+## `write-lines`
+``` clojure
+
+(write-lines path lines)
+(write-lines path lines {:keys [charset], :or {charset "utf-8"}, :as opts})
+```
+
+
+Writes `lines`, a seqable of strings to [`path`](#path) via via `java.nio.file.Files/write`
+
+  Supported options:
+  * `:charset` (default "utf-8")
+
+  Supported open options:
+  * `:create` (default `true`)
+  * `:truncate-existing` (default `true`)
+  * `:write` (default `true`)
+  * `:append` (default `false`)
+  * or any `java.nio.file.StandardOption`.
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1077-L1096)</sub>
 ## `zip`
 ``` clojure
 
@@ -925,4 +946,4 @@ Writes `bytes` to [`path`](#path) via `java.nio.file.Files/write`.
 Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
   preserved in the zip file. Currently only accepts relative entries.
-<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L951-L966)</sub>
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L953-L968)</sub>

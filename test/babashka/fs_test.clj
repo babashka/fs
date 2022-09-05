@@ -565,3 +565,13 @@
     (is (= "foo" (String. (fs/read-all-bytes f))))
     (fs/write-bytes f (.getBytes (String. "bar")) {:append true})
     (is (= "foobar" (String. (fs/read-all-bytes f))))))
+
+(deftest write-lines-test
+  (let [f (fs/path (fs/temp-dir) (str (gensym)))]
+    (fs/write-lines f (repeat 3 "foo"))
+    (is (= (repeat 3 "foo") (fs/read-all-lines f)))
+    ;; again, truncation behavior:
+    (fs/write-lines f (repeat 3 "foo"))
+    (is (= (repeat 3 "foo") (fs/read-all-lines f)))
+    (fs/write-lines f (repeat 3 "foo") {:append true})
+    (is (= (repeat 6 "foo") (fs/read-all-lines f)))))

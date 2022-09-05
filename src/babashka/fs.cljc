@@ -607,6 +607,11 @@
   [f]
   (Files/readAllBytes (as-path f)))
 
+(defn- ->charset ^Charset [charset]
+  (if (string? charset)
+    (Charset/forName charset)
+    charset))
+
 (defn read-all-lines
   "Read all lines from a file."
   ([f]
@@ -615,10 +620,7 @@
        :or {charset "utf-8"}}]
    (vec (Files/readAllLines
          (as-path f)
-         ^Charset
-         (if (string? charset)
-           (Charset/forName charset)
-           charset)))))
+         (->charset charset)))))
 
 ;;;; Attributes, from github.com/corasaurus-hex/fs
 
@@ -1071,3 +1073,30 @@
    (let [path (as-path path)
          opts (->open-options opts)]
      (java.nio.file.Files/write path ^bytes bytes opts))))
+
+(defn write-lines
+  "Writes `lines`, a seqable of strings to `path` via via `java.nio.file.Files/write`
+
+  Supported options:
+  * `:charset` (default \"utf-8\")
+
+  Supported open options:
+  * `:create` (default `true`)
+  * `:truncate-existing` (default `true`)
+  * `:write` (default `true`)
+  * `:append` (default `false`)
+  * or any `java.nio.file.StandardOption`."
+  ([path lines] (write-lines path lines nil))
+  ([path lines {:keys [charset]
+                :or {charset "utf-8"}
+                :as opts}]
+   (java.nio.file.Files/write (as-path path)
+                              lines
+                              (->charset charset)
+                              (->open-options (dissoc opts :charset)))))
+
+(comment
+  (write-lines "/tmp/out.txt" ["foo" "bar"] {:charset "latin1"})
+  (write-lines "/tmp/out.txt" (line-seq (io/reader "/tmp/out.txt")) {:charset "latin1"})
+  (slurp "/tmp/out.txt")
+  )
