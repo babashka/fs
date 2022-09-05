@@ -4,7 +4,7 @@
             [clojure.walk :as walk])
   (:import [java.io File]
            [java.net URI]
-           [java.nio.file CopyOption
+           [java.nio.file StandardOpenOption CopyOption
             #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
             Files
             FileSystems
@@ -1024,3 +1024,50 @@
   "Returns current working directory as path"
   []
   (as-path (System/getProperty "user.dir")))
+
+
+(defn- ->open-option [k]
+  (case k
+    :append
+    StandardOpenOption/APPEND
+    :create
+    StandardOpenOption/CREATE
+    :truncate-existing
+    StandardOpenOption/TRUNCATE_EXISTING
+    :write
+    StandardOpenOption/WRITE
+    ;; default
+    k))
+
+(defn- ->open-options ^"[Ljava.nio.file.OpenOption;"
+  [opts]
+  (into-array java.nio.file.OpenOption
+              (reduce-kv (fn [acc k v]
+                           (if v
+                             (conj acc (->open-option k))
+                             acc)) [] opts)))
+
+(defn write-bytes
+  "Writes `bytes` to `path` via `java.nio.file.Files/write`.
+  Supported options:
+  * `:create` (default true)
+  * `:truncate-existing` (default true)
+  * `:write` (default true)
+  * `:append` (default false)
+  * or any `java.nio.file.StandardOption`.
+
+  Examples:
+
+  ```
+  (fs/write-bytes f (.getBytes (String. \"foo\"))) ;; overwrites + truncates or creates new file
+  (fs/write-bytes f (.getBytes (String. \"foo\")) {:append true})
+  ```"
+  ([path bytes] (write-bytes path bytes nil))
+  ([path bytes {:keys [append
+                       ;; default when no options are given:
+                       create
+                       truncate-existing
+                       write] :as opts}]
+   (let [path (as-path path)
+         opts (->open-options opts)]
+     (java.nio.file.Files/write path ^bytes bytes opts))))

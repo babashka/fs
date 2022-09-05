@@ -2,83 +2,84 @@
 -  [`babashka.fs`](#babashkafs) 
     -  [`absolute?`](#absolute?) - Returns true if f represents an absolute path.
     -  [`absolutize`](#absolutize) - Converts f into an absolute path via Path#toAbsolutePath.
-    -  [`canonicalize`](#canonicalize) - Returns the canonical path via
+    -  [`canonicalize`](#canonicalize) - Returns the canonical path via java.io.File#getCanonicalPath.
     -  [`components`](#components) - Returns a seq of all components of f.
     -  [`copy`](#copy) - Copies src file to dest dir or file.
-    -  [`copy-tree`](#copy-tree) - Copies entire file tree from src to dest
-    -  [`create-dir`](#create-dir) - Creates dir using <code>Files#createDirectory</code>
-    -  [`create-dirs`](#create-dirs) - Creates directories using <code>Files#createDirectories</code>
+    -  [`copy-tree`](#copy-tree) - Copies entire file tree from src to dest.
+    -  [`create-dir`](#create-dir) - Creates dir using <code>Files#createDirectory</code>.
+    -  [`create-dirs`](#create-dirs) - Creates directories using <code>Files#createDirectories</code>.
     -  [`create-file`](#create-file) - Creates empty file using <code>Files#createFile</code>.
     -  [`create-link`](#create-link) - Create a hard link from path to target.
     -  [`create-sym-link`](#create-sym-link) - Create a soft link from path to target.
     -  [`create-temp-dir`](#create-temp-dir) - Creates a temporary directory using Files#createDirectories.
     -  [`create-temp-file`](#create-temp-file) - Creates an empty temporary file using Files#createTempFile.
     -  [`creation-time`](#creation-time) - Returns creation time as FileTime.
-    -  [`cwd`](#cwd) - Returns current working directory as path
-    -  [`delete`](#delete) - Deletes f
-    -  [`delete-if-exists`](#delete-if-exists) - Deletes f if it exists
-    -  [`delete-on-exit`](#delete-on-exit) - Requests delete on exit via <code>File#deleteOnExit</code>
-    -  [`delete-tree`](#delete-tree) - Deletes a file tree using <code>walk-file-tree</code>
+    -  [`cwd`](#cwd) - Returns current working directory as path.
+    -  [`delete`](#delete) - Deletes f.
+    -  [`delete-if-exists`](#delete-if-exists) - Deletes f if it exists.
+    -  [`delete-on-exit`](#delete-on-exit) - Requests delete on exit via <code>File#deleteOnExit</code>.
+    -  [`delete-tree`](#delete-tree) - Deletes a file tree using <code>walk-file-tree</code>.
     -  [`directory?`](#directory?) - Returns true if f is a directory, using Files/isDirectory.
     -  [`ends-with?`](#ends-with?) - Returns true if path this ends with path other.
-    -  [`exec-paths`](#exec-paths) - Returns executable paths (using the PATH environment variable)
+    -  [`exec-paths`](#exec-paths) - Returns executable paths (using the PATH environment variable).
     -  [`executable?`](#executable?) - Returns true if f is executable.
     -  [`exists?`](#exists?) - Returns true if f exists.
-    -  [`expand-home`](#expand-home) - If <code>path</code> begins with a tilde (<code>~</code>), expand the tilde to the value
-    -  [`extension`](#extension) - Returns the extension of a file
-    -  [`file`](#file) - Coerces f into a File
-    -  [`file-name`](#file-name) - Returns the name of the file or directory
+    -  [`expand-home`](#expand-home) - If <code>path</code> begins with a tilde (<code>~</code>), expand the tilde to the value of the <code>user.home</code> system property.
+    -  [`extension`](#extension) - Returns the extension of a file.
+    -  [`file`](#file) - Coerces f into a File.
+    -  [`file-name`](#file-name) - Returns the name of the file or directory.
     -  [`file-separator`](#file-separator)
     -  [`file-time->instant`](#file-time->instant) - Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
     -  [`file-time->millis`](#file-time->millis) - Converts a java.nio.file.attribute.FileTime to epoch millis (long).
     -  [`get-attribute`](#get-attribute)
-    -  [`glob`](#glob) - Given a file and glob pattern, returns matches as vector of
+    -  [`glob`](#glob) - Given a file and glob pattern, returns matches as vector of files.
     -  [`hidden?`](#hidden?) - Returns true if f is hidden.
-    -  [`home`](#home) - With no arguments, returns the current value of the <code>user.home</code>
+    -  [`home`](#home) - With no arguments, returns the current value of the <code>user.home</code> system property.
     -  [`instant->file-time`](#instant->file-time) - Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
     -  [`last-modified-time`](#last-modified-time) - Returns last modified time as a java.nio.file.attribute.FileTime.
-    -  [`list-dir`](#list-dir) - Returns all paths in dir as vector
-    -  [`list-dirs`](#list-dirs) - Similar to list-dir but accepts multiple roots and returns the concatenated resu
-    -  [`match`](#match) - Given a file and match pattern, returns matches as vector of
+    -  [`list-dir`](#list-dir) - Returns all paths in dir as vector.
+    -  [`list-dirs`](#list-dirs) - Similar to list-dir but accepts multiple roots and returns the concatenated results.
+    -  [`match`](#match) - Given a file and match pattern, returns matches as vector of files.
     -  [`millis->file-time`](#millis->file-time) - Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
-    -  [`modified-since`](#modified-since) - Returns seq of regular files (non-directories, non-symlinks) from file-set that 
+    -  [`modified-since`](#modified-since) - Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
     -  [`move`](#move) - Move or rename a file to a target dir or file via <code>Files/move</code>.
     -  [`normalize`](#normalize) - Normalizes f via Path#normalize.
     -  [`parent`](#parent) - Returns parent of f, is it exists.
-    -  [`path`](#path) - Coerces f into a Path
+    -  [`path`](#path) - Coerces f into a Path.
     -  [`path-separator`](#path-separator)
     -  [`posix->str`](#posix->str) - Converts a set of PosixFilePermission to a string.
-    -  [`posix-file-permissions`](#posix-file-permissions) - Gets f's posix file permissions
+    -  [`posix-file-permissions`](#posix-file-permissions) - Gets f's posix file permissions.
     -  [`read-all-bytes`](#read-all-bytes) - Returns contents of file as byte array.
     -  [`read-all-lines`](#read-all-lines) - Read all lines from a file.
     -  [`read-attributes`](#read-attributes) - Same as <code>read-attributes*</code> but turns attributes into a map and keywordizes keys.
     -  [`read-attributes*`](#read-attributes-1) - Reads attributes via Files/readAttributes.
-    -  [`readable?`](#readable?) - Returns true if f is readable
+    -  [`readable?`](#readable?) - Returns true if f is readable.
     -  [`real-path`](#real-path) - Converts f into real path via Path#toRealPath.
     -  [`regular-file?`](#regular-file?) - Returns true if f is a regular file, using Files/isRegularFile.
     -  [`relative?`](#relative?) - Returns true if f represents a relative path.
     -  [`relativize`](#relativize) - Returns relative path by comparing this with other.
     -  [`same-file?`](#same-file?) - Returns true if this is the same file as other.
     -  [`set-attribute`](#set-attribute)
-    -  [`set-creation-time`](#set-creation-time) - Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
-    -  [`set-last-modified-time`](#set-last-modified-time) - Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
-    -  [`set-posix-file-permissions`](#set-posix-file-permissions) - Sets posix file permissions on f
+    -  [`set-creation-time`](#set-creation-time) - Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
+    -  [`set-last-modified-time`](#set-last-modified-time) - Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
+    -  [`set-posix-file-permissions`](#set-posix-file-permissions) - Sets posix file permissions on f.
     -  [`size`](#size) - Returns the size of a file (in bytes).
-    -  [`split-ext`](#split-ext) - Splits a path into a vec of [path-without-ext ext]
+    -  [`split-ext`](#split-ext) - Splits a path into a vec of [path-without-ext ext].
     -  [`split-paths`](#split-paths) - Splits a string joined by the OS-specific path-seperator into a vec of paths.
     -  [`starts-with?`](#starts-with?) - Returns true if path this starts with path other.
     -  [`str->posix`](#str->posix) - Converts a string to a set of PosixFilePermission.
-    -  [`strip-ext`](#strip-ext) - Returns the path with the extension removed
+    -  [`strip-ext`](#strip-ext) - Returns the path with the extension removed.
     -  [`sym-link?`](#sym-link?)
     -  [`temp-dir`](#temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
-    -  [`unzip`](#unzip) - zip-file: zip archive to unzip (required)
-    -  [`walk-file-tree`](#walk-file-tree) - Walks f using Files/walkFileTree
-    -  [`which`](#which) - Returns Path to first <code>program</code> found in (<code>exec-paths</code>), similar to the which Un
-    -  [`which-all`](#which-all) - Returns every Path to <code>program</code> found in (<code>exec-paths</code>)
+    -  [`unzip`](#unzip) - zip-file: zip archive to unzip (required) dest: destination directory (defaults to ".") Options: * <code>:replace-existing</code> - <code>true</code> / <code>false</code>: overwrite existing files.
+    -  [`walk-file-tree`](#walk-file-tree) - Walks f using Files/walkFileTree.
+    -  [`which`](#which) - Returns Path to first <code>program</code> found in (<code>exec-paths</code>), similar to the which Unix command.
+    -  [`which-all`](#which-all) - Returns every Path to <code>program</code> found in (<code>exec-paths</code>).
     -  [`windows?`](#windows?) - Returns true if OS is Windows.
     -  [`with-temp-dir`](#with-temp-dir) - Evaluate body with binding-name bound to a temporary directory.
-    -  [`writable?`](#writable?) - Returns true if f is writable
-    -  [`zip`](#zip) - Zips entry or entries into zip-file
+    -  [`writable?`](#writable?) - Returns true if f is writable.
+    -  [`write-bytes`](#write-bytes) - Writes <code>bytes</code> to <code>path</code> via <code>java.nio.file.Files/write</code>.
+    -  [`zip`](#zip) - Zips entry or entries into zip-file.
 # babashka.fs 
 
 
@@ -890,6 +891,29 @@ Evaluate body with binding-name bound to a temporary directory.
 
 Returns true if f is writable
 <br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L116-L118)</sub>
+## `write-bytes`
+``` clojure
+
+(write-bytes path bytes)
+(write-bytes path bytes {:keys [append create truncate-existing write], :as opts})
+```
+
+
+Writes `bytes` to [`path`](#path) via `java.nio.file.Files/write`.
+  Supported options:
+  * `:create` (default true)
+  * `:truncate-existing` (default true)
+  * `:write` (default true)
+  * `:append` (default false)
+  * or any `java.nio.file.StandardOption`.
+
+  Examples:
+
+  ```
+  (fs/write-bytes f (.getBytes (String. "foo"))) ;; overwrites + truncates or creates new file
+  (fs/write-bytes f (.getBytes (String. "foo")) {:append true})
+  ```
+<br><sub>[source](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1050-L1073)</sub>
 ## `zip`
 ``` clojure
 

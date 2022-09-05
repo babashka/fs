@@ -555,3 +555,13 @@
     ;; a `:` outside of the drive letter is illegal but should not
     ;; throw.
     (is (= (fs/exists? "c:/123:456") false))))
+
+(deftest write-bytes-test
+  (let [f (fs/path (fs/temp-dir) (str (gensym)))]
+    (fs/write-bytes f (.getBytes (String. "foo")))
+    (is (= "foo" (String. (fs/read-all-bytes f))))
+    ;; again, truncation behavior:
+    (fs/write-bytes f (.getBytes (String. "foo")))
+    (is (= "foo" (String. (fs/read-all-bytes f))))
+    (fs/write-bytes f (.getBytes (String. "bar")) {:append true})
+    (is (= "foobar" (String. (fs/read-all-bytes f))))))
