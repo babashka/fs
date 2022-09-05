@@ -1075,7 +1075,7 @@
      (java.nio.file.Files/write path ^bytes bytes opts))))
 
 (defn write-lines
-  "Writes `lines`, a seqable of strings to `path` via via `java.nio.file.Files/write`.
+  "Writes `lines`, a seqable of strings to `path` via `java.nio.file.Files/write`.
 
   Supported options:
   * `:charset` (default \"utf-8\")

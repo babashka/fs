@@ -79,7 +79,7 @@
     -  [`with-temp-dir`](#with-temp-dir) - Evaluate body with binding-name bound to a temporary directory.
     -  [`writable?`](#writable?) - Returns true if f is writable.
     -  [`write-bytes`](#write-bytes) - Writes <code>bytes</code> to <code>path</code> via <code>java.nio.file.Files/write</code>.
-    -  [`write-lines`](#write-lines) - Writes <code>lines</code>, a seqable of strings to <code>path</code> via via <code>java.nio.file.Files/write</code>.
+    -  [`write-lines`](#write-lines) - Writes <code>lines</code>, a seqable of strings to <code>path</code> via <code>java.nio.file.Files/write</code>.
     -  [`zip`](#zip) - Zips entry or entries into zip-file.
 # babashka.fs 
 
@@ -923,7 +923,7 @@ Writes `bytes` to [`path`](#path) via `java.nio.file.Files/write`.
 ```
 
 
-Writes `lines`, a seqable of strings to [`path`](#path) via via `java.nio.file.Files/write`.
+Writes `lines`, a seqable of strings to [`path`](#path) via `java.nio.file.Files/write`.
 
   Supported options:
   * `:charset` (default "utf-8")
