@@ -1,8 +1,8 @@
 {:min-bb-version "0.9.161"
  :pods {clj-kondo/clj-kondo {:version "2022.02.09"}}
  :deps {io.github.borkdude/quickdoc
-        #_{:local/root "/Users/borkdude/dev/quickdoc"}
-        {:git/url "https://github.com/borkdude/quickdoc"
+        {:local/root "/Users/borkdude/dev/quickdoc"}
+        #_{:git/url "https://github.com/borkdude/quickdoc"
          :git/sha "4f50015cd44613780327acf412d9edb9a1010343"}}
  :tasks
  {:requires ([babashka.fs :as fs]
