@@ -532,7 +532,9 @@
   [f]
   (Files/deleteIfExists (as-path f)))
 
-(defn sym-link? [f]
+(defn sym-link?
+  "Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`."
+  [f]
   (Files/isSymbolicLink (as-path f)))
 
 (defn delete-tree
