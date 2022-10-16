@@ -401,7 +401,8 @@
      (Files/createDirectory (as-path path) attrs))))
 
 (defn create-dirs
-  "Creates directories using `Files#createDirectories`. Also creates parents if needed."
+  "Creates directories using `Files#createDirectories`. Also creates parents if needed.
+  Doesn't throw an exception if the the dirs exist already. Similar to mkdir -p"
   ([path] (create-dirs path nil))
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
