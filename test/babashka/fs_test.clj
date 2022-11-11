@@ -577,16 +577,20 @@
     (fs/write-lines f (repeat 3 "foo") {:append true})
     (is (= (repeat 6 "foo") (fs/read-all-lines f)))))
 
-(deftest test-swap-file!
+(deftest test-update-file
   (let [file (fs/file (fs/temp-dir) (str (gensym)))]
     (testing "Throws if file doesn't exist"
       (is (thrown? FileNotFoundException (= "foooo" (fs/swap-file! file str "foooo")))))
-    (spit file "foo")
 
-    (is (= "foobar" (fs/swap-file! file #(str % "bar"))))
+    (spit file "foo")
+    (is (= "foobar" (fs/update-file file #(str % "bar"))))
     (is (= "foobar" (slurp file)))
-    (is (= "foobarbazbatcat" (fs/swap-file! file str "baz" "bat" "cat")))
+    (is (= "foobarbazbatcat" (fs/update-file file str "baz" "bat" "cat")))
     (is (= "foobarbazbatcat" (slurp file)))
 
-    (let [new-val (fs/swap-file! file str (rand))]
-      (is (= new-val (slurp file))))))
+    (let [new-val (fs/update-file file str (rand))]
+      (is (= new-val (slurp file)))))
+
+  (let [file (fs/file (fs/temp-dir) (str (gensym)))]
+    (spit file ", ")
+    (is (= "foo, bar, baz" (fs/update-file file str/join ["foo" "bar" "baz"])))))

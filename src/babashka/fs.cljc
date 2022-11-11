@@ -1104,7 +1104,7 @@
   (slurp "/tmp/out.txt")
   )
 
-(defn swap-file!
+(defn update-file
   "Swaps the contents of file to be:
   (apply f current-contents-of-file args). f should be free of side effects.
   Returns the value that was swapped in."
