@@ -580,7 +580,7 @@
 (deftest test-update-file
   (let [file (fs/file (fs/temp-dir) (str (gensym)))]
     (testing "Throws if file doesn't exist"
-      (is (thrown? FileNotFoundException (= "foooo" (fs/swap-file! file str "foooo")))))
+      (is (thrown? FileNotFoundException (= "foooo" (fs/update-file file str "foooo")))))
 
     (spit file "foo")
     (is (= "foobar" (fs/update-file file #(str % "bar"))))
