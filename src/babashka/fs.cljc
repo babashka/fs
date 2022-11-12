@@ -1103,3 +1103,13 @@
   (write-lines "/tmp/out.txt" (line-seq (io/reader "/tmp/out.txt")) {:charset "latin1"})
   (slurp "/tmp/out.txt")
   )
+
+(defn update-file
+  "Swaps the contents of file to be:
+  (apply f current-contents-of-file args). f should be free of side effects.
+  Returns the value that was swapped in."
+  [file f & xs]
+  (let [old-val (slurp file)
+        new-val (apply f old-val xs)]
+    (spit file new-val)
+    new-val))

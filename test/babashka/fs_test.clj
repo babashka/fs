@@ -4,7 +4,8 @@
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.test :refer [deftest is testing]]))
+   [clojure.test :refer [deftest is testing]])
+  (:import [java.io FileNotFoundException]))
 
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
@@ -575,3 +576,21 @@
     (is (= (repeat 3 "foo") (fs/read-all-lines f)))
     (fs/write-lines f (repeat 3 "foo") {:append true})
     (is (= (repeat 6 "foo") (fs/read-all-lines f)))))
+
+(deftest test-update-file
+  (let [file (fs/file (fs/temp-dir) (str (gensym)))]
+    (testing "Throws if file doesn't exist"
+      (is (thrown? FileNotFoundException (= "foooo" (fs/update-file file str "foooo")))))
+
+    (spit file "foo")
+    (is (= "foobar" (fs/update-file file #(str % "bar"))))
+    (is (= "foobar" (slurp file)))
+    (is (= "foobarbazbatcat" (fs/update-file file str "baz" "bat" "cat")))
+    (is (= "foobarbazbatcat" (slurp file)))
+
+    (let [new-val (fs/update-file file str (rand))]
+      (is (= new-val (slurp file)))))
+
+  (let [file (fs/file (fs/temp-dir) (str (gensym)))]
+    (spit file ", ")
+    (is (= "foo, bar, baz" (fs/update-file file str/join ["foo" "bar" "baz"])))))
