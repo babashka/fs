@@ -1106,7 +1106,7 @@
 
 (defn update-file
   "Swaps the contents of file to be:
-  (apply f current-contents-of-file args). f should be free of side effects.
+  (apply f current-contents-of-file args).
   Returns the value that was swapped in."
   [file f & xs]
   (let [old-val (slurp file)
