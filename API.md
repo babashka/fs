@@ -908,7 +908,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
 
 
 Swaps the contents of file to be:
-  (apply f current-contents-of-file args). f should be free of side effects.
+  (apply f current-contents-of-file args).
   Returns the value that was swapped in.
 
 ## <a name="babashka.fs/walk-file-tree">`walk-file-tree`</a> [:page_facing_up:](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L174-L208)
