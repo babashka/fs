@@ -578,7 +578,8 @@
     (is (= (repeat 6 "foo") (fs/read-all-lines f)))))
 
 (deftest test-update-file
-  (let [file (fs/file (fs/temp-dir) (str (gensym)))]
+  (let [file (doto (fs/file (fs/temp-dir) (str (gensym)))
+               (fs/delete-on-exit))]
     (testing "Throws if file doesn't exist"
       (is (thrown? FileNotFoundException (= "foooo" (fs/update-file file str "foooo")))))
 

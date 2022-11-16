@@ -1098,18 +1098,23 @@
                               (->charset charset)
                               (->open-options (dissoc opts :charset)))))
 
-(comment
-  (write-lines "/tmp/out.txt" ["foo" "bar"] {:charset "latin1"})
-  (write-lines "/tmp/out.txt" (line-seq (io/reader "/tmp/out.txt")) {:charset "latin1"})
-  (slurp "/tmp/out.txt")
-  )
-
 (defn update-file
-  "Swaps the contents of file to be:
-  (apply f current-contents-of-file args).
-  Returns the value that was swapped in."
-  [file f & xs]
-  (let [old-val (slurp file)
-        new-val (apply f old-val xs)]
-    (spit file new-val)
-    new-val))
+  "Updates the contents of UTF-8 encoded text file `path` to be:
+  `(apply f current-contents-of-file args)`.
+  Returns the new contents.
+
+  Options:
+
+  * `:charset` - charset of file, default to \"utf-8\""
+  {:arglists '([file f & xs] [file opts f & xs])}
+  ([file f & xs]
+   (let [[opts f xs] (if (map? f)
+                       [f (first xs) (rest xs)]
+                       [nil f xs])
+         {:keys [charset]
+          :or {charset "utf-8"}} opts
+         opts [:encoding charset]
+         old-val (apply slurp file opts)
+         new-val (apply f old-val xs)]
+     (apply spit file new-val opts)
+     new-val)))
