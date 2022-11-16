@@ -1099,12 +1099,7 @@
                               (->open-options (dissoc opts :charset)))))
 
 (defn update-file
-  "Updates the contents of text file `path` to be:
-
-  ```clojure
-  (apply f old-contents xs)
-  ```
-
+  "Updates the contents of text file `path` using `f` applied to old contents and `xs`.
   Returns the new contents.
 
   Options:
