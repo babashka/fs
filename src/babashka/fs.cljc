@@ -1100,7 +1100,11 @@
 
 (defn update-file
   "Updates the contents of UTF-8 encoded text file `path` to be:
-  `(apply f current-contents-of-file args)`.
+
+  ```clojure
+  (apply f old-contents xs)
+  ```
+
   Returns the new contents.
 
   Options:
