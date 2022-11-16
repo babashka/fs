@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## v0.2.12
+## v0.2.12 (2022-11-16)
 
 - [#73](https://github.com/babashka/fs/issues/73): add [`write-bytes`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/write-bytes) and [`write-lines`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/write-lines)
 - [#77](https://github.com/babashka/fs/issues/77): add [`update-file`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/update-file)
