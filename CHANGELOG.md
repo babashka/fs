@@ -4,8 +4,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## v0.2.12
 
-- #73: add [`write-bytes`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/write-bytes) and [`write-lines`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/write-lines)
-- #77: add [`update-file`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/update-file)
+- [#73](https://github.com/babashka/fs/issues/73): add [`write-bytes`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/write-bytes) and [`write-lines`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/write-lines)
+- [#77](https://github.com/babashka/fs/issues/77): add [`update-file`](https://github.com/babashka/fs/blob/master/API.md#babashka.fs/update-file)
 
 ## v0.1.11
 
