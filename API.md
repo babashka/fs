@@ -72,7 +72,7 @@
     -  [`sym-link?`](#babashka.fs/sym-link?) - Determines if <code>f</code> is a symbolic link via <code>java.nio.file.Files/isSymbolicLink</code>.
     -  [`temp-dir`](#babashka.fs/temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
     -  [`unzip`](#babashka.fs/unzip) - Unzips <code>zip-file</code> to <code>dest</code> directory (default <code>"."</code>).
-    -  [`update-file`](#babashka.fs/update-file) - Updates the contents of UTF-8 encoded text file <code>path</code> to be: <code></code><code>clojure (apply f old-contents xs) </code><code></code> Returns the new contents.
+    -  [`update-file`](#babashka.fs/update-file) - Updates the contents of text file <code>path</code> to be: <code></code><code>clojure (apply f old-contents xs) </code><code></code> Returns the new contents.
     -  [`walk-file-tree`](#babashka.fs/walk-file-tree) - Walks f using Files/walkFileTree.
     -  [`which`](#babashka.fs/which) - Returns Path to first <code>program</code> found in (<code>exec-paths</code>), similar to the which Unix command.
     -  [`which-all`](#babashka.fs/which-all) - Returns every Path to <code>program</code> found in (<code>exec-paths</code>).
@@ -908,7 +908,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
 ```
 
 
-Updates the contents of UTF-8 encoded text file [`path`](#babashka.fs/path) to be:
+Updates the contents of text file [`path`](#babashka.fs/path) to be:
 
   ```clojure
   (apply f old-contents xs)

@@ -1099,7 +1099,7 @@
                               (->open-options (dissoc opts :charset)))))
 
 (defn update-file
-  "Updates the contents of UTF-8 encoded text file `path` to be:
+  "Updates the contents of text file `path` to be:
 
   ```clojure
   (apply f old-contents xs)
