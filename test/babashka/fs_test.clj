@@ -418,7 +418,8 @@
   (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" {:ext "html"})))
   (is (= ".dotfile" (fs/strip-ext ".dotfile")))
   (is (= ".dotfile" (fs/strip-ext ".dotfile" {:ext "dotfile"})))
-  (is (= "bin/something" (fs/strip-ext "bin/something"))))
+  (is (= "bin/something" (fs/strip-ext "bin/something")))
+  (is (= "test-resources/dir-with.ext" (fs/strip-ext "test-resources/dir-with.ext"))))
 
 (deftest modified-since-test
   (let [td0 (fs/create-temp-dir)
