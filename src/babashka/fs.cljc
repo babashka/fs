@@ -135,7 +135,8 @@
 ;;;; End predicates
 
 (defn components
-  "Returns a seq of all components of f."
+  "Returns a seq of all components of f as paths, i.e. split on the file
+  separator."
   [f]
   (seq (as-path f)))
 
@@ -737,34 +738,35 @@
   (mapcat #(list-dir % glob-or-accept) dirs))
 
 (defn split-ext
-  "Splits a path into a vec of [path-without-ext ext]. Works with strings, files, or paths."
-  [path]
-  (let [name (str path)
-        i (str/last-index-of name ".")
-        ext (when (and i (pos? i)) (subs name (+ 1 i)))]
-    (if ext
-      (let [new-name (subs name 0 i)]
-        [new-name ext])
-      [path nil])))
+  "Splits path on extension If provided, a specific extension `ext`, the
+  extension (without dot), will be used for splitting.  Directories
+  are not processed."
+  ([path] (split-ext path nil))
+  ([path {:keys [ext]}]
+   (let [path-str (str path)]
+     (if (directory? path)
+       [path-str nil]
+       (let [ext (if ext
+                   (str "." ext)
+                   (when-let [last-dot (str/last-index-of path-str ".")]
+                     (subs path-str last-dot)))]
+         (if (and ext
+                  (str/ends-with? path-str ext)
+                  (not= path-str ext))
+           (let [loc (str/last-index-of path-str ext)]
+             [(subs path-str 0 loc)
+              (subs path-str (inc loc))])
+           [path-str nil]))))))
 
 (defn strip-ext
-  "Returns the path with the extension removed. If provided, a specific extension will be removed."
+  "Strips extension via `split-ext`."
   ([path]
-   (-> path split-ext first))
-  ([path {:keys [ext]}]
-   (let [name (str path)
-         ext (str "." ext)
-         ext-index (str/last-index-of name ext)
-         has-ext? (and ext-index
-                       (pos? ext-index)
-                       (= ext-index (- (count name) (count ext))))]
-     (if has-ext?
-       (-> (subs name 0 ext-index)
-           str)
-       (str path)))))
+   (strip-ext path nil))
+  ([path {:keys [ext] :as opts}]
+   (first (split-ext path opts))))
 
 (defn extension
-  "Returns the extension of a file"
+  "Returns the extension of a file via `split-ext`."
   [path]
   (-> path split-ext last))
 
@@ -1023,7 +1025,7 @@
 (defn windows?
   "Returns true if OS is Windows."
   []
-  (str/starts-with? (System/getProperty "os.name") "Windows"))
+  win?)
 
 (defn cwd
   "Returns current working directory as path"
