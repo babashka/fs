@@ -575,7 +575,7 @@
                    (->copy-opts replace-existing false atomic-move nofollow-links))))))
 
 (defn parent
-  "Returns parent of f, is it exists."
+  "Returns parent of f, is it exists. Akin to `dirname` in bash."
   [f]
   (.getParent (as-path f)))
 
