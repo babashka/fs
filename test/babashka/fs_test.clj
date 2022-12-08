@@ -419,7 +419,7 @@
   (is (= ".dotfile" (fs/strip-ext ".dotfile")))
   (is (= ".dotfile" (fs/strip-ext ".dotfile" {:ext "dotfile"})))
   (is (= "bin/something" (fs/strip-ext "bin/something")))
-  (is (= "test-resources/dir-with.ext" (fs/strip-ext "test-resources/dir-with.ext"))))
+  (is (= "test-resources/dir.dot/no-ext" (fs/strip-ext "test-resources/dir.dot/no-ext"))))
 
 (deftest modified-since-test
   (let [td0 (fs/create-temp-dir)

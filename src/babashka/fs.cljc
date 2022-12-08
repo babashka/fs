@@ -743,20 +743,19 @@
   are not processed."
   ([path] (split-ext path nil))
   ([path {:keys [ext]}]
-   (let [path-str (str path)]
-     (if (directory? path)
-       [path-str nil]
-       (let [ext (if ext
-                   (str "." ext)
-                   (when-let [last-dot (str/last-index-of path-str ".")]
-                     (subs path-str last-dot)))]
-         (if (and ext
-                  (str/ends-with? path-str ext)
-                  (not= path-str ext))
-           (let [loc (str/last-index-of path-str ext)]
-             [(subs path-str 0 loc)
-              (subs path-str (inc loc))])
-           [path-str nil]))))))
+   (let [path-str (str path)
+         file-name (file-name path)]
+     (let [ext (if ext
+                 (str "." ext)
+                 (when-let [last-dot (str/last-index-of file-name ".")]
+                   (subs file-name last-dot)))]
+       (if (and ext
+                (str/ends-with? path-str ext)
+                (not= path-str ext))
+         (let [loc (str/last-index-of path-str ext)]
+           [(subs path-str 0 loc)
+            (subs path-str (inc loc))])
+         [path-str nil])))))
 
 (defn strip-ext
   "Strips extension via `split-ext`."
