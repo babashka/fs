@@ -246,12 +246,12 @@
 
 (defn match
   "Given a file and match pattern, returns matches as vector of
-  files. Pattern interpretation is done using the rules described in
+  paths. Pattern interpretation is done using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
 
   Options:
 
-  * `:hidden:` match hidden files - note: on Windows files starting with
+  * `:hidden:` match hidden paths - note: on Windows paths starting with
   a dot are not hidden, unless their hidden attribute is set.
   * `:follow-links:` - follow symlinks
   * `:recursive:` - match recursively.
@@ -312,14 +312,14 @@
 
 (defn glob
   "Given a file and glob pattern, returns matches as vector of
-  files. Patterns containing `**` or `/` will cause a recursive walk over
+  paths. Patterns containing `**` or `/` will cause a recursive walk over
   path, unless overriden with :recursive. Glob interpretation is done
   using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
 
   Options:
 
-  * `:hidden:` match hidden files. Note: on Windows files starting with
+  * `:hidden:` match hidden paths. Note: on Windows files starting with
   a dot are not hidden, unless their hidden attribute is set.
   * `:follow-links:` follow symlinks.
   * `:recursive:` force recursive search.

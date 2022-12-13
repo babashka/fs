@@ -43,7 +43,9 @@
        (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _])}))))
 
 (deftest match-test
-  (is (= '("README.md") (map str (fs/match "." "regex:README.md"))))
+  (let [readme-match (fs/match "." "regex:README.md")]
+    (is (= '("README.md") (map str readme-match)))
+    (is (every? #(instance? java.nio.file.Path %) readme-match)))
   (is (set/subset? #{"project.clj"
                      "test/babashka/fs_test.clj"
                      "src/babashka/fs.cljc"}
@@ -75,8 +77,9 @@
                         (fs/match tmp-dir1 "regex:foo/bar/baz/.*" {:recursive true}))))))))
 
 (deftest glob-test
-  (is (= '("README.md") (map str
-                             (fs/glob "." "README.md"))))
+  (let [readme-match (fs/glob "." "README.md")]
+    (is (= '("README.md") (map str readme-match)))
+    (is (every? #(instance? java.nio.file.Path %) readme-match)))
   (is (set/subset? #{"project.clj"
                      "test/babashka/fs_test.clj"
                      "src/babashka/fs.cljc"}

@@ -32,7 +32,7 @@
     -  [`file-time->instant`](#babashka.fs/file-time->instant) - Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
     -  [`file-time->millis`](#babashka.fs/file-time->millis) - Converts a java.nio.file.attribute.FileTime to epoch millis (long).
     -  [`get-attribute`](#babashka.fs/get-attribute)
-    -  [`glob`](#babashka.fs/glob) - Given a file and glob pattern, returns matches as vector of files.
+    -  [`glob`](#babashka.fs/glob) - Given a file and glob pattern, returns matches as vector of paths.
     -  [`hidden?`](#babashka.fs/hidden?) - Returns true if f is hidden.
     -  [`home`](#babashka.fs/home) - With no arguments, returns the current value of the <code>user.home</code> system property.
     -  [`instant->file-time`](#babashka.fs/instant->file-time) - Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
@@ -458,7 +458,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 
 
 Given a file and glob pattern, returns matches as vector of
-  files. Patterns containing `**` or `/` will cause a recursive walk over
+  paths. Patterns containing `**` or `/` will cause a recursive walk over
   path, unless overriden with :recursive. Glob interpretation is done
   using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
