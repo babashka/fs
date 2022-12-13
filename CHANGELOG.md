@@ -7,6 +7,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#81](https://github.com/babashka/fs/issues/81): do not process directories in `strip-ext` and `split-ext`
+- Correct documentation for match/glob functions return value [@thenonameguy](https://github.com/thenonameguy)
 
 ## v0.2.12 (2022-11-16)
 
