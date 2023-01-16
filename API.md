@@ -39,7 +39,7 @@
     -  [`last-modified-time`](#babashka.fs/last-modified-time) - Returns last modified time as a java.nio.file.attribute.FileTime.
     -  [`list-dir`](#babashka.fs/list-dir) - Returns all paths in dir as vector.
     -  [`list-dirs`](#babashka.fs/list-dirs) - Similar to list-dir but accepts multiple roots and returns the concatenated results.
-    -  [`match`](#babashka.fs/match) - Given a file and match pattern, returns matches as vector of files.
+    -  [`match`](#babashka.fs/match) - Given a file and match pattern, returns matches as vector of paths.
     -  [`millis->file-time`](#babashka.fs/millis->file-time) - Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
     -  [`modified-since`](#babashka.fs/modified-since) - Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
     -  [`move`](#babashka.fs/move) - Move or rename a file to a target dir or file via <code>Files/move</code>.
@@ -466,7 +466,7 @@ Given a file and glob pattern, returns matches as vector of
 
   Options:
 
-  * `:hidden:` match hidden files. Note: on Windows files starting with
+  * `:hidden:` match hidden paths. Note: on Windows files starting with
   a dot are not hidden, unless their hidden attribute is set.
   * `:follow-links:` follow symlinks.
   * `:recursive:` force recursive search.
@@ -551,12 +551,12 @@ Similar to list-dir but accepts multiple roots and returns the concatenated resu
 
 
 Given a file and match pattern, returns matches as vector of
-  files. Pattern interpretation is done using the rules described in
+  paths. Pattern interpretation is done using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
 
   Options:
 
-  * `:hidden:` match hidden files - note: on Windows files starting with
+  * `:hidden:` match hidden paths - note: on Windows paths starting with
   a dot are not hidden, unless their hidden attribute is set.
   * `:follow-links:` - follow symlinks
   * `:recursive:` - match recursively.
