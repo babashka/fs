@@ -599,3 +599,8 @@
   (let [file (fs/file (fs/temp-dir) (str (gensym)))]
     (spit file ", ")
     (is (= "foo, bar, baz" (fs/update-file file str/join ["foo" "bar" "baz"])))))
+
+(deftest unixify-test
+  (when windows?
+    (is (str/includes? (fs/unixify (fs/normalize "README.md")) "/"))
+    (is (not (str/includes? (fs/unixify (fs/normalize "README.md")) fs/file-separator)))))

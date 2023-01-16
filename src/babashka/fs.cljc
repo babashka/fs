@@ -1119,10 +1119,9 @@
      (apply spit file new-val opts)
      new-val)))
 
-(defn unixy
-  "Returns path as string with Unix-style file separators (`/`). Returns
-  argument unchanged on non-Windows systems."
+(defn unixify
+  "Returns path as string with Unix-style file separators (`/`)."
   [f]
   (if win?
     (-> f as-path .toUri .getPath)
-    f))
+    (str f)))

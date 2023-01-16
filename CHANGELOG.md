@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## v0.2.13 (2023-01-16)
+## v0.2.14 (2023-01-16)
 
 - [#81](https://github.com/babashka/fs/issues/81): do not process directories in `strip-ext` and `split-ext`
 - Correct documentation for match/glob functions return value [@thenonameguy](https://github.com/thenonameguy)
