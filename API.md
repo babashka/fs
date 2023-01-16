@@ -71,6 +71,7 @@
     -  [`strip-ext`](#babashka.fs/strip-ext) - Strips extension via <code>split-ext</code>.
     -  [`sym-link?`](#babashka.fs/sym-link?) - Determines if <code>f</code> is a symbolic link via <code>java.nio.file.Files/isSymbolicLink</code>.
     -  [`temp-dir`](#babashka.fs/temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
+    -  [`unixy`](#babashka.fs/unixy) - Returns path as string with Unix-style file separators (<code>/</code>).
     -  [`unzip`](#babashka.fs/unzip) - Unzips <code>zip-file</code> to <code>dest</code> directory (default <code>"."</code>).
     -  [`update-file`](#babashka.fs/update-file) - Updates the contents of text file <code>path</code> using <code>f</code> applied to old contents and <code>xs</code>.
     -  [`walk-file-tree`](#babashka.fs/walk-file-tree) - Walks f using Files/walkFileTree.
@@ -887,6 +888,17 @@ Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
 
 
 Returns `java.io.tmpdir` property as path.
+
+## <a name="babashka.fs/unixy">`unixy`</a> [:page_facing_up:](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1122-L1128)
+<a name="babashka.fs/unixy"></a>
+``` clojure
+
+(unixy f)
+```
+
+
+Returns path as string with Unix-style file separators (`/`). Returns
+  argument unchanged on non-Windows systems.
 
 ## <a name="babashka.fs/unzip">`unzip`</a> [:page_facing_up:](https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L899-L926)
 <a name="babashka.fs/unzip"></a>

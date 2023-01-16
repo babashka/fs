@@ -1,4 +1,4 @@
-(defproject babashka/fs "0.2.12"
+(defproject babashka/fs "0.2.13"
   :description "Babashka file system utilities."
   :url "https://github.com/babashka/fs"
   :scm {:name "git"

@@ -1118,3 +1118,11 @@
          new-val (apply f old-val xs)]
      (apply spit file new-val opts)
      new-val)))
+
+(defn unixy
+  "Returns path as string with Unix-style file separators (`/`). Returns
+  argument unchanged on non-Windows systems."
+  [f]
+  (if win?
+    (-> f as-path .toUri .getPath)
+    f))
