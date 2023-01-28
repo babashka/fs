@@ -45,6 +45,9 @@
   (if (instance? Path path) (.toFile ^Path path)
       (io/file path)))
 
+(defn- get-env [k]
+  (System/getenv k))
+
 (defn path
   "Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent."
@@ -1125,3 +1128,51 @@
   (if win?
     (-> f as-path .toUri .getPath)
     (str f)))
+
+(defn- xdg-path-from-env-var
+  "Yields value of environment variable `k` as path if it's an absolute
+  path. Else `nil`."
+  [k]
+  (some-> (get-env k)
+          (#(when (absolute? %) %))
+          (path)))
+
+(def ^:private xdg-type->env-var&default-path
+  (delay {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
+          :cache  ["XDG_CACHE_HOME" (path (home) ".cache")]
+          :data   ["XDG_DATA_HOME" (path (home) ".local" "share")]
+          :state  ["XDG_STATE_HOME" (path (home) ".local" "state")]}))
+
+(defn- xdg-home-for [k]
+  (let [[env-var default-path] (@xdg-type->env-var&default-path k)]
+    (or
+     (xdg-path-from-env-var env-var)
+     default-path)))
+
+(defn xdg-config-home
+  "Path representing the base directory relative to which user-specific configuration files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+
+  Returns path based on the value of env-var `XDG_CONFIG_HOME` (if set), else `(fs/path (fs/home) \".config\")`. "
+  []
+  (xdg-home-for :config))
+
+(defn xdg-cache-home
+  "Path representing the base directory relative to which user-specific non-essential data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+
+  Returns path based on the value of env-var `XDG_CACHE_HOME` (if set), else `(fs/path (fs/home) \".cache\")`. "
+  []
+  (xdg-home-for :cache))
+
+(defn xdg-data-home
+  "Path representing the base directory relative to which user-specific data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+
+  Returns path based on the value of env-var `XDG_DATA_HOME` (if set), else `(fs/path (fs/home) \".local\" \"share\")`."
+  []
+  (xdg-home-for :data))
+
+(defn xdg-state-home
+  "Path representing the base directory relative to which user-specific state files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+
+  Returns path based on the value of env-var `XDG_STATE_HOME` (if set), else `(fs/path (fs/home) \".local\" \"state\")`."
+  []
+  (xdg-home-for :state))
