@@ -604,3 +604,31 @@
   (when windows?
     (is (str/includes? (fs/unixify (fs/normalize "README.md")) "/"))
     (is (not (str/includes? (fs/unixify (fs/normalize "README.md")) fs/file-separator)))))
+
+(deftest xdg-*-home-test
+  (let [default-path (fs/path (fs/home) ".config")]
+    (testing "yields path based on value of XDG_*_HOME env-var if present"
+      (let [custom-path (if windows? "C:\\some\\path" "/some/path")]
+        (with-redefs [fs/get-env {"XDG_CONFIG_HOME" custom-path}]
+          (is (= (fs/path custom-path)
+                 (fs/xdg-config-home))))))
+    (testing "yields default-path when env-var contains no absolute path"
+      (with-redefs [fs/get-env {"XDG_CONFIG_HOME" ""}]
+        (is (= default-path
+               (fs/xdg-config-home)))))))
+
+(deftest xdg-config-home-test
+  (is (= (fs/path (fs/home) ".config")
+         (fs/xdg-config-home))))
+
+(deftest xdg-cache-path-test
+  (is (= (fs/path (fs/home) ".cache")
+         (fs/xdg-cache-home))))
+
+(deftest xdg-data-path-test
+  (is (= (fs/path (fs/home) ".local" "share")
+         (fs/xdg-data-home))))
+
+(deftest xdg-state-path-test
+  (is (= (fs/path (fs/home) ".local" "state")
+         (fs/xdg-state-home))))
