@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## v0.2.15
 
 - [#85](https://github.com/babashka/fs/issues/85): add helpers to generate common XDG paths ([@eval](https://github.com/eval))
 
