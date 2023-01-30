@@ -912,8 +912,8 @@
          _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)]
      (with-open
-       [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
-        zis (ZipInputStream. fis)]
+      [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
+       zis (ZipInputStream. fis)]
        (loop []
          (let [entry (.getNextEntry zis)]
            (when entry
@@ -1033,7 +1033,6 @@
   "Returns current working directory as path"
   []
   (as-path (System/getProperty "user.dir")))
-
 
 (defn- ->open-option [k]
   (case k
