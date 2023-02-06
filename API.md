@@ -104,6 +104,7 @@
 
 Returns true if f represents an absolute path.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L107-L109">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/absolutize">`absolutize`</a><a name="babashka.fs/absolutize"></a>
@@ -114,6 +115,7 @@ Returns true if f represents an absolute path.
 
 Converts f into an absolute path via Path#toAbsolutePath.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L146-L148">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/canonicalize">`canonicalize`</a><a name="babashka.fs/canonicalize"></a>
@@ -128,6 +130,7 @@ Returns the canonical path via
   will fall back on [`absolutize`](#babashka.fs/absolutize) + `normalize.` This function can be used
   as an alternative to [`real-path`](#babashka.fs/real-path) which requires files to exist.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L160-L169">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/components">`components`</a><a name="babashka.fs/components"></a>
@@ -139,6 +142,7 @@ Returns the canonical path via
 Returns a seq of all components of f as paths, i.e. split on the file
   separator.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L140-L144">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/copy">`copy`</a><a name="babashka.fs/copy"></a>
@@ -154,6 +158,7 @@ Copies src file to dest dir or file.
   * `:copy-attributes`
   * `:nofollow-links` (used to determine to copy symbolic link itself or not).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L350-L366">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/copy-tree">`copy-tree`</a><a name="babashka.fs/copy-tree"></a>
@@ -167,6 +172,7 @@ Copies entire file tree from src to dest. Creates dest if needed
   using [`create-dirs`](#babashka.fs/create-dirs), passing it the `:posix-file-permissions`
   option. Supports same options as copy.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L414-L452">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/create-dir">`create-dir`</a><a name="babashka.fs/create-dir"></a>
@@ -178,6 +184,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 
 Creates dir using `Files#createDirectory`. Does not create parents.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L399-L405">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/create-dirs">`create-dirs`</a><a name="babashka.fs/create-dirs"></a>
@@ -190,6 +197,7 @@ Creates dir using `Files#createDirectory`. Does not create parents.
 Creates directories using `Files#createDirectories`. Also creates parents if needed.
   Doesn't throw an exception if the the dirs exist already. Similar to mkdir -p
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L407-L412">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/create-file">`create-file`</a><a name="babashka.fs/create-file"></a>
@@ -201,6 +209,7 @@ Creates directories using `Files#createDirectories`. Also creates parents if nee
 
 Creates empty file using `Files#createFile`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L557-L563">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/create-link">`create-link`</a><a name="babashka.fs/create-link"></a>
@@ -211,6 +220,7 @@ Creates empty file using `Files#createFile`.
 
 Create a hard link from path to target.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L519-L524">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/create-sym-link">`create-sym-link`</a><a name="babashka.fs/create-sym-link"></a>
@@ -221,6 +231,7 @@ Create a hard link from path to target.
 
 Create a soft link from path to target.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L511-L517">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/create-temp-dir">`create-temp-dir`</a><a name="babashka.fs/create-temp-dir"></a>
@@ -238,6 +249,7 @@ Creates a temporary directory using Files#createDirectories.
   create temp dir in path with prefix. If prefix is not provided, a random one
   is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`. The `:posix-file-permissions` option is a string like `"rwx------"`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L459-L481">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/create-temp-file">`create-temp-file`</a><a name="babashka.fs/create-temp-file"></a>
@@ -255,6 +267,7 @@ Creates an empty temporary file using Files#createTempFile.
   provided, random ones are generated. The `:posix-file-permissions`
   option is a string like `"rwx------"`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L483-L509">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/creation-time">`creation-time`</a><a name="babashka.fs/creation-time"></a>
@@ -266,6 +279,7 @@ Creates an empty temporary file using Files#createTempFile.
 
 Returns creation time as FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L723-L728">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/cwd">`cwd`</a><a name="babashka.fs/cwd"></a>
@@ -276,6 +290,7 @@ Returns creation time as FileTime.
 
 Returns current working directory as path
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1032-L1035">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/delete">`delete`</a><a name="babashka.fs/delete"></a>
@@ -287,6 +302,7 @@ Returns current working directory as path
 Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L526-L532">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/delete-if-exists">`delete-if-exists`</a><a name="babashka.fs/delete-if-exists"></a>
@@ -298,6 +314,7 @@ Deletes f. Returns nil if the delete was successful,
 Deletes f if it exists. Returns true if the delete was successful,
   false if f didn't exist. Does not follow symlinks.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L534-L538">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/delete-on-exit">`delete-on-exit`</a><a name="babashka.fs/delete-on-exit"></a>
@@ -308,6 +325,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 
 Requests delete on exit via `File#deleteOnExit`. Returns f.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L590-L594">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/delete-tree">`delete-tree`</a><a name="babashka.fs/delete-tree"></a>
@@ -318,6 +336,7 @@ Requests delete on exit via `File#deleteOnExit`. Returns f.
 
 Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Similar to `rm -rf`. Does not follow symlinks.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L545-L555">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/directory?">`directory?`</a><a name="babashka.fs/directory?"></a>
@@ -329,6 +348,7 @@ Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Simil
 
 Returns true if f is a directory, using Files/isDirectory.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L90-L95">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/ends-with?">`ends-with?`</a><a name="babashka.fs/ends-with?"></a>
@@ -339,6 +359,7 @@ Returns true if f is a directory, using Files/isDirectory.
 
 Returns true if path this ends with path other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L855-L858">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/exec-paths">`exec-paths`</a><a name="babashka.fs/exec-paths"></a>
@@ -350,6 +371,7 @@ Returns true if path this ends with path other.
 Returns executable paths (using the PATH environment variable). Same
   as `(split-paths (System/getenv "PATH"))`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L780-L784">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/executable?">`executable?`</a><a name="babashka.fs/executable?"></a>
@@ -360,6 +382,7 @@ Returns executable paths (using the PATH environment variable). Same
 
 Returns true if f is executable.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L111-L113">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/exists?">`exists?`</a><a name="babashka.fs/exists?"></a>
@@ -371,6 +394,7 @@ Returns true if f is executable.
 
 Returns true if f exists.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L127-L136">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/expand-home">`expand-home`</a><a name="babashka.fs/expand-home"></a>
@@ -387,6 +411,7 @@ If [[`path`](#babashka.fs/path)](#babashka.fs/path) begins with a tilde (`~`), e
   name as the user relative to the parent of the current value of
   `user.home`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1009-L1025">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/extension">`extension`</a><a name="babashka.fs/extension"></a>
@@ -397,6 +422,7 @@ If [[`path`](#babashka.fs/path)](#babashka.fs/path) begins with a tilde (`~`), e
 
 Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L770-L773">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/file">`file`</a><a name="babashka.fs/file"></a>
@@ -409,6 +435,7 @@ Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
 Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L61-L66">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/file-name">`file-name`</a><a name="babashka.fs/file-name"></a>
@@ -419,6 +446,7 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 
 Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") returns "baz".
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L171-L174">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/file-separator">`file-separator`</a><a name="babashka.fs/file-separator"></a>
@@ -426,6 +454,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 
 
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L242-L242">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/file-time->instant">`file-time->instant`</a><a name="babashka.fs/file-time->instant"></a>
@@ -436,6 +465,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L684-L687">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/file-time->millis">`file-time->millis`</a><a name="babashka.fs/file-time->millis"></a>
@@ -446,6 +476,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L694-L697">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/get-attribute">`get-attribute`</a><a name="babashka.fs/get-attribute"></a>
@@ -455,6 +486,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 (get-attribute path attribute {:keys [:nofollow-links]})
 ```
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L634-L640">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/glob">`glob`</a><a name="babashka.fs/glob"></a>
@@ -480,6 +512,7 @@ Given a file and glob pattern, returns matches as vector of
   Examples:
   `(fs/glob "." "**.clj")`
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L316-L339">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/hidden?">`hidden?`</a><a name="babashka.fs/hidden?"></a>
@@ -490,6 +523,7 @@ Given a file and glob pattern, returns matches as vector of
 
 Returns true if f is hidden.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L103-L105">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/home">`home`</a><a name="babashka.fs/home"></a>
@@ -503,6 +537,7 @@ With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1001-L1007">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/instant->file-time">`instant->file-time`</a><a name="babashka.fs/instant->file-time"></a>
@@ -513,6 +548,7 @@ With no arguments, returns the current value of the `user.home`
 
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L689-L692">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/last-modified-time">`last-modified-time`</a><a name="babashka.fs/last-modified-time"></a>
@@ -524,6 +560,7 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 
 Returns last modified time as a java.nio.file.attribute.FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L709-L714">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/list-dir">`list-dir`</a><a name="babashka.fs/list-dir"></a>
@@ -536,6 +573,7 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 Returns all paths in dir as vector. For descending into subdirectories use `glob.`
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L232-L240">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/list-dirs">`list-dirs`</a><a name="babashka.fs/list-dirs"></a>
@@ -547,6 +585,7 @@ Returns all paths in dir as vector. For descending into subdirectories use `glob
 Similar to list-dir but accepts multiple roots and returns the concatenated results.
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L737-L741">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/match">`match`</a><a name="babashka.fs/match"></a>
@@ -571,6 +610,7 @@ Given a file and match pattern, returns matches as vector of
   Examples:
   `(fs/match "." "regex:.*\\.clj" {:recursive true})`
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L250-L314">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/millis->file-time">`millis->file-time`</a><a name="babashka.fs/millis->file-time"></a>
@@ -581,6 +621,7 @@ Given a file and match pattern, returns matches as vector of
 
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L699-L702">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/modified-since">`modified-since`</a><a name="babashka.fs/modified-since"></a>
@@ -596,6 +637,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
   collection of files (e.g. returned by glob). Directories are
   searched recursively.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L887-L896">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/move">`move`</a><a name="babashka.fs/move"></a>
@@ -607,6 +649,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 
 Move or rename a file to a target dir or file via `Files/move`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L565-L578">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/normalize">`normalize`</a><a name="babashka.fs/normalize"></a>
@@ -617,6 +660,7 @@ Move or rename a file to a target dir or file via `Files/move`.
 
 Normalizes f via Path#normalize.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L155-L158">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/parent">`parent`</a><a name="babashka.fs/parent"></a>
@@ -627,6 +671,7 @@ Normalizes f via Path#normalize.
 
 Returns parent of f, is it exists. Akin to `dirname` in bash.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L580-L583">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/path">`path`</a><a name="babashka.fs/path"></a>
@@ -640,6 +685,7 @@ Returns parent of f, is it exists. Akin to `dirname` in bash.
 Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L51-L59">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/path-separator">`path-separator`</a><a name="babashka.fs/path-separator"></a>
@@ -647,6 +693,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 
 
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L243-L243">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/posix->str">`posix->str`</a><a name="babashka.fs/posix->str"></a>
@@ -657,6 +704,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 
 Converts a set of PosixFilePermission to a string.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L368-L371">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/posix-file-permissions">`posix-file-permissions`</a><a name="babashka.fs/posix-file-permissions"></a>
@@ -668,6 +716,7 @@ Converts a set of PosixFilePermission to a string.
 
 Gets f's posix file permissions. Use posix->str to view as a string.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L601-L605">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/read-all-bytes">`read-all-bytes`</a><a name="babashka.fs/read-all-bytes"></a>
@@ -678,6 +727,7 @@ Gets f's posix file permissions. Use posix->str to view as a string.
 
 Returns contents of file as byte array.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L612-L615">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/read-all-lines">`read-all-lines`</a><a name="babashka.fs/read-all-lines"></a>
@@ -689,6 +739,7 @@ Returns contents of file as byte array.
 
 Read all lines from a file.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L622-L630">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/read-attributes">`read-attributes`</a><a name="babashka.fs/read-attributes"></a>
@@ -701,6 +752,7 @@ Read all lines from a file.
 Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L665-L673">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/read-attributes*">`read-attributes*`</a><a name="babashka.fs/read-attributes*"></a>
@@ -712,6 +764,7 @@ Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes
 
 Reads attributes via Files/readAttributes.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L647-L663">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/readable?">`readable?`</a><a name="babashka.fs/readable?"></a>
@@ -722,6 +775,7 @@ Reads attributes via Files/readAttributes.
 
 Returns true if f is readable
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L115-L117">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/real-path">`real-path`</a><a name="babashka.fs/real-path"></a>
@@ -733,6 +787,7 @@ Returns true if f is readable
 
 Converts f into real path via Path#toRealPath.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L75-L79">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/regular-file?">`regular-file?`</a><a name="babashka.fs/regular-file?"></a>
@@ -744,6 +799,7 @@ Converts f into real path via Path#toRealPath.
 
 Returns true if f is a regular file, using Files/isRegularFile.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L83-L88">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/relative?">`relative?`</a><a name="babashka.fs/relative?"></a>
@@ -754,6 +810,7 @@ Returns true if f is a regular file, using Files/isRegularFile.
 
 Returns true if f represents a relative path.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L123-L125">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/relativize">`relativize`</a><a name="babashka.fs/relativize"></a>
@@ -764,6 +821,7 @@ Returns true if f represents a relative path.
 
 Returns relative path by comparing this with other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L150-L153">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/same-file?">`same-file?`</a><a name="babashka.fs/same-file?"></a>
@@ -774,6 +832,7 @@ Returns relative path by comparing this with other.
 
 Returns true if this is the same file as other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L607-L610">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/set-attribute">`set-attribute`</a><a name="babashka.fs/set-attribute"></a>
@@ -783,6 +842,7 @@ Returns true if this is the same file as other.
 (set-attribute path attribute value {:keys [:nofollow-links]})
 ```
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L675-L682">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/set-creation-time">`set-creation-time`</a><a name="babashka.fs/set-creation-time"></a>
@@ -794,6 +854,7 @@ Returns true if this is the same file as other.
 
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L735">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/set-last-modified-time">`set-last-modified-time`</a><a name="babashka.fs/set-last-modified-time"></a>
@@ -805,6 +866,7 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L716-L721">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/set-posix-file-permissions">`set-posix-file-permissions`</a><a name="babashka.fs/set-posix-file-permissions"></a>
@@ -815,6 +877,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 
 Sets posix file permissions on f. Accepts a string like `"rwx------"` or a set of PosixFilePermission.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L596-L599">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/size">`size`</a><a name="babashka.fs/size"></a>
@@ -825,6 +888,7 @@ Sets posix file permissions on f. Accepts a string like `"rwx------"` or a set o
 
 Returns the size of a file (in bytes).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L585-L588">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/split-ext">`split-ext`</a><a name="babashka.fs/split-ext"></a>
@@ -838,6 +902,7 @@ Splits path on extension If provided, a specific extension `ext`, the
   extension (without dot), will be used for splitting.  Directories
   are not processed.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L743-L761">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/split-paths">`split-paths`</a><a name="babashka.fs/split-paths"></a>
@@ -848,6 +913,7 @@ Splits path on extension If provided, a specific extension `ext`, the
 
 Splits a string joined by the OS-specific path-seperator into a vec of paths.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L775-L778">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/starts-with?">`starts-with?`</a><a name="babashka.fs/starts-with?"></a>
@@ -858,6 +924,7 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 
 Returns true if path this starts with path other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L850-L853">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/str->posix">`str->posix`</a><a name="babashka.fs/str->posix"></a>
@@ -868,6 +935,7 @@ Returns true if path this starts with path other.
 
 Converts a string to a set of PosixFilePermission.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L373-L376">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/strip-ext">`strip-ext`</a><a name="babashka.fs/strip-ext"></a>
@@ -879,6 +947,7 @@ Converts a string to a set of PosixFilePermission.
 
 Strips extension via [`split-ext`](#babashka.fs/split-ext).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L763-L768">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/sym-link?">`sym-link?`</a><a name="babashka.fs/sym-link?"></a>
@@ -889,6 +958,7 @@ Strips extension via [`split-ext`](#babashka.fs/split-ext).
 
 Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L540-L543">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/temp-dir">`temp-dir`</a><a name="babashka.fs/temp-dir"></a>
@@ -899,6 +969,7 @@ Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
 
 Returns `java.io.tmpdir` property as path.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L454-L457">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/unixify">`unixify`</a><a name="babashka.fs/unixify"></a>
@@ -909,6 +980,7 @@ Returns `java.io.tmpdir` property as path.
 
 Returns path as string with Unix-style file separators (`/`).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1124-L1129">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/unzip">`unzip`</a><a name="babashka.fs/unzip"></a>
@@ -924,6 +996,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L902-L929">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/update-file">`update-file`</a><a name="babashka.fs/update-file"></a>
@@ -940,6 +1013,7 @@ Updates the contents of text file [`path`](#babashka.fs/path) using `f` applied 
 
   * `:charset` - charset of file, default to "utf-8"
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1104-L1122">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/walk-file-tree">`walk-file-tree`</a><a name="babashka.fs/walk-file-tree"></a>
@@ -954,6 +1028,7 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   values: :continue, :skip-subtree, :skip-siblings, :terminate. A
   different return value will throw.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L178-L212">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/which">`which`</a><a name="babashka.fs/which"></a>
@@ -969,6 +1044,7 @@ Returns Path to first `program` found in ([`exec-paths`](#babashka.fs/exec-paths
   Default is `["com" "exe" "bat" "cmd"]`.
   If `program` already includes an extension from `:win-exts`, it will be searched as-is first.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L793-L836">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/which-all">`which-all`</a><a name="babashka.fs/which-all"></a>
@@ -980,6 +1056,7 @@ Returns Path to first `program` found in ([`exec-paths`](#babashka.fs/exec-paths
 
 Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths)). See [`which`](#babashka.fs/which).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L838-L842">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/windows?">`windows?`</a><a name="babashka.fs/windows?"></a>
@@ -990,6 +1067,7 @@ Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths
 
 Returns true if OS is Windows.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1027-L1030">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/with-temp-dir">`with-temp-dir`</a><a name="babashka.fs/with-temp-dir"></a>
@@ -1006,6 +1084,7 @@ Evaluate body with binding-name bound to a temporary directory.
 
   `options` is a map with the keys as for create-temp-dir.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L979-L993">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/writable?">`writable?`</a><a name="babashka.fs/writable?"></a>
@@ -1016,6 +1095,7 @@ Evaluate body with binding-name bound to a temporary directory.
 
 Returns true if f is writable
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L119-L121">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/write-bytes">`write-bytes`</a><a name="babashka.fs/write-bytes"></a>
@@ -1040,6 +1120,7 @@ Writes `bytes` to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
   (fs/write-bytes f (.getBytes (String. "foo")) {:append true})
   ```
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1058-L1081">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/write-lines">`write-lines`</a><a name="babashka.fs/write-lines"></a>
@@ -1061,6 +1142,7 @@ Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.ni
   * `:append` (default `false`)
   * or any `java.nio.file.StandardOption`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1083-L1102">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/xdg-cache-home">`xdg-cache-home`</a><a name="babashka.fs/xdg-cache-home"></a>
@@ -1073,6 +1155,7 @@ Path representing the base directory relative to which user-specific non-essenti
 
   Returns path based on the value of env-var `XDG_CACHE_HOME` (if set), else `(fs/path (fs/home) ".cache")`. 
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1158-L1163">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/xdg-config-home">`xdg-config-home`</a><a name="babashka.fs/xdg-config-home"></a>
@@ -1085,6 +1168,7 @@ Path representing the base directory relative to which user-specific configurati
 
   Returns path based on the value of env-var `XDG_CONFIG_HOME` (if set), else `(fs/path (fs/home) ".config")`. 
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1151-L1156">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/xdg-data-home">`xdg-data-home`</a><a name="babashka.fs/xdg-data-home"></a>
@@ -1097,6 +1181,7 @@ Path representing the base directory relative to which user-specific data files 
 
   Returns path based on the value of env-var `XDG_DATA_HOME` (if set), else `(fs/path (fs/home) ".local" "share")`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1165-L1170">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/xdg-state-home">`xdg-state-home`</a><a name="babashka.fs/xdg-state-home"></a>
@@ -1109,6 +1194,7 @@ Path representing the base directory relative to which user-specific state files
 
   Returns path based on the value of env-var `XDG_STATE_HOME` (if set), else `(fs/path (fs/home) ".local" "state")`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1172-L1177">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
 
 ## <a name="babashka.fs/zip">`zip`</a><a name="babashka.fs/zip"></a>
@@ -1122,4 +1208,5 @@ Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
   preserved in the zip file. Currently only accepts relative entries.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L960-L975">source</a></sub></p>
+Hello[^1]
 [^1]: My reference.
