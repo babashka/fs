@@ -103,7 +103,7 @@
 ```
 
 Returns true if f represents an absolute path.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L107-L109"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L107-L109"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -114,7 +114,7 @@ Returns true if f represents an absolute path.
 ```
 
 Converts f into an absolute path via Path#toAbsolutePath.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L146-L148"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L146-L148"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -129,7 +129,7 @@ Returns the canonical path via
   java.io.File#getCanonicalPath. If `:nofollow-links` is set, then it
   will fall back on [`absolutize`](#babashka.fs/absolutize) + `normalize.` This function can be used
   as an alternative to [`real-path`](#babashka.fs/real-path) which requires files to exist.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L160-L169"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L160-L169"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -141,7 +141,7 @@ Returns the canonical path via
 
 Returns a seq of all components of f as paths, i.e. split on the file
   separator.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L140-L144"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L140-L144"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -157,7 +157,7 @@ Copies src file to dest dir or file.
   * `:replace-existing`
   * `:copy-attributes`
   * `:nofollow-links` (used to determine to copy symbolic link itself or not).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L350-L366"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L350-L366"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -171,7 +171,7 @@ Copies src file to dest dir or file.
 Copies entire file tree from src to dest. Creates dest if needed
   using [`create-dirs`](#babashka.fs/create-dirs), passing it the `:posix-file-permissions`
   option. Supports same options as copy.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L414-L452"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L414-L452"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -183,7 +183,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 ```
 
 Creates dir using `Files#createDirectory`. Does not create parents.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L399-L405"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L399-L405"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -196,7 +196,7 @@ Creates dir using `Files#createDirectory`. Does not create parents.
 
 Creates directories using `Files#createDirectories`. Also creates parents if needed.
   Doesn't throw an exception if the the dirs exist already. Similar to mkdir -p
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L407-L412"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L407-L412"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -208,7 +208,7 @@ Creates directories using `Files#createDirectories`. Also creates parents if nee
 ```
 
 Creates empty file using `Files#createFile`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L557-L563"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L557-L563"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -219,7 +219,7 @@ Creates empty file using `Files#createFile`.
 ```
 
 Create a hard link from path to target.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L519-L524"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L519-L524"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -230,7 +230,7 @@ Create a hard link from path to target.
 ```
 
 Create a soft link from path to target.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L511-L517"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L511-L517"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -248,7 +248,7 @@ Creates a temporary directory using Files#createDirectories.
 
   create temp dir in path with prefix. If prefix is not provided, a random one
   is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`. The `:posix-file-permissions` option is a string like `"rwx------"`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L459-L481"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L459-L481"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -266,7 +266,7 @@ Creates an empty temporary file using Files#createTempFile.
   temp file in path with prefix. If prefix and suffix are not
   provided, random ones are generated. The `:posix-file-permissions`
   option is a string like `"rwx------"`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L483-L509"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L483-L509"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -278,7 +278,7 @@ Creates an empty temporary file using Files#createTempFile.
 ```
 
 Returns creation time as FileTime.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L723-L728"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L723-L728"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -289,7 +289,7 @@ Returns creation time as FileTime.
 ```
 
 Returns current working directory as path
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1032-L1035"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1032-L1035"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -301,7 +301,7 @@ Returns current working directory as path
 
 Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L526-L532"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L526-L532"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -313,7 +313,7 @@ Deletes f. Returns nil if the delete was successful,
 
 Deletes f if it exists. Returns true if the delete was successful,
   false if f didn't exist. Does not follow symlinks.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L534-L538"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L534-L538"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -324,7 +324,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 ```
 
 Requests delete on exit via `File#deleteOnExit`. Returns f.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L590-L594"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L590-L594"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -335,7 +335,7 @@ Requests delete on exit via `File#deleteOnExit`. Returns f.
 ```
 
 Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Similar to `rm -rf`. Does not follow symlinks.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L545-L555"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L545-L555"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -347,7 +347,7 @@ Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Simil
 ```
 
 Returns true if f is a directory, using Files/isDirectory.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L90-L95"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L90-L95"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -358,7 +358,7 @@ Returns true if f is a directory, using Files/isDirectory.
 ```
 
 Returns true if path this ends with path other.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L855-L858"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L855-L858"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -370,7 +370,7 @@ Returns true if path this ends with path other.
 
 Returns executable paths (using the PATH environment variable). Same
   as `(split-paths (System/getenv "PATH"))`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L780-L784"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L780-L784"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -381,7 +381,7 @@ Returns executable paths (using the PATH environment variable). Same
 ```
 
 Returns true if f is executable.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L111-L113"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L111-L113"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -393,7 +393,7 @@ Returns true if f is executable.
 ```
 
 Returns true if f exists.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L127-L136"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L127-L136"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -410,7 +410,7 @@ If [[`path`](#babashka.fs/path)](#babashka.fs/path) begins with a tilde (`~`), e
   directory. This is (naively) assumed to be a directory with the same
   name as the user relative to the parent of the current value of
   `user.home`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1009-L1025"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1009-L1025"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -421,7 +421,7 @@ If [[`path`](#babashka.fs/path)](#babashka.fs/path) begins with a tilde (`~`), e
 ```
 
 Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L770-L773"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L770-L773"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -434,7 +434,7 @@ Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
 
 Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L61-L66"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L61-L66"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -445,7 +445,7 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 ```
 
 Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") returns "baz".
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L171-L174"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L171-L174"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -453,7 +453,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 
 
 
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L242-L242"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L242-L242"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -464,7 +464,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 ```
 
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L684-L687"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L684-L687"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -475,7 +475,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 ```
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L694-L697"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L694-L697"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -485,7 +485,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 (get-attribute path attribute)
 (get-attribute path attribute {:keys [:nofollow-links]})
 ```
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L634-L640"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L634-L640"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -511,7 +511,7 @@ Given a file and glob pattern, returns matches as vector of
 
   Examples:
   `(fs/glob "." "**.clj")`
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L316-L339"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L316-L339"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -522,7 +522,7 @@ Given a file and glob pattern, returns matches as vector of
 ```
 
 Returns true if f is hidden.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L103-L105"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L103-L105"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -536,7 +536,7 @@ Returns true if f is hidden.
 With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1001-L1007"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1001-L1007"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -547,7 +547,7 @@ With no arguments, returns the current value of the `user.home`
 ```
 
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L689-L692"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L689-L692"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -559,7 +559,7 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 ```
 
 Returns last modified time as a java.nio.file.attribute.FileTime.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L709-L714"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L709-L714"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -572,7 +572,7 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 
 Returns all paths in dir as vector. For descending into subdirectories use `glob.`
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L232-L240"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L232-L240"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -584,7 +584,7 @@ Returns all paths in dir as vector. For descending into subdirectories use `glob
 
 Similar to list-dir but accepts multiple roots and returns the concatenated results.
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L737-L741"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L737-L741"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -609,7 +609,7 @@ Given a file and match pattern, returns matches as vector of
 
   Examples:
   `(fs/match "." "regex:.*\\.clj" {:recursive true})`
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L250-L314"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L250-L314"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -620,7 +620,7 @@ Given a file and match pattern, returns matches as vector of
 ```
 
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L699-L702"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L699-L702"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -636,7 +636,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
   to compare with.  The file-set may be a regular file, directory or
   collection of files (e.g. returned by glob). Directories are
   searched recursively.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L887-L896"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L887-L896"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -648,7 +648,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 ```
 
 Move or rename a file to a target dir or file via `Files/move`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L565-L578"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L565-L578"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -659,7 +659,7 @@ Move or rename a file to a target dir or file via `Files/move`.
 ```
 
 Normalizes f via Path#normalize.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L155-L158"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L155-L158"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -670,7 +670,7 @@ Normalizes f via Path#normalize.
 ```
 
 Returns parent of f, is it exists. Akin to `dirname` in bash.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L580-L583"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L580-L583"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -684,7 +684,7 @@ Returns parent of f, is it exists. Akin to `dirname` in bash.
 
 Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L51-L59"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L51-L59"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -692,7 +692,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 
 
 
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L243-L243"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L243-L243"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -703,7 +703,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 ```
 
 Converts a set of PosixFilePermission to a string.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L368-L371"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L368-L371"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -715,7 +715,7 @@ Converts a set of PosixFilePermission to a string.
 ```
 
 Gets f's posix file permissions. Use posix->str to view as a string.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L601-L605"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L601-L605"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -726,7 +726,7 @@ Gets f's posix file permissions. Use posix->str to view as a string.
 ```
 
 Returns contents of file as byte array.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L612-L615"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L612-L615"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -738,7 +738,7 @@ Returns contents of file as byte array.
 ```
 
 Read all lines from a file.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L622-L630"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L622-L630"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -751,7 +751,7 @@ Read all lines from a file.
 
 Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L665-L673"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L665-L673"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -763,7 +763,7 @@ Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes
 ```
 
 Reads attributes via Files/readAttributes.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L647-L663"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L647-L663"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -774,7 +774,7 @@ Reads attributes via Files/readAttributes.
 ```
 
 Returns true if f is readable
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L115-L117"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L115-L117"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -786,7 +786,7 @@ Returns true if f is readable
 ```
 
 Converts f into real path via Path#toRealPath.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L75-L79"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L75-L79"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -798,7 +798,7 @@ Converts f into real path via Path#toRealPath.
 ```
 
 Returns true if f is a regular file, using Files/isRegularFile.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L83-L88"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L83-L88"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -809,7 +809,7 @@ Returns true if f is a regular file, using Files/isRegularFile.
 ```
 
 Returns true if f represents a relative path.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L123-L125"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L123-L125"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -820,7 +820,7 @@ Returns true if f represents a relative path.
 ```
 
 Returns relative path by comparing this with other.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L150-L153"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L150-L153"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -831,7 +831,7 @@ Returns relative path by comparing this with other.
 ```
 
 Returns true if this is the same file as other.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L607-L610"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L607-L610"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -841,7 +841,7 @@ Returns true if this is the same file as other.
 (set-attribute path attribute value)
 (set-attribute path attribute value {:keys [:nofollow-links]})
 ```
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L675-L682"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L675-L682"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -853,7 +853,7 @@ Returns true if this is the same file as other.
 ```
 
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L735"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L735"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -865,7 +865,7 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 ```
 
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L716-L721"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L716-L721"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -876,7 +876,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 ```
 
 Sets posix file permissions on f. Accepts a string like `"rwx------"` or a set of PosixFilePermission.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L596-L599"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L596-L599"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -887,7 +887,7 @@ Sets posix file permissions on f. Accepts a string like `"rwx------"` or a set o
 ```
 
 Returns the size of a file (in bytes).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L585-L588"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L585-L588"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -901,7 +901,7 @@ Returns the size of a file (in bytes).
 Splits path on extension If provided, a specific extension `ext`, the
   extension (without dot), will be used for splitting.  Directories
   are not processed.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L743-L761"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L743-L761"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -912,7 +912,7 @@ Splits path on extension If provided, a specific extension `ext`, the
 ```
 
 Splits a string joined by the OS-specific path-seperator into a vec of paths.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L775-L778"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L775-L778"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -923,7 +923,7 @@ Splits a string joined by the OS-specific path-seperator into a vec of paths.
 ```
 
 Returns true if path this starts with path other.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L850-L853"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L850-L853"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -934,7 +934,7 @@ Returns true if path this starts with path other.
 ```
 
 Converts a string to a set of PosixFilePermission.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L373-L376"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L373-L376"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -946,7 +946,7 @@ Converts a string to a set of PosixFilePermission.
 ```
 
 Strips extension via [`split-ext`](#babashka.fs/split-ext).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L763-L768"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L763-L768"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -957,7 +957,7 @@ Strips extension via [`split-ext`](#babashka.fs/split-ext).
 ```
 
 Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L540-L543"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L540-L543"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -968,7 +968,7 @@ Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
 ```
 
 Returns `java.io.tmpdir` property as path.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L454-L457"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L454-L457"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -979,7 +979,7 @@ Returns `java.io.tmpdir` property as path.
 ```
 
 Returns path as string with Unix-style file separators (`/`).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1124-L1129"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1124-L1129"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -995,7 +995,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
 
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L902-L929"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L902-L929"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1012,7 +1012,7 @@ Updates the contents of text file [`path`](#babashka.fs/path) using `f` applied 
   Options:
 
   * `:charset` - charset of file, default to "utf-8"
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1104-L1122"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1104-L1122"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1027,7 +1027,7 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   default to (constantly :continue). Supported return
   values: :continue, :skip-subtree, :skip-siblings, :terminate. A
   different return value will throw.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L178-L212"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L178-L212"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1043,7 +1043,7 @@ Returns Path to first `program` found in ([`exec-paths`](#babashka.fs/exec-paths
   On Windows, also searches for `program` with filename extensions specified in `:win-exts` `opt`.
   Default is `["com" "exe" "bat" "cmd"]`.
   If `program` already includes an extension from `:win-exts`, it will be searched as-is first.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L793-L836"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L793-L836"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1055,7 +1055,7 @@ Returns Path to first `program` found in ([`exec-paths`](#babashka.fs/exec-paths
 ```
 
 Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths)). See [`which`](#babashka.fs/which).
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L838-L842"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L838-L842"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1066,7 +1066,7 @@ Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths
 ```
 
 Returns true if OS is Windows.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1027-L1030"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1027-L1030"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1083,7 +1083,7 @@ Evaluate body with binding-name bound to a temporary directory.
   and will be removed with [`delete-tree`](#babashka.fs/delete-tree) on exit from the scope.
 
   `options` is a map with the keys as for create-temp-dir.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L979-L993"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L979-L993"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1094,7 +1094,7 @@ Evaluate body with binding-name bound to a temporary directory.
 ```
 
 Returns true if f is writable
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L119-L121"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L119-L121"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1119,7 +1119,7 @@ Writes `bytes` to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
   (fs/write-bytes f (.getBytes (String. "foo"))) ;; overwrites + truncates or creates new file
   (fs/write-bytes f (.getBytes (String. "foo")) {:append true})
   ```
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1058-L1081"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1058-L1081"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1141,7 +1141,7 @@ Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.ni
   * `:write` (default `true`)
   * `:append` (default `false`)
   * or any `java.nio.file.StandardOption`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1083-L1102"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1083-L1102"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1154,7 +1154,7 @@ Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.ni
 Path representing the base directory relative to which user-specific non-essential data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
   Returns path based on the value of env-var `XDG_CACHE_HOME` (if set), else `(fs/path (fs/home) ".cache")`. 
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1158-L1163"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1158-L1163"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1167,7 +1167,7 @@ Path representing the base directory relative to which user-specific non-essenti
 Path representing the base directory relative to which user-specific configuration files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
   Returns path based on the value of env-var `XDG_CONFIG_HOME` (if set), else `(fs/path (fs/home) ".config")`. 
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1151-L1156"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1151-L1156"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1180,7 +1180,7 @@ Path representing the base directory relative to which user-specific configurati
 Path representing the base directory relative to which user-specific data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
   Returns path based on the value of env-var `XDG_DATA_HOME` (if set), else `(fs/path (fs/home) ".local" "share")`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1165-L1170"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1165-L1170"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1193,7 +1193,7 @@ Path representing the base directory relative to which user-specific data files 
 Path representing the base directory relative to which user-specific state files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
   Returns path based on the value of env-var `XDG_STATE_HOME` (if set), else `(fs/path (fs/home) ".local" "state")`.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1172-L1177"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1172-L1177"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
 
@@ -1207,6 +1207,6 @@ Path representing the base directory relative to which user-specific state files
 Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
   preserved in the zip file. Currently only accepts relative entries.
-<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L960-L975"><svg height="30" width="200">
+<a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L960-L975"><svg align="right" height="30" width="200">
   <text x="0" y="15" fill="red">I love SVG!</text>
 </svg></a>
