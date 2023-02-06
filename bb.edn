@@ -3,7 +3,7 @@
  :deps {io.github.borkdude/quickdoc
         #_{:local/root "/Users/borkdude/dev/quickdoc"}
         {:git/url "https://github.com/borkdude/quickdoc"
-         :git/sha "b290f60fd68380485b613c711d98bea172f2f221"}}
+         :git/sha "4ec275a5f00e5bea86c039fd029693b5dd938a7d"}}
  :tasks
  {:requires ([babashka.fs :as fs]
              [clojure.string :as str])
