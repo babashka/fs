@@ -855,7 +855,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
 
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
-  
+
 <br><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L902-L930">source</a></sub>
 
 ## <a name="babashka.fs/update-file">`update-file`</a><a name="babashka.fs/update-file"></a>
