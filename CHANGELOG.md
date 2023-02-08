@@ -4,6 +4,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## v0.2.16 (2023-02-08)
+
+- [#89](https://github.com/babashka/fs/issues/89): change default in `walk-file-tree` from throwing to continue-ing, which
+  works better for `glob`, `match`. You can still throw by providing your own
+  `visit-file-failed` function. 
+
 ## v0.2.15
 
 - [#85](https://github.com/babashka/fs/issues/85): add helpers to generate common XDG paths ([@eval](https://github.com/eval))

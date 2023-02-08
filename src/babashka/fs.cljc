@@ -192,8 +192,8 @@
         visit-opts (set (cond-> []
                           follow-links (conj FileVisitOption/FOLLOW_LINKS)))
         visit-file-failed (or visit-file-failed
-                              (fn [path _attrs]
-                                (throw (Exception. (format "Visiting %s failed" (str path))))))]
+                              (fn [_path _attrs]
+                                :continue))]
     (Files/walkFileTree (as-path f)
                         visit-opts
                         max-depth
@@ -207,8 +207,8 @@
                           (visitFile [_ path attrs]
                             (-> (visit-file path attrs)
                                 file-visit-result))
-                          (visitFileFailed [_ path attrs]
-                            (-> (visit-file-failed path attrs)
+                          (visitFileFailed [_ path ex]
+                            (-> (visit-file-failed path ex)
                                 file-visit-result))))))
 
 #?(:bb nil :clj
