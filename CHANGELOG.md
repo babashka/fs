@@ -6,7 +6,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## v0.3.17 (2023-02-28)
 
-- #67: add `:root` and `:path-fn` options to `fs/zip`
+- [#67](https://github.com/babashka/fs/issues/67): add `:root` and `:path-fn` options to `fs/zip`
 
 ## v0.2.16 (2023-02-08)
 
