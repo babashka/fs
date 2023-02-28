@@ -474,7 +474,18 @@
       (fs/zip zip-file ["src" "README.md"])
       (fs/unzip zip-file td-out)
       (is (fs/exists? (fs/file td-out "src")))
-      (is (fs/exists? (fs/file td-out "README.md"))))))
+      (is (fs/exists? (fs/file td-out "README.md")))))
+  (testing "Elide parent dir"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          zip-file (fs/path td "foo.zip")]
+      (fs/zip zip-file "src" {:root "src"})
+      (fs/unzip zip-file td-out)
+      (is (not (fs/exists? (fs/file td-out "src"))))
+      (is (fs/exists? (fs/file td-out "babashka")))
+      (is (fs/directory? (fs/file td-out "babashka")))
+      (is (fs/exists? (fs/file td-out "babashka" "fs.cljc")))
+      (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc")))))))
 
 (deftest with-temp-dir-test
   (let [capture-dir (volatile! nil)]

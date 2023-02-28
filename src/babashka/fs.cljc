@@ -930,16 +930,11 @@
 
 ;; partially borrowed from tools.build
 (defn- add-zip-entry
-  [^ZipOutputStream output-stream ^File file]
+  [^ZipOutputStream output-stream ^File file fpath]
   (let [dir (.isDirectory file)
         attrs (Files/readAttributes (as-path file) BasicFileAttributes
                                     (->link-opts []))
-        fpath (str file)
-        fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
-        fpath (str/replace fpath \\ \/) ;; only use unix-style paths in jars
-        entry (doto (ZipEntry. fpath)
-                                        ;(.setSize (.size attrs))
-                                        ;(.setLastAccessTime (.lastAccessTime attrs))
+        entry (doto (ZipEntry. (str fpath))
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
     (.putNextEntry output-stream entry)
     (when-not dir
@@ -950,29 +945,47 @@
 
 ;; partially borrowed from tools.build
 (defn- copy-to-zip
-  [^ZipOutputStream jos f]
+  [^ZipOutputStream jos f path-fn]
   (let [files (file-seq (file f))]
     (run! (fn [^File f]
-            (add-zip-entry jos f))
+            (let [dir (.isDirectory f)
+                  fpath (str f)
+                  fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
+                  ;; only use unix-style paths in jars
+                  fpath (str/replace fpath \\ \/)
+                  fpath (path-fn fpath)]
+              (when-not (str/blank? fpath)
+                (add-zip-entry jos f fpath))))
           files)))
 
 ;; partially borrowed from tools.build
 (defn zip
   "Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
-  preserved in the zip file. Currently only accepts relative entries."
+  preserved in the zip file. Currently only accepts relative entries.
+
+  Options:
+  * `:root`: directory which will be elided in zip. E.g.: `(fs/zip [\"src\"] {:root \"src\"})`
+  * `:path-fn`: a single-arg function from file system path to zip entry path.
+  "
   ([zip-file entries]
    (zip zip-file entries nil))
-  ([zip-file entries _opts]
-   (let [entries (if (string? entries)
+  ([zip-file entries opts]
+   (let [entries (if (or (string? entries)
+                         (instance? File entries)
+                         (instance? Path entries))
                    [entries]
-                   entries)]
+                   entries)
+         path-fn (or (:path-fn opts)
+                     (when-let [root (:root opts)]
+                       #(str/replace % (re-pattern (str "^" (java.util.regex.Pattern/quote root) "/")) ""))
+                     identity)]
      (assert (every? relative? entries)
              "All entries must be relative")
      (with-open [zos (ZipOutputStream.
                       (FileOutputStream. (file zip-file)))]
        (doseq [zpath entries]
-         (copy-to-zip zos zpath))))))
+         (copy-to-zip zos zpath path-fn))))))
 
 ;;;; End zip
 
