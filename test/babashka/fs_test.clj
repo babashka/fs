@@ -622,24 +622,38 @@
       (let [custom-path (if windows? "C:\\some\\path" "/some/path")]
         (with-redefs [fs/get-env {"XDG_CONFIG_HOME" custom-path}]
           (is (= (fs/path custom-path)
-                 (fs/xdg-config-home))))))
+                 (fs/xdg-config-home)))
+          (is (= (fs/path custom-path "clj-kondo")
+                 (fs/xdg-config-home "clj-kondo"))))))
     (testing "yields default-path when env-var contains no absolute path"
       (with-redefs [fs/get-env {"XDG_CONFIG_HOME" ""}]
         (is (= default-path
                (fs/xdg-config-home)))))))
 
 (deftest xdg-config-home-test
-  (is (= (fs/path (fs/home) ".config")
-         (fs/xdg-config-home))))
+  (let [default-home (fs/path (fs/home) ".config")]
+    (is (= default-home
+           (fs/xdg-config-home)))
+    (is (= (fs/path default-home "clj-kondo")
+           (fs/xdg-config-home "clj-kondo")))))
 
-(deftest xdg-cache-path-test
-  (is (= (fs/path (fs/home) ".cache")
-         (fs/xdg-cache-home))))
+(deftest xdg-cache-home-test
+  (let [default-home (fs/path (fs/home) ".cache")]
+    (is (= default-home
+           (fs/xdg-cache-home)))
+    (is (= (fs/path default-home "clj-kondo")
+           (fs/xdg-cache-home "clj-kondo")))))
 
-(deftest xdg-data-path-test
-  (is (= (fs/path (fs/home) ".local" "share")
-         (fs/xdg-data-home))))
+(deftest xdg-data-home-test
+  (let [default-home (fs/path (fs/home) ".local" "share")]
+    (is (= default-home
+           (fs/xdg-data-home)))
+    (is (= (fs/path default-home "clj-kondo")
+           (fs/xdg-data-home "clj-kondo")))))
 
-(deftest xdg-state-path-test
-  (is (= (fs/path (fs/home) ".local" "state")
-         (fs/xdg-state-home))))
+(deftest xdg-state-home-test
+  (let [default-home (fs/path (fs/home) ".local" "state")]
+    (is (= default-home
+           (fs/xdg-state-home)))
+    (is (= (fs/path default-home "clj-kondo")
+           (fs/xdg-state-home "clj-kondo")))))
