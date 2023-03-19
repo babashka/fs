@@ -985,45 +985,53 @@ Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.ni
 ``` clojure
 
 (xdg-cache-home)
+(xdg-cache-home app)
 ```
 
 Path representing the base directory relative to which user-specific non-essential data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
-  Returns path based on the value of env-var `XDG_CACHE_HOME` (if set), else `(fs/path (fs/home) ".cache")`. 
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1171-L1176">Source</a></sub></p>
+  Returns path based on the value of env-var `XDG_CACHE_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".cache")`.
+  When provided, appends `app` to the path.
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1174-L1182">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-config-home">`xdg-config-home`</a><a name="babashka.fs/xdg-config-home"></a>
 ``` clojure
 
 (xdg-config-home)
+(xdg-config-home app)
 ```
 
 Path representing the base directory relative to which user-specific configuration files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
-  Returns path based on the value of env-var `XDG_CONFIG_HOME` (if set), else `(fs/path (fs/home) ".config")`. 
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1164-L1169">Source</a></sub></p>
+  Returns path based on the value of env-var `XDG_CONFIG_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".config")`.
+  When provided, appends `app` to the path.
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1164-L1172">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-data-home">`xdg-data-home`</a><a name="babashka.fs/xdg-data-home"></a>
 ``` clojure
 
 (xdg-data-home)
+(xdg-data-home app)
 ```
 
 Path representing the base directory relative to which user-specific data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
-  Returns path based on the value of env-var `XDG_DATA_HOME` (if set), else `(fs/path (fs/home) ".local" "share")`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1178-L1183">Source</a></sub></p>
+  Returns path based on the value of env-var `XDG_DATA_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".local" "share")`.
+  When provided, appends `app` to the path.
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1184-L1192">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-state-home">`xdg-state-home`</a><a name="babashka.fs/xdg-state-home"></a>
 ``` clojure
 
 (xdg-state-home)
+(xdg-state-home app)
 ```
 
 Path representing the base directory relative to which user-specific state files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
-  Returns path based on the value of env-var `XDG_STATE_HOME` (if set), else `(fs/path (fs/home) ".local" "state")`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1185-L1190">Source</a></sub></p>
+  Returns path based on the value of env-var `XDG_STATE_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".local" "state")`.
+  When provided, appends `app` to the path.
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1194-L1202">Source</a></sub></p>
 
 ## <a name="babashka.fs/zip">`zip`</a><a name="babashka.fs/zip"></a>
 ``` clojure

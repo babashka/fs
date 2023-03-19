@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Unreleased
+
+- [#91](https://github.com/babashka/fs/issues/91): add 1-arity to `xdg-*-home` to get subfolder of base directory ([@eval](https://github.com/eval))
+
 ## v0.3.17 (2023-02-28)
 
 - [#67](https://github.com/babashka/fs/issues/67): add `:root` and `:path-fn` options to `fs/zip`
