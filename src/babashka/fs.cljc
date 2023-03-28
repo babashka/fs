@@ -773,7 +773,8 @@
   (-> path split-ext last))
 
 (defn split-paths
-  "Splits a string joined by the OS-specific path-seperator into a vec of paths."
+  "Splits a path list given as a string joined by the OS-specific path-seperator into a vec of paths.
+  On UNIX systems, the separator is ':', on Microsoft Windows systems it is ';'."
   [^String joined-paths]
   (mapv path (.split joined-paths path-separator)))
 
