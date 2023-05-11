@@ -304,7 +304,7 @@
         (let [expected (fs/path "on-path/foo.cmd.bat")]
           (is (= expected (fs/which "foo.cmd") (fs/which "foo.cmd.bat"))))))
     (when windows?
-      (testing "on windows, can overide win extension search"
+      (testing "on windows, can override win extension search"
         (let [expected (fs/path "on-path/foo.foo.ps1")]
           (is (= expected (fs/which "foo.foo" {:win-exts ["ps1"]}))))))
     (testing "custom path"
