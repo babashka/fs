@@ -354,16 +354,18 @@
   * `:copy-attributes`
   * `:nofollow-links` (used to determine to copy symbolic link itself or not)."
   ([src dest] (copy src dest nil))
-  ([src dest {:keys [:replace-existing
-                     :copy-attributes
-                     :nofollow-links]}]
+  ([src dest {:keys [replace-existing
+                     copy-attributes
+                     nofollow-links]}]
    (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
-         dest (as-path dest)]
-     (if (directory-simple? dest)
-       (Files/copy (as-path src) (path dest (file-name src))
-                   copy-options)
-       (Files/copy (as-path src) dest
-                   copy-options)))))
+         dest (as-path dest)
+         dest (if (directory-simple? dest)
+                (path dest (file-name src))
+                dest)
+         input-stream? (instance? java.io.InputStream src)]
+     (if input-stream?
+       (Files/copy ^java.io.InputStream src dest copy-options)
+       (Files/copy (as-path src) dest copy-options)))))
 
 (defn posix->str
   "Converts a set of PosixFilePermission to a string."

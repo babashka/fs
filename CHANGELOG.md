@@ -4,8 +4,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## v0.4.18 (2023-05-11)
 
+- [#48](https://github.com/babashka/fs/issues/48): support input-stream in `fs/copy`
 - [#91](https://github.com/babashka/fs/issues/91): add 1-arity to `xdg-*-home` to get subfolder of base directory ([@eval](https://github.com/eval))
 - [#94](https://github.com/babashka/fs/issues/94): updates to `which`: add `:paths` `opt`, allow absolute paths for `program` ([@lread](https://github.com/lread))
 

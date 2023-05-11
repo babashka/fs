@@ -175,7 +175,12 @@
     (is (not (fs/exists? dest-file)))
     (testing "copying into dir"
       (fs/copy src-file dest-dir)
-      (is (fs/exists? dest-file)))))
+      (is (fs/exists? dest-file)))
+    (testing "copying input-stream"
+      (fs/delete dest-file)
+      (fs/copy (io/input-stream (fs/file src-file)) dest-file)
+      (is (fs/exists? dest-file))
+      (is (= (slurp (fs/file src-file)) (slurp (fs/file dest-file)))))))
 
 (deftest copy-tree-test
   (let [tmp-dir (temp-dir)]
