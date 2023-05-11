@@ -287,34 +287,81 @@
     (is (= java (fs/which "java")))
     (is (contains? (set (fs/which-all "java")) java))
     (fs/create-dirs "on-path/path-subdir")
-    (if windows?
-      (doto (fs/file "on-path" "foo.foo.bat")
-        (spit "echo hello"))
-      (doto (fs/file "on-path" "foo.foo")
-        (spit "echo hello")
-        (fs/set-posix-file-permissions "r-xr-x---")))
+    (doseq [f ["foo.foo" "foo.foo.bat" "foo.foo.cmd" "foo.cmd.bat" "foo.foo.ps1" "bar.bar"]]
+      (spit (fs/file "on-path" f) "echo hello"))
+    (when (not windows?)
+      (fs/set-posix-file-permissions (fs/file "on-path" "foo.foo") "r-xr-x---"))
+    (fs/copy-tree "on-path" "off-path")
     (if windows?
       (is (= (fs/path "on-path/foo.foo.bat") (fs/which "foo.foo")))
       (is (= (fs/path "on-path/foo.foo") (fs/which "foo.foo"))))
     (when windows?
-      (testing "can find executable when including extension"
+      (testing "on windows, can find executable when including extension"
         (let [expected (fs/path "on-path/foo.foo.bat")]
           (is (= expected (fs/which "foo.foo") (fs/which "foo.foo.bat"))))))
     (when windows?
-      (testing "can find foo.cmd.bat"
-        (spit "on-path/foo.cmd.bat" "echo hello")
+      (testing "on windows, can find foo.cmd.bat"
         (let [expected (fs/path "on-path/foo.cmd.bat")]
           (is (= expected (fs/which "foo.cmd") (fs/which "foo.cmd.bat"))))))
     (when windows?
-      (testing "can overide win extension search"
-        (spit "on-path/foo.foo.ps1" "echo hello")
+      (testing "on windows, can overide win extension search"
         (let [expected (fs/path "on-path/foo.foo.ps1")]
           (is (= expected (fs/which "foo.foo" {:win-exts ["ps1"]}))))))
+    (testing "custom path"
+      (is (= [] (fs/which-all "foo.foo" {:paths ["./idontexist"]})))
+      (is (nil? (fs/which "foo.foo" {:paths ["./idontexist"]})))
+      (if windows?
+        (testing "windows"
+          (is (= [(fs/path "./on-path/foo.foo.bat") (fs/path "./on-path/foo.foo.cmd")]
+                 (fs/which-all "foo.foo" {:paths ["./on-path"]})))
+          (is (= [(fs/path "./off-path/foo.foo.bat") (fs/path "./off-path/foo.foo.cmd")]
+                 (fs/which-all "foo.foo" {:paths ["./off-path"]})))
+          (is (= [(fs/path "./off-path/foo.foo.bat") (fs/path "./off-path/foo.foo.cmd")
+                  (fs/path "./on-path/foo.foo.bat") (fs/path "./on-path/foo.foo.cmd")]
+                 (fs/which-all "foo.foo" {:paths ["./off-path" "./on-path"]})))
+          (is (= (fs/path "./off-path/foo.foo.bat")
+                 (fs/which "foo.foo" {:paths ["./off-path" "./on-path"]}))))
+        (testing "macos/linux"
+          (is (= [(fs/path "./on-path/foo.foo")]
+                 (fs/which-all "foo.foo" {:paths ["./on-path"]})))
+          (is (= [(fs/path "./off-path/foo.foo")]
+                 (fs/which-all "foo.foo" {:paths ["./off-path"]})))
+          (is (= [(fs/path "./off-path/foo.foo") (fs/path "./on-path/foo.foo")]
+                 (fs/which-all "foo.foo" {:paths ["./off-path" "./on-path"]})))
+          (is (= (fs/path "./off-path/foo.foo")
+                 (fs/which "foo.foo" {:paths ["./off-path" "./on-path"]})))          )))
     (testing "'which' shouldn't find directories"
       (is (nil? (fs/which "path-subdir"))))
+    (testing "'which' shouldn't find non executables"
+      (is (nil? (fs/which "bar.bar"))))
     (testing "given a relative path, 'which' shouldn't search path entries"
       (is (nil? (fs/which "./foo.foo"))))
-    (fs/delete-tree "on-path")))
+    (testing "relative path should resolve regardless of search path entries"
+      (is (true? (fs/exists? "./off-path/bar.bar")))
+      (is (nil? (fs/which "./off-path/bar.bar")) "non-executable return s nil")
+      (is (nil? (fs/which "./relatively/missing")))
+      (if windows?
+        (testing "windows"
+          (is (= (fs/path "./on-path/foo.foo.bat") (fs/which "./on-path/foo.foo")))
+          (is (= (fs/path "./off-path/foo.foo.bat") (fs/which "./off-path/foo.foo"))))
+        (testing "macos/linux"
+          (is (= (fs/path "./off-path/foo.foo") (fs/which "./off-path/foo.foo")))
+          (is (= (fs/path "./on-path/foo.foo") (fs/which "./on-path/foo.foo"))))))
+    (testing "absolute path should resolve regardless of search path entries"
+      (is (true? (fs/exists? (fs/absolutize "./off-path/bar.bar"))))
+      (is (nil? (fs/which (fs/absolutize "./off-path/bar.bar"))) "non-executable returns nil")
+      (is (nil? (fs/which "/absolutely/missing")))
+      (if windows?
+        (testing "windows"
+          (is (= (fs/absolutize "./on-path/foo.foo.bat") (fs/which (fs/absolutize "./on-path/foo.foo"))))
+          (is (= (fs/absolutize "./off-path/foo.foo.bat") (fs/which (fs/absolutize "./off-path/foo.foo")))))
+        (testing "macos/linux"
+          (let [on-path (fs/absolutize "./on-path/foo.foo")]
+            (is (= on-path (fs/which on-path))))
+          (let [off-path (fs/absolutize "./off-path/foo.foo")]
+            (is (= off-path (fs/which off-path)))))))
+    (->> ["on-path" "off-path"]
+         (run! fs/delete-tree))))
 
 (deftest predicate-test
   (is (boolean? (fs/readable? (fs/path "."))))

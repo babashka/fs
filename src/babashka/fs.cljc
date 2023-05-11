@@ -792,11 +792,16 @@
     (= f-as-path (.getFileName f-as-path))))
 
 (defn which
-  "Returns Path to first `program` found in (`exec-paths`), similar to the which Unix command.
+  "Returns Path to first executable `program` found in `:paths` `opt`, similar to the which Unix command.
+  Default for `:paths` is `(exec-paths)`.
 
-  On Windows, also searches for `program` with filename extensions specified in `:win-exts` `opt`.
+  On Windows, searches for `program` with filename extensions specified in `:win-exts` `opt`.
   Default is `[\"com\" \"exe\" \"bat\" \"cmd\"]`.
-  If `program` already includes an extension from `:win-exts`, it will be searched as-is first."
+  If `program` already includes an extension from `:win-exts`, it will be searched as-is first.
+
+  When `program` is a relative or absolute path, `:paths` is not consulted. On Windows, the `:win-exts`
+  variants are still searched. On other OSes, the path for `program` will be returned if executable,
+  else nil."
   ([program] (which program nil))
   ([program opts]
    (let [exts (if win?
@@ -809,10 +814,11 @@
                     (into [nil] exts)
                     exts))
                 [nil])
+         paths (or (:paths opts) (babashka.fs/exec-paths))
          ;; if program is exactly a file name, then search all the path entries
          ;; otherwise, only search relative to current directory (absolute paths will throw)
          candidate-paths (if (filename-only? program)
-                           (babashka.fs/exec-paths)
+                           paths
                            [nil])]
      (loop [paths candidate-paths
             results []]
@@ -822,7 +828,10 @@
                          candidates []]
                     (if (seq exts)
                       (let [ext (first exts)
-                            f (babashka.fs/path p (str program (when ext (str "." ext))))]
+                            program (str program (when ext (str "." ext)))
+                            f (if (babashka.fs/relative? program)
+                                (babashka.fs/path p program)
+                                (babashka.fs/path program))]
                         (if (and (executable? f) (not (directory? f)))
                           (recur (rest exts)
                                  (conj candidates f))
