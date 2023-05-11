@@ -7,6 +7,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#91](https://github.com/babashka/fs/issues/91): add 1-arity to `xdg-*-home` to get subfolder of base directory ([@eval](https://github.com/eval))
+- [#94](https://github.com/babashka/fs/issues/94): updates to `which`: add `:paths` `opt`, allow absolute paths for `program` ([@lread](https://github.com/lread))
 
 ## v0.3.17 (2023-02-28)
 
