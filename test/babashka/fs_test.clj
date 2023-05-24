@@ -709,3 +709,10 @@
            (fs/xdg-state-home)))
     (is (= (fs/path default-home "clj-kondo")
            (fs/xdg-state-home "clj-kondo")))))
+
+(deftest file-owner-test
+  (testing "works for files as well"
+    (let [dir (doto (fs/create-temp-dir)
+                fs/delete-on-exit)
+          file-in-dir (fs/create-temp-file {:dir dir})]
+      (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))

@@ -78,6 +78,13 @@
   (^Path [f {:keys [:nofollow-links]}]
    (.toRealPath (as-path f) (->link-opts nofollow-links))))
 
+(defn owner
+  "Returns the owner of a file. Call `str` on it to get the owner name
+  as a string."
+  ([f] (owner f nil))
+  ([f {:keys [:nofollow-links]}]
+   (Files/getOwner (as-path f) (->link-opts nofollow-links))))
+
 ;;;; Predicates
 
 (defn regular-file?
@@ -462,20 +469,21 @@
   "Creates a temporary directory using Files#createDirectories.
 
   `(create-temp-dir)`: creates temp dir with random prefix.
-  `(create-temp-dir {:keys [:prefix :path :posix-file-permissions]})`:
+  `(create-temp-dir {:keys [:prefix :dir :posix-file-permissions]})`:
 
-  create temp dir in path with prefix. If prefix is not provided, a random one
+  create temp dir in dir path with prefix. If prefix is not provided, a random one
   is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`. The `:posix-file-permissions` option is a string like `\"rwx------\"`."
   ([]
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
     (make-array FileAttribute 0)))
-  ([{:keys [:prefix :path :posix-file-permissions]}]
+  ([{:keys [:prefix :dir :posix-file-permissions] :as opts}]
    (let [attrs (posix->attrs posix-file-permissions)
-         prefix (or prefix (str (java.util.UUID/randomUUID)))]
-     (if path
+         prefix (or prefix (str (java.util.UUID/randomUUID)))
+         dir (or dir (:path opts))]
+     (if dir
        (Files/createTempDirectory
-        (as-path path)
+        (as-path dir)
         prefix
         attrs)
        (Files/createTempDirectory
@@ -495,13 +503,16 @@
     (str (java.util.UUID/randomUUID))
     (str (java.util.UUID/randomUUID))
     (make-array FileAttribute 0)))
-  ([{:keys [:path :prefix :suffix :posix-file-permissions]}]
+  ([{:keys [:dir :prefix :suffix :posix-file-permissions] :as opts}]
    (let [attrs (posix->attrs posix-file-permissions)
          prefix (or prefix (str (java.util.UUID/randomUUID)))
-         suffix (or suffix (str (java.util.UUID/randomUUID)))]
-     (if path
+         suffix (or suffix (str (java.util.UUID/randomUUID)))
+         dir (or dir
+                 ;; backwards compat
+                 (:path opts))]
+     (if dir
        (Files/createTempFile
-        (as-path path)
+        (as-path dir)
         prefix
         suffix
         attrs)
