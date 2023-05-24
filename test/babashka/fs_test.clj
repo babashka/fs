@@ -716,6 +716,7 @@
           owner-part (str (last (fs/components path)))]
       (is (= (str (fs/file-owner path)) owner-part))))
   (testing "works for files as well"
-    (let [file (fs/path (fs/home) "foo")
+    (let [file (doto (fs/create-temp-file {:path (fs/home)})
+                 fs/delete-on-exit)
           owner-part (str (second (fs/components file)))]
       (is (= (str (fs/file-owner file)) owner-part)))))
