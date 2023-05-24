@@ -4,8 +4,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## v??
-- [#97](https://github.com/babashka/fs/issues/97): add `file-owner` function
+## v0.4.19 (2023-05-24)
+
+- [#97](https://github.com/babashka/fs/issues/97): add `owner` function to retrieve owner of a file or directory ([@emilaasa](https://github.com/emilaasa))
 
 ## v0.4.18 (2023-05-11)
 
