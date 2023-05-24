@@ -709,3 +709,13 @@
            (fs/xdg-state-home)))
     (is (= (fs/path default-home "clj-kondo")
            (fs/xdg-state-home "clj-kondo")))))
+
+(deftest file-owner-test
+  (testing "last path of a unixy home path is the same as the owner name"
+    (let [path (fs/path (fs/home))
+          owner-part (str (last (fs/components path)))]
+      (is (= (str (fs/file-owner path)) owner-part))))
+  (testing "works for files as well"
+    (let [file (fs/path (fs/home) "foo")
+          owner-part (str (second (fs/components file)))]
+      (is (= (str (fs/file-owner file)) owner-part)))))
