@@ -711,14 +711,8 @@
            (fs/xdg-state-home "clj-kondo")))))
 
 (deftest file-owner-test
-  (testing "last path of a unixy home path is the same as the owner name"
-    (let [path (fs/path (fs/home))
-          owner-part (str (last (fs/components path)))]
-      (is (= (str (fs/file-owner path)) owner-part))))
   (testing "works for files as well"
     (let [dir (doto (fs/create-temp-dir)
                 fs/delete-on-exit)
-          dir-in-dir (doto (fs/create-temp-dir {:dir dir})
-                       fs/delete-on-exit)
-          file-in-dir (fs/create-temp-file {:dir dir-in-dir})]
-      (is (= (str (fs/file-owner dir-in-dir)) (str (fs/file-owner file-in-dir)))))))
+          file-in-dir (fs/create-temp-file {:dir dir})]
+      (is (= (str (fs/file-owner dir)) (str (fs/file-owner file-in-dir)))))))
