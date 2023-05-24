@@ -711,8 +711,12 @@
            (fs/xdg-state-home "clj-kondo")))))
 
 (deftest file-owner-test
+  (testing "Java process owner is the same as the home path owner"
+    (let [path (fs/home)
+          process-owner (System/getProperty "user.name")]
+      (is (= (str (fs/owner path)) process-owner))))
+  
   (testing "works for files as well"
-    (let [dir (doto (fs/create-temp-dir)
-                fs/delete-on-exit)
-          file-in-dir (fs/create-temp-file {:dir dir})]
-      (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
+    (let [file (fs/create-file (fs/path (temp-dir) "file-owner-test")) 
+          process-owner (System/getProperty "user.name")]
+      (is (= (str (fs/owner file)) process-owner)))))
