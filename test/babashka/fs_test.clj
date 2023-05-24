@@ -715,4 +715,4 @@
     (let [dir (doto (fs/create-temp-dir)
                 fs/delete-on-exit)
           file-in-dir (fs/create-temp-file {:dir dir})]
-      (is (= (str (fs/file-owner dir)) (str (fs/file-owner file-in-dir)))))))
+      (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))

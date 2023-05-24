@@ -78,9 +78,10 @@
   (^Path [f {:keys [:nofollow-links]}]
    (.toRealPath (as-path f) (->link-opts nofollow-links))))
 
-(defn file-owner
-  "Returns the owner of a file."
-  ([f] (file-owner f nil))
+(defn owner
+  "Returns the owner of a file. Call `str` on it to get the owner name
+  as a string."
+  ([f] (owner f nil))
   ([f {:keys [:nofollow-links]}]
    (Files/getOwner (as-path f) (->link-opts nofollow-links))))
 
