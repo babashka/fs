@@ -1,7 +1,6 @@
 (ns babashka.fs
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.string :as str]
             [clojure.walk :as walk])
   (:import [java.io File]
            [java.net URI]
