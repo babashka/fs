@@ -539,6 +539,53 @@
       (is (fs/exists? (fs/file td-out "babashka" "fs.cljc")))
       (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc")))))))
 
+(deftest gzip-gunzip-test
+  (let [td (fs/create-temp-dir)
+        td-out (fs/path td "out")
+        gz-file (fs/path td "foo.gz")
+        _ (fs/gzip gz-file "README.md")]
+    (fs/gunzip gz-file td-out)
+    (is (fs/exists? (fs/path td-out "README.md")))
+    (is (= (slurp "README.md") (slurp (fs/file td-out "README.md"))))
+    (is (thrown? java.nio.file.FileAlreadyExistsException (fs/gunzip gz-file td-out)))
+    (testing "no exception when replacing existing"
+      (is (do (fs/gunzip gz-file td-out {:replace-existing true})
+              true))))
+  (testing "Entry within directory can become before directory"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          gz-file (fs/path "test-resources" "bencode-1.1.0.jar")]
+      (fs/gunzip gz-file td-out)
+      (is (fs/exists? (fs/file td-out "bencode" "core.clj")))))
+  (testing "GZip directory"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          zip-file (fs/path td "foo.gz")]
+      (fs/gzip zip-file "src")
+      (fs/gunzip zip-file td-out)
+      (is (fs/exists? (fs/file td-out "src")))))
+  (testing "GZip directory and file"
+    ;; NOTE: currently the API works more like unix gzip than tools.build gzip:
+    ;;  gzip /tmp/out2.gz src README.md
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          gz-file (fs/path td "foo.gz")]
+      (fs/gzip gz-file ["src" "README.md"])
+      (fs/gunzip gz-file td-out)
+      (is (fs/exists? (fs/file td-out "src")))
+      (is (fs/exists? (fs/file td-out "README.md")))))
+  (testing "Elide parent dir"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          gz-file (fs/path td "foo.gz")]
+      (fs/gzip gz-file "src" {:root "src"})
+      (fs/gunzip gz-file td-out)
+      (is (not (fs/exists? (fs/file td-out "src"))))
+      (is (fs/exists? (fs/file td-out "babashka")))
+      (is (fs/directory? (fs/file td-out "babashka")))
+      (is (fs/exists? (fs/file td-out "babashka" "fs.cljc")))
+      (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc")))))))
+
 (deftest with-temp-dir-test
   (let [capture-dir (volatile! nil)]
     (testing "with-temp-dir"

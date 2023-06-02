@@ -15,7 +15,7 @@
             FileVisitor]
            [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions]
            [java.nio.charset Charset]
-           [java.util.zip ZipInputStream ZipOutputStream ZipEntry]
+           [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry]
            [java.io File BufferedInputStream FileInputStream FileOutputStream]))
 
 (set! *warn-on-reflection* true)
@@ -415,7 +415,7 @@
 
 (defn create-dirs
   "Creates directories using `Files#createDirectories`. Also creates parents if needed.
-  Doesn't throw an exception if the the dirs exist already. Similar to mkdir -p"
+  Doesn't throw an exception if the dirs exist already. Similar to mkdir -p"
   ([path] (create-dirs path nil))
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
@@ -1011,6 +1011,52 @@
          (copy-to-zip zos zpath path-fn))))))
 
 ;;;; End zip
+
+;;;; GZip
+
+(defn gunzip
+  "Extracts `gz-file` to `dest` directory (default `\".\"`).
+
+   Options:
+   * `:replace-existing` - `true` / `false`: overwrite existing files"
+  ([gz-file] (gunzip gz-file "."))
+  ([gz-file dest] (gunzip gz-file dest nil))
+  ([gz-file dest {:keys [replace-existing]}]
+   (let [output-path (as-path dest)
+         dest-filename (->> (str/split gz-file #"\.")
+                            butlast
+                            (str/join "."))
+         gz-file (as-path gz-file)
+         _ (create-dirs dest)
+         cp-opts (->copy-opts replace-existing nil nil nil)
+         new-path (.resolve output-path dest-filename)]
+     (with-open
+      [fis (Files/newInputStream gz-file (into-array java.nio.file.OpenOption []))
+       gzis (GZIPInputStream. fis)]
+       (create-dirs (parent new-path))
+       (Files/copy ^java.io.InputStream gzis
+                   new-path
+                   cp-opts)))))
+
+(defn gzip
+  "GZips a single file into gz-file. An entry may be a file or
+  directory. Currently only accepts relative entries.
+  "
+  ([source-file]
+   (gzip (str source-file ".gz") source-file))
+  ([gz-file source-file]
+   (gzip gz-file source-file nil))
+  ([gz-file source-file {:keys [replace-existing]}]
+   (assert (relative? source-file)
+           "Input filename must be relative")
+   (let [cp-opts (->copy-opts replace-existing nil nil nil)]
+     (with-open [gzos (GZIPOutputStream.
+                       (FileOutputStream. (file gz-file)))]
+       (Files/copy gzos
+                   source-file
+                   cp-opts)))))
+
+;;;; End gzip
 
 (defmacro with-temp-dir
   "Evaluate body with binding-name bound to a temporary directory.
