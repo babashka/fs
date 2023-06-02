@@ -1,6 +1,7 @@
 (ns babashka.fs
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
+            [clojure.string :as str]
             [clojure.walk :as walk])
   (:import [java.io File]
            [java.net URI]
@@ -1023,9 +1024,7 @@
   ([gz-file dest] (gunzip gz-file dest nil))
   ([gz-file dest {:keys [replace-existing]}]
    (let [output-path (as-path dest)
-         dest-filename (->> (str/split gz-file #"\.")
-                            butlast
-                            (str/join "."))
+         dest-filename (str/replace-first gz-file #"\.gz$" "")
          gz-file (as-path gz-file)
          _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)
@@ -1039,22 +1038,26 @@
                    cp-opts)))))
 
 (defn gzip
-  "GZips a single file into gz-file. An entry may be a file or
-  directory. Currently only accepts relative entries.
+  "GZips `entries` into `dest` directory (default `\".\"`).
+  An entry must be a file or a filename.
   "
-  ([source-file]
-   (gzip (str source-file ".gz") source-file))
-  ([gz-file source-file]
-   (gzip gz-file source-file nil))
-  ([gz-file source-file {:keys [replace-existing]}]
-   (assert (relative? source-file)
-           "Input filename must be relative")
-   (let [cp-opts (->copy-opts replace-existing nil nil nil)]
-     (with-open [gzos (GZIPOutputStream.
-                       (FileOutputStream. (file gz-file)))]
-       (Files/copy gzos
-                   source-file
-                   cp-opts)))))
+  ([entries]
+   (gzip entries "."))
+  ([entries dest]
+   (let [entries (if (or (string? entries)
+                         (instance? File entries))
+                   [entries]
+                   entries)
+         output-path (as-path dest)]
+     (doseq [source-file entries]
+       (let [dest-filename (str source-file ".gz")
+             new-path (.resolve output-path dest-filename)]
+         (create-dirs (parent new-path))
+         (with-open [source-input-stream (io/input-stream source-file)
+                     gzos                (GZIPOutputStream.
+                                          (FileOutputStream. (file new-path)))]
+           (io/copy source-input-stream
+                    gzos)))))))
 
 ;;;; End gzip
 
