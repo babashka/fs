@@ -542,9 +542,10 @@
 (deftest gzip-gunzip-test
   (let [td (fs/create-temp-dir)
         td-out (fs/path td "out")
-        gz-file (fs/path td-out "README.md.gz")
-        _ (fs/gzip "README.md" td-out)]
-    (fs/gunzip gz-file td-out)
+        gz-file (fs/path td-out "README.md.gz")]
+    (is (= (str gz-file)
+           (fs/gzip "README.md" {:dir td-out})))
+    (is (fs/gunzip gz-file td-out))
     (is (fs/exists? (fs/path td-out "README.md")))
     (is (= (slurp "README.md") (slurp (fs/file td-out "README.md"))))
     (is (thrown? java.nio.file.FileAlreadyExistsException (fs/gunzip gz-file td-out)))

@@ -1037,26 +1037,30 @@
                    cp-opts)))))
 
 (defn gzip
-  "GZips `entries` into `dest` directory (default `\".\"`).
-  An entry must be a file or a filename.
-  "
-  ([entries]
-   (gzip entries "."))
-  ([entries dest]
-   (let [entries (if (or (string? entries)
-                         (instance? File entries))
-                   [entries]
-                   entries)
-         output-path (as-path dest)]
-     (doseq [source-file entries]
-       (let [dest-filename (str source-file ".gz")
-             new-path (.resolve output-path dest-filename)]
-         (create-dirs (parent new-path))
-         (with-open [source-input-stream (io/input-stream source-file)
-                     gzos                (GZIPOutputStream.
-                                          (FileOutputStream. (file new-path)))]
-           (io/copy source-input-stream
-                    gzos)))))))
+  "Gzips `source-file` and writes the output to `dir/out-file`.
+  If `out-file` is not provided, the `source-file` name with `.gz` appended is used.
+  If `dir` is not provided, the current directory is used.
+  Returns the created gzip file."
+  ([source-file]
+   (gzip source-file {:dir "."}))
+  ([source-file {:keys [dir out-file]}]
+   (assert source-file
+           "source-file must be specified")
+   (let [output-path (as-path (if (and (string? dir)
+                                       (str/blank? dir))
+                                "."
+                                dir))
+         ^String dest-filename (if (str/blank? out-file)
+                                 (str source-file ".gz")
+                                 out-file)
+         new-path (.resolve output-path dest-filename)]
+     (create-dirs (parent new-path))
+     (with-open [source-input-stream (io/input-stream source-file)
+                 gzos                (GZIPOutputStream.
+                                      (FileOutputStream. (file new-path)))]
+       (io/copy source-input-stream
+                gzos))
+     (str new-path))))
 
 ;;;; End gzip
 
