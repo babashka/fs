@@ -1043,13 +1043,13 @@
   Returns the created gzip file."
   ([source-file]
    (gzip source-file {:dir "."}))
-  ([source-file {:keys [dir gzip-file] :or {dir "."}}]
+  ([source-file {:keys [dir out-file] :or {dir "."}}]
    (assert source-file "source-file must be specified")
    (assert (-> source-file io/file .exists) "source-file does not exist")
    (let [output-path (as-path dir)
-         ^String dest-filename (if (not gzip-file)
+         ^String dest-filename (if (not out-file)
                                  (str source-file ".gz")
-                                 (str  gzip-file))
+                                 (str out-file))
          new-path (.resolve output-path dest-filename)]
      (create-dirs (parent new-path))
      (with-open [source-input-stream (io/input-stream source-file)
