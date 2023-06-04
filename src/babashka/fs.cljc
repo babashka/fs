@@ -15,7 +15,7 @@
             FileVisitor]
            [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions]
            [java.nio.charset Charset]
-           [java.util.zip ZipInputStream ZipOutputStream ZipEntry]
+           [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry]
            [java.io File BufferedInputStream FileInputStream FileOutputStream]))
 
 (set! *warn-on-reflection* true)
@@ -415,7 +415,7 @@
 
 (defn create-dirs
   "Creates directories using `Files#createDirectories`. Also creates parents if needed.
-  Doesn't throw an exception if the the dirs exist already. Similar to mkdir -p"
+  Doesn't throw an exception if the dirs exist already. Similar to `mkdir -p`"
   ([path] (create-dirs path nil))
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
@@ -1011,6 +1011,55 @@
          (copy-to-zip zos zpath path-fn))))))
 
 ;;;; End zip
+
+;;;; GZip
+
+(defn gunzip
+  "Extracts `gz-file` to `dest` directory (default `\".\"`).
+
+   Options:
+   * `:replace-existing` - `true` / `false`: overwrite existing files"
+  ([gz-file] (gunzip gz-file "."))
+  ([gz-file dest] (gunzip gz-file dest nil))
+  ([gz-file dest {:keys [replace-existing]}]
+   (let [output-path (as-path dest)
+         dest-filename (str/replace-first gz-file #"\.gz$" "")
+         gz-file (as-path gz-file)
+         _ (create-dirs dest)
+         cp-opts (->copy-opts replace-existing nil nil nil)
+         new-path (.resolve output-path dest-filename)]
+     (with-open
+      [fis (Files/newInputStream gz-file (into-array java.nio.file.OpenOption []))
+       gzis (GZIPInputStream. fis)]
+       (create-dirs (parent new-path))
+       (Files/copy ^java.io.InputStream gzis
+                   new-path
+                   cp-opts)))))
+
+(defn gzip
+  "Gzips `source-file` and writes the output to `dir/out-file`.
+  If `out-file` is not provided, the `source-file` name with `.gz` appended is used.
+  If `dir` is not provided, the current directory is used.
+  Returns the created gzip file."
+  ([source-file]
+   (gzip source-file {:dir "."}))
+  ([source-file {:keys [dir out-file] :or {dir "."}}]
+   (assert source-file "source-file must be specified")
+   (assert (-> source-file io/file .exists) "source-file does not exist")
+   (let [output-path (as-path dir)
+         ^String dest-filename (if (not out-file)
+                                 (str source-file ".gz")
+                                 (str out-file))
+         new-path (.resolve output-path dest-filename)]
+     (create-dirs (parent new-path))
+     (with-open [source-input-stream (io/input-stream source-file)
+                 gzos                (GZIPOutputStream.
+                                      (FileOutputStream. (file new-path)))]
+       (io/copy source-input-stream
+                gzos))
+     (str new-path))))
+
+;;;; End gzip
 
 (defmacro with-temp-dir
   "Evaluate body with binding-name bound to a temporary directory.
