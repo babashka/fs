@@ -551,7 +551,13 @@
     (is (thrown? java.nio.file.FileAlreadyExistsException (fs/gunzip gz-file td-out)))
     (testing "no exception when replacing existing"
       (is (do (fs/gunzip gz-file td-out {:replace-existing true})
-              true)))))
+              true)))
+    (testing "accepts out-file for specifying a custom gzip filename"
+      (let [out-file "doc.md.gz"]
+        (is (= (str (fs/path td-out out-file))
+               (fs/gzip "README.md" {:dir      td-out
+                                     :out-file out-file})))
+        (is (fs/exists? (fs/path td-out out-file)))))))
 
 (deftest with-temp-dir-test
   (let [capture-dir (volatile! nil)]
