@@ -415,7 +415,7 @@
 
 (defn create-dirs
   "Creates directories using `Files#createDirectories`. Also creates parents if needed.
-  Doesn't throw an exception if the dirs exist already. Similar to mkdir -p"
+  Doesn't throw an exception if the dirs exist already. Similar to `mkdir -p`"
   ([path] (create-dirs path nil))
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
@@ -1043,14 +1043,13 @@
   Returns the created gzip file."
   ([source-file]
    (gzip source-file {:dir "."}))
-  ([source-file {:keys [dir out-file] :or {dir "."}}]
+  ([source-file {:keys [dir gzip-file] :or {dir "."}}]
    (assert source-file "source-file must be specified")
    (assert (-> source-file io/file .exists) "source-file does not exist")
-   (assert dir (str "output directory must be specified"))
    (let [output-path (as-path dir)
-         ^String dest-filename (if (str/blank? out-file)
+         ^String dest-filename (if (not gzip-file)
                                  (str source-file ".gz")
-                                 out-file)
+                                 (str  gzip-file))
          new-path (.resolve output-path dest-filename)]
      (create-dirs (parent new-path))
      (with-open [source-input-stream (io/input-stream source-file)
