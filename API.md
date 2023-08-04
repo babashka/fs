@@ -47,7 +47,7 @@
     -  [`move`](#babashka.fs/move) - Move or rename a file to a target dir or file via <code>Files/move</code>.
     -  [`normalize`](#babashka.fs/normalize) - Normalizes f via Path#normalize.
     -  [`owner`](#babashka.fs/owner) - Returns the owner of a file.
-    -  [`parent`](#babashka.fs/parent) - Returns parent of f, is it exists.
+    -  [`parent`](#babashka.fs/parent) - Returns parent of f.
     -  [`path`](#babashka.fs/path) - Coerces f into a Path.
     -  [`path-separator`](#babashka.fs/path-separator)
     -  [`posix->str`](#babashka.fs/posix->str) - Converts a set of PosixFilePermission to a string.
@@ -622,7 +622,7 @@ Returns the owner of a file. Call `str` on it to get the owner name
 (parent f)
 ```
 
-Returns parent of f, is it exists. Akin to `dirname` in bash.
+Returns parent of f. Akin to `dirname` in bash.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L593-L596">Source</a></sub></p>
 
 ## <a name="babashka.fs/path">`path`</a><a name="babashka.fs/path"></a>
