@@ -6,6 +6,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
+- [#112](https://github.com/babashka/fs/issues/112): add `find-up` function to find file or folder by traversing up ([@eval](https://github.com/eval))
 - [#102](https://github.com/babashka/fs/issues/102): add `gzip` and `gunzip` functions
 - [#113](https://github.com/babashka/fs/issues/113): `fs/glob`: enable `:hidden` (when not already set) when `pattern` starts with dot ([@eval](https://github.com/eval)).
 

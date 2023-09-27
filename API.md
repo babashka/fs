@@ -31,6 +31,7 @@
     -  [`file-separator`](#babashka.fs/file-separator)
     -  [`file-time->instant`](#babashka.fs/file-time->instant) - Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
     -  [`file-time->millis`](#babashka.fs/file-time->millis) - Converts a java.nio.file.attribute.FileTime to epoch millis (long).
+    -  [`find-up`](#babashka.fs/find-up) - Starting in folder <code>start</code> and traversing up, either checks if the folder contains <code>to-find</code> (returning the path if it does) or, when <code>to-find</code> is an fn, returns the path of the first folder for which <code>to-find</code> returns logical true.
     -  [`get-attribute`](#babashka.fs/get-attribute)
     -  [`glob`](#babashka.fs/glob) - Given a file and glob pattern, returns matches as vector of paths.
     -  [`gunzip`](#babashka.fs/gunzip) - Extracts <code>gz-file</code> to <code>dest</code> directory (default <code>"."</code>).
@@ -419,6 +420,51 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L708-L711">Source</a></sub></p>
+
+## <a name="babashka.fs/find-up">`find-up`</a><a name="babashka.fs/find-up"></a>
+``` clojure
+
+(find-up to-find)
+(find-up to-find start)
+```
+
+Starting in folder `start` and traversing up, either checks if the folder contains `to-find` (returning the path if it does) or, when `to-find` is an fn, returns the path of the first folder for which `to-find` returns logical true.
+
+  - `to-find` - a string, file or path such as "README.md", ".", (fs/path "fs") or a (fn accept [^java.nio.file.Path p]) -> truthy.
+  - `start` (default `(fs/cwd)`) - a string, file or path such as ".", "~/projects", (fs/file "README.md"). This folder or file should exist, else an `IllegalArgumentException` is thrown.
+
+  Yields the path found, else `nil`.
+
+  Examples:
+
+  ``` clojure
+  (fs/find-up "README.md") ;; search for README.md starting from CWD.
+
+  ;; find .gitignore starting from parent folder
+  (fs/find-up ".gitignore" (fs/parent (fs/cwd)))
+  (fs/find-up ".gitignore" "..")
+  (fs/find-up "../.gitignore")
+
+  ;; find the git work tree using a predicate
+  (let [git-work-tree? #(fs/exists? (fs/path % ".git"))]
+    (fs/find-up git-work-tree?))
+
+  ;; find root of Clojure project we're in (if any).
+  (let [file-finder (fn [path]
+                      #(first (fs/glob path %)))
+        clj-project? (some-fn (file-finder "project.clj") (file-finder "deps.edn"))]
+    (fs/find-up clj-project?))
+
+  ;; `start` may be point to a file
+  (fs/find-up ".gitignore" "~/.gitignore") ;; => /full/path/to/home/.gitignore
+
+  ;; find all .gitignore files in CWD and ancestors
+  (let [to-find ".gitignore"]
+    (take-while some?
+      (iterate #(fs/find-up (fs/parent to-find) %) (find-up to-find))))
+  ```
+  
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1277-L1337">Source</a></sub></p>
 
 ## <a name="babashka.fs/get-attribute">`get-attribute`</a><a name="babashka.fs/get-attribute"></a>
 ``` clojure

@@ -1273,3 +1273,65 @@
   ([app]
    (cond-> (xdg-home-for :state)
      (seq app) (path app))))
+
+(defn find-up
+  "Starting in folder `start` and traversing up, either checks if the folder contains `to-find` (returning the path if it does) or, when `to-find` is an fn, returns the path of the first folder for which `to-find` returns logical true.
+
+  - `to-find` - a string, file or path such as \"README.md\", \".\", (fs/path \"fs\") or a (fn accept [^java.nio.file.Path p]) -> truthy.
+  - `start` (default `(fs/cwd)`) - a string, file or path such as \".\", \"~/projects\", (fs/file \"README.md\"). This folder or file should exist, else an `IllegalArgumentException` is thrown.
+
+  Yields the path found, else `nil`.
+
+  Examples:
+
+  ``` clojure
+  (fs/find-up \"README.md\") ;; search for README.md starting from CWD.
+
+  ;; find .gitignore starting from parent folder
+  (fs/find-up \".gitignore\" (fs/parent (fs/cwd)))
+  (fs/find-up \".gitignore\" \"..\")
+  (fs/find-up \"../.gitignore\")
+
+  ;; find the git work tree using a predicate
+  (let [git-work-tree? #(fs/exists? (fs/path % \".git\"))]
+    (fs/find-up git-work-tree?))
+
+  ;; find root of Clojure project we're in (if any).
+  (let [file-finder (fn [path]
+                      #(first (fs/glob path %)))
+        clj-project? (some-fn (file-finder \"project.clj\") (file-finder \"deps.edn\"))]
+    (fs/find-up clj-project?))
+
+  ;; `start` may be point to a file
+  (fs/find-up \".gitignore\" \"~/.gitignore\") ;; => /full/path/to/home/.gitignore
+
+  ;; find all .gitignore files in CWD and ancestors
+  (let [to-find \".gitignore\"]
+    (take-while some?
+      (iterate #(fs/find-up (fs/parent to-find) %) (find-up to-find))))
+  ```
+  "
+  ([to-find] (find-up to-find (cwd)))
+  ([to-find start]
+   (when (and to-find start)
+     (letfn [(below-root? [file start-folder]
+               (when-not (fn? file)
+                 (let [required-start-folder-depth (count (filter #(= ".." %) (map str (normalize file))))
+                       start-folder-depth          (count (seq start-folder))]
+                   (< start-folder-depth required-start-folder-depth))))
+             (validate-start! [path]
+               (when-not (exists? path)
+                 (throw (IllegalArgumentException. (str "Provided start does not exist: " path))))
+               path)]
+       (let [start-folder        (let [expanded (canonicalize (expand-home (path start)))]
+                                   (cond-> expanded
+                                     :alway                   (validate-start!)
+                                     (regular-file? expanded) parent))
+             start-and-ancestors (take-while some? (iterate parent (normalize start-folder)))
+             folder-map-fn       (if (fn? to-find) identity #(path % to-find))
+             folder-filter-fn    (if (fn? to-find) to-find exists?)]
+         (when-not (below-root? to-find start-folder)
+           (->> start-and-ancestors
+                (map folder-map-fn)
+                (filter folder-filter-fn)
+                first)))))))
