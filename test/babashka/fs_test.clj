@@ -100,7 +100,11 @@
             sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
         (is (empty? (fs/glob sym-link "**")))
         (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
-        (is (= 1 (count (fs/glob (fs/real-path sym-link) "**")))))))
+        (is (= 1 (count (fs/glob (fs/real-path sym-link) "**"))))))
+    (testing ":hidden option should be disabled by default"
+      (is (empty? (map normalize (fs/glob "." "*git*"))))
+      (testing "should be enabled (when not provided) when pattern starts with a dot"
+        (is (= '(".gitignore") (map normalize (fs/glob "." ".git*")))))))
   (testing "glob with specific depth"
     (let [tmp-dir1 (temp-dir)
           nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")

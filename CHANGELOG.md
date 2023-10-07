@@ -7,6 +7,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#102](https://github.com/babashka/fs/issues/102): add `gzip` and `gunzip` functions
+- [#113](https://github.com/babashka/fs/issues/113): `fs/glob`: enable `:hidden` (when not already set) when `pattern` starts with dot ([@eval](https://github.com/eval)).
 
 ## v0.4.19 (2023-05-24)
 
