@@ -274,18 +274,20 @@
    (let [base-path (-> root absolutize normalize)
          base-path (if win?
                      (str/replace base-path file-separator (str "\\" file-separator))
-                     base-path)
+                     (str base-path))
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
          [prefix pattern] (str/split pattern #":")
-         pattern (str base-path
-                      ;; we need to escape the file separator on Windows
-                      (when win? "\\")
-                      file-separator
-                      (if win?
-                        (str/replace pattern "/" "\\\\")
-                        pattern))
+         pattern (let [separator (when-not (str/ends-with? base-path file-separator)
+                                   ;; we need to escape the file separator on Windows
+                                   (str (when win? "\\")
+                                        file-separator))]
+                   (str base-path
+                        separator
+                        (if win?
+                          (str/replace pattern "/" "\\\\")
+                          pattern)))
          pattern (str prefix ":" pattern)
          matcher (.getPathMatcher
                   (FileSystems/getDefault)
