@@ -740,3 +740,38 @@
                 fs/delete-on-exit)
           file-in-dir (fs/create-temp-file {:dir dir})]
       (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
+
+
+(deftest find-up-test
+  (let [path->depth   #(count (seq %))
+        path-til-root #(str/join fs/file-separator (take (path->depth %) (repeat "..")))
+        root-til-path #(fs/relativize (.getRoot %) %)] ;; e.g. Users\Foo\fs or Users/foo/fs
+    (testing "searching up from cwd"
+      (is (= (fs/path (fs/cwd) "README.md")
+             (fs/find-up "README.md")))
+      (is (= (fs/path (fs/cwd) "src" "babashka" "fs.cljc")
+             (fs/find-up (fs/path "src" "babashka" "fs.cljc"))))
+      (let [cwd-til-root (path-til-root (fs/cwd))]
+        (is (fs/same-file? (fs/cwd)
+                           (fs/find-up (str cwd-til-root fs/file-separator (root-til-path (fs/cwd)))))
+            "it should accept a relative path")
+        (is (nil? (fs/find-up (str cwd-til-root
+                                   fs/file-separator ".." ;; one below
+                                   (root-til-path (fs/cwd)))))
+            "it finds nothing when a relative `file` goes below root"))
+      (is (instance? java.nio.file.Path (fs/find-up "README.md"))
+          "it should yield a path"))
+
+    (testing "providing a start-folder"
+      (is (= (fs/path (fs/cwd) ".gitignore")
+             (fs/find-up "." ".gitignore"))
+          "it should accept \".\" as `start`")
+      (let [tmp-path            (fs/create-dirs (fs/path (temp-dir) "find-up-test"))
+            some-folder         (fs/create-dirs (fs/path tmp-path "some-folder"))
+            some-file           (fs/create-file (fs/path tmp-path "some-file"))]
+        (is (fs/same-file? some-file
+                           (fs/find-up some-folder "some-file"))
+            "it should find files in a parent")
+        (testing "`start` being a file"
+          (is (fs/same-file? (fs/path (fs/cwd) ".gitignore")
+                             (fs/find-up ".gitignore" ".gitignore"))))))))

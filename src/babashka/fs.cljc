@@ -1275,3 +1275,43 @@
   ([app]
    (cond-> (xdg-home-for :state)
      (seq app) (path app))))
+
+(defn find-up
+  "Starting in `start` and traversing up, checks if the folder contains `file`.
+
+  - `start` (default `(fs/cwd)`) - a string, file or path such as \".\", (fs/file \"README.md\").
+  - `file` - a string, file or path such as \"README.md\", \".\", (fs/path \"fs\").
+
+  Yields the path of the file found, else `nil`.
+
+  Examples:
+
+  ``` clojure
+  (fs/find-up \"README.md\") ;; search for README.md starting from CWD.
+
+  ;; find .gitignore starting from the parent folder
+  (fs/find-up \"..\" \".gitignore\")
+
+  ;; `start` may point to a file
+  (fs/find-up (fs/path (fs/home) \".gitconfig\") \".gitignore\")
+  ```
+  "
+  ([file] (find-up (cwd) file))
+  ([start file]
+   (letfn [(above-root? [p]
+             ;; false for e.g. /../path, /some/../../path
+             ;; true for e.g.  /some/../path, /some/path/../..
+             (boolean (reduce (fn [acc fragment]
+                                (if (= (str fragment) "..")
+                                  (if (zero? acc) (reduced false) (dec acc))
+                                  (inc acc))) 0 (seq (absolutize p)))))
+           (ancestors [p]
+             (->> p
+                  normalize
+                  (iterate parent)
+                  (take-while some?)))]
+     (let [start        (absolutize start)
+           start-folder (if (directory? start) start (parent start))]
+       (when (above-root? (path start-folder file))
+         (first (keep #(when (exists? (path % file))
+                         (path % file)) (ancestors start-folder))))))))

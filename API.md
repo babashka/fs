@@ -31,6 +31,7 @@
     -  [`file-separator`](#babashka.fs/file-separator)
     -  [`file-time->instant`](#babashka.fs/file-time->instant) - Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
     -  [`file-time->millis`](#babashka.fs/file-time->millis) - Converts a java.nio.file.attribute.FileTime to epoch millis (long).
+    -  [`find-up`](#babashka.fs/find-up) - Starting in <code>start</code> and traversing up, checks if the folder contains <code>file</code>.
     -  [`get-attribute`](#babashka.fs/get-attribute)
     -  [`glob`](#babashka.fs/glob) - Given a file and glob pattern, returns matches as vector of paths.
     -  [`gunzip`](#babashka.fs/gunzip) - Extracts <code>gz-file</code> to <code>dest</code> directory (default <code>"."</code>).
@@ -419,6 +420,34 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L710-L713">Source</a></sub></p>
+
+## <a name="babashka.fs/find-up">`find-up`</a><a name="babashka.fs/find-up"></a>
+``` clojure
+
+(find-up file)
+(find-up start file)
+```
+
+Starting in `start` and traversing up, checks if the folder contains [[`file`](#babashka.fs/file)](#babashka.fs/file).
+
+  - `start` (default `(fs/cwd)`) - a string, file or path such as ".", (fs/file "README.md").
+  - [[`file`](#babashka.fs/file)](#babashka.fs/file) - a string, file or path such as "README.md", ".", (fs/path "fs").
+
+  Yields the path of the file found, else `nil`.
+
+  Examples:
+
+  ``` clojure
+  (fs/find-up "README.md") ;; search for README.md starting from CWD.
+
+  ;; find .gitignore starting from the parent folder
+  (fs/find-up ".." ".gitignore")
+
+  ;; `start` may point to a file
+  (fs/find-up (fs/path (fs/home) ".gitconfig") ".gitignore")
+  ```
+  
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1277-L1315">Source</a></sub></p>
 
 ## <a name="babashka.fs/get-attribute">`get-attribute`</a><a name="babashka.fs/get-attribute"></a>
 ``` clojure
