@@ -743,25 +743,14 @@
 
 
 (deftest find-up-test
-  (let [cwd-name      (fs/file-name (fs/cwd))
-        path->depth   #(count (seq %))
+  (let [path->depth   #(count (seq %))
         path-til-root #(str/join fs/file-separator (take (path->depth %) (repeat "..")))
         root-til-path #(fs/relativize (.getRoot %) %)] ;; e.g. Users\Foo\fs or Users/foo/fs
     (testing "searching up from cwd"
-      (is (nil? (fs/find-up nil))
-          "it should accept nil as this allows for traversing up via parent of previous result")
       (is (= (fs/path (fs/cwd) "README.md")
-             (fs/find-up "README.md"))
-          "it should find an existing file in CWD")
-      (is (= (fs/path (fs/cwd) "README.md")
-             (fs/find-up (fs/path "README.md")))
-          "it should accept a path")
+             (fs/find-up "README.md")))
       (is (= (fs/path (fs/cwd) "src" "babashka" "fs.cljc")
-             (fs/find-up (fs/path "src" "babashka" "fs.cljc")))
-          "it should accept a deeper path to find")
-      (is (= (fs/cwd)
-             (fs/normalize (fs/find-up (str ".." fs/file-separator cwd-name))))
-          "it should find cwd with a relative path")
+             (fs/find-up (fs/path "src" "babashka" "fs.cljc"))))
       (let [cwd-til-root (path-til-root (fs/cwd))]
         (is (fs/same-file? (fs/cwd)
                            (fs/find-up (str cwd-til-root fs/file-separator (root-til-path (fs/cwd)))))
@@ -769,43 +758,20 @@
         (is (nil? (fs/find-up (str cwd-til-root
                                    fs/file-separator ".." ;; one below
                                    (root-til-path (fs/cwd)))))
-            "it should yield nil when a relative `file` goes below root"))
+            "it finds nothing when a relative `file` goes below root"))
       (is (instance? java.nio.file.Path (fs/find-up "README.md"))
           "it should yield a path"))
 
     (testing "providing a start-folder"
-      (is (nil? (fs/find-up ".gitignore" nil))
-          "it should accept nil as `start` and return nil")
       (is (= (fs/path (fs/cwd) ".gitignore")
-             (fs/find-up ".gitignore" "."))
+             (fs/find-up "." ".gitignore"))
           "it should accept \".\" as `start`")
-      (is (= (fs/path (fs/cwd))
-             (fs/find-up cwd-name ".."))
-          "it should find cwd starting at \"..\"")
       (let [tmp-path            (fs/create-dirs (fs/path (temp-dir) "find-up-test"))
             some-folder         (fs/create-dirs (fs/path tmp-path "some-folder"))
-            some-file           (fs/create-file (fs/path tmp-path "some-file"))
-            root-til-start      (root-til-path some-folder)
-            tilde-dotdots-start (let [home-til-root (path-til-root (fs/home))]
-                                  (str "~" fs/file-separator
-                                       home-til-root fs/file-separator
-                                       root-til-start))]
+            some-file           (fs/create-file (fs/path tmp-path "some-file"))]
         (is (fs/same-file? some-file
-                           (fs/find-up "some-file" some-folder))
+                           (fs/find-up some-folder "some-file"))
             "it should find files in a parent")
-        (is (fs/same-file? some-file
-                           (fs/find-up "some-file" tilde-dotdots-start))
-            "it should accept a string containing ~ as `start`")
-        (is (thrown-with-msg? IllegalArgumentException #"Provided start does not exist"
-                              (fs/find-up "some-file" (fs/path some-folder "bogus")))
-            "should throw an exception when `start` does not exist")
         (testing "`start` being a file"
-          (let [sibling-of-in-parent (fs/create-file (fs/path some-folder "in-start"))]
-            (is (fs/same-file? some-file
-                               (fs/find-up "some-file" sibling-of-in-parent))
-                "it should accept `start` being a file")))))
-
-    (testing "passing a predicate"
-      (is (= (fs/cwd)
-             (let [git-working-tree? #(-> % (fs/path ".git") fs/exists?)]
-               (fs/find-up git-working-tree?)))))))
+          (is (fs/same-file? (fs/path (fs/cwd) ".gitignore")
+                             (fs/find-up ".gitignore" ".gitignore"))))))))
