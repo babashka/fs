@@ -13,8 +13,9 @@
             StandardCopyOption
             LinkOption Path
             FileVisitor]
-           [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions]
+           [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions PosixFilePermission]
            [java.nio.charset Charset]
+           [java.util HashSet]
            [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry]
            [java.io File BufferedInputStream FileInputStream FileOutputStream]))
 
@@ -558,17 +559,34 @@
   [f]
   (Files/isSymbolicLink (as-path f)))
 
+(declare posix-file-permissions)
+(declare set-posix-file-permissions)
+
+(defn- u+wx
+  [f]
+  (let [^HashSet perms (posix-file-permissions f)
+        p1 (.add perms PosixFilePermission/OWNER_WRITE)
+        p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
+    (when (or p1 p2)
+      (set-posix-file-permissions f perms))))
+
 (defn delete-tree
-  "Deletes a file tree using `walk-file-tree`. Similar to `rm -rf`. Does not follow symlinks."
-  [root]
-  (when (exists? root)
-    (walk-file-tree root
-                    {:visit-file (fn [path _]
-                                   (delete path)
-                                   :continue)
-                     :post-visit-dir (fn [path _]
-                                       (delete path)
-                                       :continue)})))
+  "Deletes a file tree using `walk-file-tree`. Similar to `rm -rf`. Does not follow symlinks.
+   `force` ensures read-only directories/files are deleted. Similar to `chmod -R +wx` + `rm -rf`"
+  ([root] (delete-tree root nil))
+  ([root {:keys [force]}]
+   (when (exists? root)
+     (walk-file-tree root
+                     {:visit-file (fn [path _]
+                                    (delete path)
+                                    :continue)
+                      :pre-visit-dir (fn [path _]
+                                       (when force
+                                         (u+wx path))
+                                       :continue)
+                      :post-visit-dir (fn [path _]
+                                        (delete path)
+                                        :continue)}))))
 
 (defn create-file
   "Creates empty file using `Files#createFile`."
@@ -1078,7 +1096,7 @@
      (try
        ~@body
        (finally
-         (delete-tree ~binding-name)))))
+         (delete-tree ~binding-name {:force true})))))
 
 (def ^:private cached-home-dir
   (delay (path (System/getProperty "user.home"))))

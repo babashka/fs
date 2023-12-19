@@ -254,7 +254,19 @@
         (is (not (fs/exists? link)))
         (is (fs/exists? tmp-file))
         (is (fs/exists? tmp-dir2))
-        (is (not (fs/exists? tmp-dir1)))))))
+        (is (not (fs/exists? tmp-dir1)))))
+
+    (testing "delete-tree force deletes read-only directories and files"
+      (let [tmp-dir (temp-dir)
+            dir (fs/path tmp-dir "my-dir")
+            file (fs/path tmp-dir "my-dir" "my-file")
+            _ (fs/create-dir dir)
+            _ (fs/create-file file {:posix-file-permissions "r--r--r--"})
+            _ (fs/set-posix-file-permissions dir "r--r--r--")]
+         (is (fs/exists? dir))
+         (fs/delete-tree tmp-dir {:force true})
+         (is (not (fs/exists? tmp-dir)))
+         (is (not (fs/exists? dir)))))))
 
 (deftest move-test
   (let [src-dir (fs/create-temp-dir)
@@ -338,7 +350,7 @@
           (is (= [(fs/path "./off-path/foo.foo") (fs/path "./on-path/foo.foo")]
                  (fs/which-all "foo.foo" {:paths ["./off-path" "./on-path"]})))
           (is (= (fs/path "./off-path/foo.foo")
-                 (fs/which "foo.foo" {:paths ["./off-path" "./on-path"]})))          )))
+                 (fs/which "foo.foo" {:paths ["./off-path" "./on-path"]}))))))
     (testing "'which' shouldn't find directories"
       (is (nil? (fs/which "path-subdir"))))
     (testing "'which' shouldn't find non executables"
@@ -575,6 +587,20 @@
         (is (fs/exists? (fs/path dir "xx"))))
       (testing "deletes its directory and contents on exit from the scope"
         (is (not (fs/exists? (fs/path @capture-dir "xx"))))
+        (is (not (fs/exists? @capture-dir)))))))
+
+(deftest with-temp-dir-read-only-test
+  (let [capture-dir (volatile! nil)]
+    (fs/with-temp-dir [tmp-dir {:prefix "with-temp-dir-read-only-test"}]
+      (vreset! capture-dir tmp-dir)
+      (let [dir (fs/path tmp-dir "my-dir")
+            file (fs/path tmp-dir "my-dir" "my-file")
+            _ (fs/create-dir dir)
+            _ (fs/create-file file {:posix-file-permissions "r--r--r--"})
+            _ (fs/set-posix-file-permissions dir "r--r--r--")]))
+    (testing "deletes its directory and contents (read-only) on exit from the scope"
+      (is (not (fs/exists? (fs/path @capture-dir "my-dir" "my-file"))))
+      (is (not (fs/exists? (fs/path @capture-dir "my-dir")))
         (is (not (fs/exists? @capture-dir)))))))
 
 (deftest home-test
