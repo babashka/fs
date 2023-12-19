@@ -261,12 +261,18 @@
             dir (fs/path tmp-dir "my-dir")
             file (fs/path tmp-dir "my-dir" "my-file")
             _ (fs/create-dir dir)
-            _ (fs/create-file file {:posix-file-permissions "r--r--r--"})
-            _ (fs/set-posix-file-permissions dir "r--r--r--")]
-         (is (fs/exists? dir))
-         (fs/delete-tree tmp-dir {:force true})
-         (is (not (fs/exists? tmp-dir)))
-         (is (not (fs/exists? dir)))))))
+            _ (fs/create-file file)]
+        (if windows?
+          (do
+            (.setWritable (fs/file file) false)
+            (.setWritable (fs/file dir) false))
+          (do
+            (fs/set-posix-file-permissions file "r--r--r--")
+            (fs/set-posix-file-permissions dir "r--r--r--")))
+        (is (fs/exists? dir))
+        (fs/delete-tree tmp-dir {:force true})
+        (is (not (fs/exists? tmp-dir)))
+        (is (not (fs/exists? dir)))))))
 
 (deftest move-test
   (let [src-dir (fs/create-temp-dir)
@@ -596,8 +602,14 @@
       (let [dir (fs/path tmp-dir "my-dir")
             file (fs/path tmp-dir "my-dir" "my-file")
             _ (fs/create-dir dir)
-            _ (fs/create-file file {:posix-file-permissions "r--r--r--"})
-            _ (fs/set-posix-file-permissions dir "r--r--r--")]))
+            _ (fs/create-file file)]
+        (if windows?
+          (do
+            (.setWritable (fs/file file) false)
+            (.setWritable (fs/file dir) false))
+          (do
+            (fs/set-posix-file-permissions file "r--r--r--")
+            (fs/set-posix-file-permissions dir "r--r--r--")))))
     (testing "deletes its directory and contents (read-only) on exit from the scope"
       (is (not (fs/exists? (fs/path @capture-dir "my-dir" "my-file"))))
       (is (not (fs/exists? (fs/path @capture-dir "my-dir")))

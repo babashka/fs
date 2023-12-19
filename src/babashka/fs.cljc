@@ -564,11 +564,13 @@
 
 (defn- u+wx
   [f]
-  (let [^HashSet perms (posix-file-permissions f)
-        p1 (.add perms PosixFilePermission/OWNER_WRITE)
-        p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
-    (when (or p1 p2)
-      (set-posix-file-permissions f perms))))
+  (if win?
+    (.setWritable (file f) true)
+    (let [^HashSet perms (posix-file-permissions f)
+          p1 (.add perms PosixFilePermission/OWNER_WRITE)
+          p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
+      (when (or p1 p2)
+        (set-posix-file-permissions f perms)))))
 
 (defn delete-tree
   "Deletes a file tree using `walk-file-tree`. Similar to `rm -rf`. Does not follow symlinks.
@@ -578,6 +580,8 @@
    (when (exists? root)
      (walk-file-tree root
                      {:visit-file (fn [path _]
+                                    (when (and win? force)
+                                      (.setWritable (file path) true))
                                     (delete path)
                                     :continue)
                       :pre-visit-dir (fn [path _]
