@@ -228,6 +228,43 @@
   (let [paths (map str (fs/list-dir (fs/real-path ".") "*.clj"))]
     (is (pos? (count paths)))))
 
+(deftest delete-permission-assumptions-test
+  (let [tmp-dir (temp-dir)
+        dir (fs/path tmp-dir "my-dir")
+        file (fs/path tmp-dir "my-dir" "my-file")
+        _ (fs/create-dir dir)]
+    (when (not windows?)
+      (testing "On Unix, read-only files can be deleted"
+        (fs/create-file file)
+        (fs/set-posix-file-permissions file "r--r--r--")
+        (is (nil? (fs/delete file))))
+      (testing "On Unix, files in a read-only directory cannot be deleted"
+        (fs/create-file file)
+        (fs/set-posix-file-permissions dir "r--------")
+        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
+        (fs/set-posix-file-permissions dir "--x------")
+        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
+        (fs/set-posix-file-permissions dir "r-x------")
+        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
+        (fs/set-posix-file-permissions dir "rwx------")
+        (is (nil? (fs/delete file)))))
+    (when windows?
+      (testing "On Windows, .setWritable is idempotent"
+        (fs/create-file file)
+        (.setWritable (fs/file file) true)
+        (.setWritable (fs/file file) true)
+        (is (nil? (fs/delete file))))
+      (testing "On Windows, read-only files can't be deleted"
+        (fs/create-file file)
+        (.setWritable (fs/file file) false)
+        (is (thrown? Exception (fs/delete file)))
+        (.setWritable (fs/file file) true)
+        (is (nil? (fs/delete file))))
+      (testing "On Windows, files in a read-only directory can be deleted"
+        (fs/create-file file)
+        (.setWritable (fs/file dir) false)
+        (is (nil? (fs/delete file)))))))
+
 (deftest delete-tree-test
   (let [tmp-dir1 (temp-dir)
         nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
@@ -778,3 +815,4 @@
                 fs/delete-on-exit)
           file-in-dir (fs/create-temp-file {:dir dir})]
       (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
+
