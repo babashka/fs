@@ -4,9 +4,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## v0.5.20 (2023-12-21)
 
-- [#119](https://github.com/babashka/fs/issues/119): `fs/delete-tree`: add `:force` flag to delete read-only directories/files. Set the flag to true in  `fs/with-temp-dir`.
+- [#119](https://github.com/babashka/fs/issues/119): `fs/delete-tree`: add `:force` flag to delete read-only directories/files. Set the flag to true in  `fs/with-temp-dir` ([@jlesquembre](https://github.com/jlesquembre))
 - [#102](https://github.com/babashka/fs/issues/102): add `gzip` and `gunzip` functions
 - [#113](https://github.com/babashka/fs/issues/113): `fs/glob`: enable `:hidden` (when not already set) when `pattern` starts with dot ([@eval](https://github.com/eval)).
 - [#117](https://github.com/babashka/fs/issues/117): fix `fs/match` and `fs/glob` not finding files in root-folder ([@eval](https://github.com/eval)).
