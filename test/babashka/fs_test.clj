@@ -228,6 +228,43 @@
   (let [paths (map str (fs/list-dir (fs/real-path ".") "*.clj"))]
     (is (pos? (count paths)))))
 
+(deftest delete-permission-assumptions-test
+  (let [tmp-dir (temp-dir)
+        dir (fs/path tmp-dir "my-dir")
+        file (fs/path tmp-dir "my-dir" "my-file")
+        _ (fs/create-dir dir)]
+    (when (not windows?)
+      (testing "On Unix, read-only files can be deleted"
+        (fs/create-file file)
+        (fs/set-posix-file-permissions file "r--r--r--")
+        (is (nil? (fs/delete file))))
+      (testing "On Unix, files in a read-only directory cannot be deleted"
+        (fs/create-file file)
+        (fs/set-posix-file-permissions dir "r--------")
+        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
+        (fs/set-posix-file-permissions dir "--x------")
+        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
+        (fs/set-posix-file-permissions dir "r-x------")
+        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
+        (fs/set-posix-file-permissions dir "rwx------")
+        (is (nil? (fs/delete file)))))
+    (when windows?
+      (testing "On Windows, .setWritable is idempotent"
+        (fs/create-file file)
+        (.setWritable (fs/file file) true)
+        (.setWritable (fs/file file) true)
+        (is (nil? (fs/delete file))))
+      (testing "On Windows, read-only files can't be deleted"
+        (fs/create-file file)
+        (.setWritable (fs/file file) false)
+        (is (thrown? Exception (fs/delete file)))
+        (.setWritable (fs/file file) true)
+        (is (nil? (fs/delete file))))
+      (testing "On Windows, files in a read-only directory can be deleted"
+        (fs/create-file file)
+        (.setWritable (fs/file dir) false)
+        (is (nil? (fs/delete file)))))))
+
 (deftest delete-tree-test
   (let [tmp-dir1 (temp-dir)
         nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
@@ -254,7 +291,25 @@
         (is (not (fs/exists? link)))
         (is (fs/exists? tmp-file))
         (is (fs/exists? tmp-dir2))
-        (is (not (fs/exists? tmp-dir1)))))))
+        (is (not (fs/exists? tmp-dir1)))))
+
+    (testing "delete-tree force deletes read-only directories and files"
+      (let [tmp-dir (temp-dir)
+            dir (fs/path tmp-dir "my-dir")
+            file (fs/path tmp-dir "my-dir" "my-file")
+            _ (fs/create-dir dir)
+            _ (fs/create-file file)]
+        (if windows?
+          (do
+            (.setWritable (fs/file file) false)
+            (.setWritable (fs/file dir) false))
+          (do
+            (fs/set-posix-file-permissions file "r--r--r--")
+            (fs/set-posix-file-permissions dir "r--r--r--")))
+        (is (fs/exists? dir))
+        (fs/delete-tree tmp-dir {:force true})
+        (is (not (fs/exists? tmp-dir)))
+        (is (not (fs/exists? dir)))))))
 
 (deftest move-test
   (let [src-dir (fs/create-temp-dir)
@@ -338,7 +393,7 @@
           (is (= [(fs/path "./off-path/foo.foo") (fs/path "./on-path/foo.foo")]
                  (fs/which-all "foo.foo" {:paths ["./off-path" "./on-path"]})))
           (is (= (fs/path "./off-path/foo.foo")
-                 (fs/which "foo.foo" {:paths ["./off-path" "./on-path"]})))          )))
+                 (fs/which "foo.foo" {:paths ["./off-path" "./on-path"]}))))))
     (testing "'which' shouldn't find directories"
       (is (nil? (fs/which "path-subdir"))))
     (testing "'which' shouldn't find non executables"
@@ -577,6 +632,26 @@
         (is (not (fs/exists? (fs/path @capture-dir "xx"))))
         (is (not (fs/exists? @capture-dir)))))))
 
+(deftest with-temp-dir-read-only-test
+  (let [capture-dir (volatile! nil)]
+    (fs/with-temp-dir [tmp-dir {:prefix "with-temp-dir-read-only-test"}]
+      (vreset! capture-dir tmp-dir)
+      (let [dir (fs/path tmp-dir "my-dir")
+            file (fs/path tmp-dir "my-dir" "my-file")
+            _ (fs/create-dir dir)
+            _ (fs/create-file file)]
+        (if windows?
+          (do
+            (.setWritable (fs/file file) false)
+            (.setWritable (fs/file dir) false))
+          (do
+            (fs/set-posix-file-permissions file "r--r--r--")
+            (fs/set-posix-file-permissions dir "r--r--r--")))))
+    (testing "deletes its directory and contents (read-only) on exit from the scope"
+      (is (not (fs/exists? (fs/path @capture-dir "my-dir" "my-file"))))
+      (is (not (fs/exists? (fs/path @capture-dir "my-dir")))
+        (is (not (fs/exists? @capture-dir)))))))
+
 (deftest home-test
   (let [user-home (fs/path (System/getProperty "user.home"))
         user-dir (fs/parent user-home)]
@@ -740,3 +815,4 @@
                 fs/delete-on-exit)
           file-in-dir (fs/create-temp-file {:dir dir})]
       (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
+
