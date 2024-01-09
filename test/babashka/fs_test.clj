@@ -120,7 +120,12 @@
             _ (fs/create-dirs nested-dir)
             _ (spit (fs/file nested-dir "dude.clj") "contents")
             _ (spit (fs/file nested-dir "dude2.clj") "contents")]
-        (is (= 2 (count (fs/glob tmp-dir1 "foo/bar/baz/*.clj"))))))))
+        (is (= 2 (count (fs/glob tmp-dir1 "foo/bar/baz/*.clj")))))))
+  (testing "return also directories"
+    (let [tmp-dir1 (temp-dir)
+          nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
+          _ (fs/create-dirs nested-dir)]
+      (is (= 2 (count (map fs/directory? (fs/glob tmp-dir1 "**/{bar,baz}" {:recursive true}))))))))
 
 (deftest create-dir-test
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
