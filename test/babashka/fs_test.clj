@@ -225,7 +225,10 @@
     (.setReadOnly (fs/file tmp "src" "foo"))
     (fs/copy-tree (fs/path tmp "src") (fs/path tmp "dst"))
     (is (fs/exists? (fs/path tmp "dst" "foo" "bar")))
-    (is (not (fs/writable? (fs/path tmp "dst" "foo"))))))
+    (when (not windows?)
+      ;; you can always write to directories on Windows, even if they are read-only
+      ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
+      (is (not (fs/writable? (fs/path tmp "dst" "foo")))))))
 
 (deftest components-test
   (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
