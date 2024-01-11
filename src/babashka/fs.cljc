@@ -424,6 +424,9 @@
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
 
+(declare posix-file-permissions)
+(declare u+wx)
+
 (defn copy-tree
   "Copies entire file tree from src to dest. Creates dest if needed
   using `create-dirs`, passing it the `:posix-file-permissions`
@@ -453,7 +456,8 @@
                                               (when-not (Files/exists to-dir link-options)
                                                 (Files/copy ^Path dir to-dir
                                                             ^"[Ljava.nio.file.CopyOption;"
-                                                            copy-options)))
+                                                            copy-options)
+                                                (u+wx to-dir)))
                                             :continue)
                            :visit-file (fn [from-path _attrs]
                                          (let [rel (relativize from from-path)
@@ -462,7 +466,13 @@
                                                        ^"[Ljava.nio.file.CopyOption;"
                                                        copy-options)
                                            :continue)
-                                         :continue)}))))
+                                         :continue)
+                           :post-visit-dir (fn [dir _ex]
+                                             (let [rel (relativize from dir)
+                                                   to-dir (path to rel)]
+                                               (let [perms (posix-file-permissions (file dir))]
+                                                 (Files/setPosixFilePermissions to-dir perms))
+                                               :continue))}))))
 
 (defn temp-dir
   "Returns `java.io.tmpdir` property as path."
