@@ -224,7 +224,8 @@
     (fs/create-dirs (fs/path tmp "src" "foo" "bar"))
     (fs/set-posix-file-permissions (fs/path tmp "src" "foo") "r-xr-xr-x")
     (fs/copy-tree (fs/path tmp "src") (fs/path tmp "dst"))
-    (is (fs/exists? (fs/path tmp "dst" "foo" "bar")))))
+    (is (fs/exists? (fs/path tmp "dst" "foo" "bar")))
+    (is (not (fs/writable? (fs/path tmp "dst" "foo"))))))
 
 (deftest components-test
   (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
