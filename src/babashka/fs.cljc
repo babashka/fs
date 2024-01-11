@@ -470,8 +470,11 @@
                            :post-visit-dir (fn [dir _ex]
                                              (let [rel (relativize from dir)
                                                    to-dir (path to rel)]
-                                               (let [perms (posix-file-permissions (file dir))]
-                                                 (Files/setPosixFilePermissions to-dir perms))
+                                               (if win?
+                                                 (when-not (.canWrite (file from))
+                                                   (.setWritable (file dir) false))
+                                                 (let [perms (posix-file-permissions (file dir))]
+                                                  (Files/setPosixFilePermissions to-dir perms)))
                                                :continue))}))))
 
 (defn temp-dir
