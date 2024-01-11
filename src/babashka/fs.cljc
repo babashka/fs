@@ -209,8 +209,8 @@
                           (preVisitDirectory [_ dir attrs]
                             (-> (pre-visit-dir dir attrs)
                                 file-visit-result))
-                          (postVisitDirectory [_ dir attrs]
-                            (-> (post-visit-dir dir attrs)
+                          (postVisitDirectory [_ dir ex]
+                            (-> (post-visit-dir dir ex)
                                 file-visit-result))
                           (visitFile [_ path attrs]
                             (-> (visit-file path attrs)
