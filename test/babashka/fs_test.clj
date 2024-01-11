@@ -222,7 +222,7 @@
   (fs/with-temp-dir [tmp {}]
     ;; https://github.com/babashka/fs/issues/122
     (fs/create-dirs (fs/path tmp "src" "foo" "bar"))
-    (.setWritable (fs/file tmp "src" "foo") false)
+    (.setReadOnly (fs/file tmp "src" "foo"))
     (fs/copy-tree (fs/path tmp "src") (fs/path tmp "dst"))
     (is (fs/exists? (fs/path tmp "dst" "foo" "bar")))
     (is (not (fs/writable? (fs/path tmp "dst" "foo"))))))
