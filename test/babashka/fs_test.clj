@@ -218,6 +218,14 @@
     (is (fs/exists? (fs/file tmp"foo2" "foo" "1"))
         "The nested destination directory is not created when it doesn't exist")))
 
+(deftest copy-tree-nested-ro-dir-test
+  (fs/with-temp-dir [tmp {}]
+    ;; https://github.com/babashka/fs/issues/122
+    (fs/create-dirs (fs/path tmp "src" "foo" "bar"))
+    (fs/set-posix-file-permissions (fs/path tmp "src" "foo") "r-xr-xr-x")
+    (fs/copy-tree (fs/path tmp "src") (fs/path tmp "dst"))
+    (is (fs/exists? (fs/path tmp "dst" "foo" "bar")))))
+
 (deftest components-test
   (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
     (is (= "foo" (last paths)))
