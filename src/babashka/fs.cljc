@@ -424,8 +424,26 @@
   ([path {:keys [:posix-file-permissions]}]
    (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
 
-(declare posix-file-permissions)
-(declare u+wx)
+(defn set-posix-file-permissions
+  "Sets posix file permissions on f. Accepts a string like `\"rwx------\"` or a set of PosixFilePermission."
+  [f posix-file-permissions]
+  (Files/setPosixFilePermissions (as-path f) (->posix-file-permissions posix-file-permissions)))
+
+(defn posix-file-permissions
+  "Gets f's posix file permissions. Use posix->str to view as a string."
+  ([f] (posix-file-permissions f nil))
+  ([f {:keys [:nofollow-links]}]
+   (Files/getPosixFilePermissions (as-path f) (->link-opts nofollow-links))))
+
+(defn- u+wx
+  [f]
+  (if win?
+    (.setWritable (file f) true)
+    (let [^HashSet perms (posix-file-permissions f)
+          p1 (.add perms PosixFilePermission/OWNER_WRITE)
+          p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
+      (when (or p1 p2)
+        (set-posix-file-permissions f perms)))))
 
 (defn copy-tree
   "Copies entire file tree from src to dest. Creates dest if needed
@@ -474,8 +492,20 @@
                                                  (when-not (.canWrite (file from))
                                                    (.setWritable (file dir) false))
                                                  (let [perms (posix-file-permissions (file dir))]
-                                                  (Files/setPosixFilePermissions to-dir perms)))
+                                                   (Files/setPosixFilePermissions to-dir perms)))
                                                :continue))}))))
+(declare posix-file-permissions)
+(declare set-posix-file-permissions)
+
+(defn- u+wx
+  [f]
+  (if win?
+    (.setWritable (file f) true)
+    (let [^HashSet perms (posix-file-permissions f)
+          p1 (.add perms PosixFilePermission/OWNER_WRITE)
+          p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
+      (when (or p1 p2)
+        (set-posix-file-permissions f perms)))))
 
 (defn temp-dir
   "Returns `java.io.tmpdir` property as path."
@@ -572,19 +602,6 @@
   [f]
   (Files/isSymbolicLink (as-path f)))
 
-(declare posix-file-permissions)
-(declare set-posix-file-permissions)
-
-(defn- u+wx
-  [f]
-  (if win?
-    (.setWritable (file f) true)
-    (let [^HashSet perms (posix-file-permissions f)
-          p1 (.add perms PosixFilePermission/OWNER_WRITE)
-          p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
-      (when (or p1 p2)
-        (set-posix-file-permissions f perms)))))
-
 (defn delete-tree
   "Deletes a file tree using `walk-file-tree`. Similar to `rm -rf`. Does not follow symlinks.
    `force` ensures read-only directories/files are deleted. Similar to `chmod -R +wx` + `rm -rf`"
@@ -645,17 +662,6 @@
   [f]
   (.deleteOnExit (as-file f))
   f)
-
-(defn set-posix-file-permissions
-  "Sets posix file permissions on f. Accepts a string like `\"rwx------\"` or a set of PosixFilePermission."
-  [f posix-file-permissions]
-  (Files/setPosixFilePermissions (as-path f) (->posix-file-permissions posix-file-permissions)))
-
-(defn posix-file-permissions
-  "Gets f's posix file permissions. Use posix->str to view as a string."
-  ([f] (posix-file-permissions f nil))
-  ([f {:keys [:nofollow-links]}]
-   (Files/getPosixFilePermissions (as-path f) (->link-opts nofollow-links))))
 
 (defn same-file?
   "Returns true if this is the same file as other."
