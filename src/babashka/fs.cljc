@@ -475,7 +475,8 @@
                                                 (Files/copy ^Path dir to-dir
                                                             ^"[Ljava.nio.file.CopyOption;"
                                                             copy-options)
-                                                (u+wx to-dir)))
+                                                (when-not win?
+                                                  (u+wx to-dir))))
                                             :continue)
                            :visit-file (fn [from-path _attrs]
                                          (let [rel (relativize from from-path)
@@ -488,9 +489,7 @@
                            :post-visit-dir (fn [dir _ex]
                                              (let [rel (relativize from dir)
                                                    to-dir (path to rel)]
-                                               (if win?
-                                                 (when-not (.canWrite (file from))
-                                                   (.setWritable (file dir) false))
+                                               (when-not win?
                                                  (let [perms (posix-file-permissions (file dir))]
                                                    (Files/setPosixFilePermissions to-dir perms)))
                                                :continue))}))))
