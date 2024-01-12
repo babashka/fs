@@ -218,6 +218,18 @@
     (is (fs/exists? (fs/file tmp"foo2" "foo" "1"))
         "The nested destination directory is not created when it doesn't exist")))
 
+(deftest copy-tree-nested-ro-dir-test
+  (fs/with-temp-dir [tmp {}]
+    ;; https://github.com/babashka/fs/issues/122
+    (fs/create-dirs (fs/path tmp "src" "foo" "bar"))
+    (.setReadOnly (fs/file tmp "src" "foo"))
+    (fs/copy-tree (fs/path tmp "src") (fs/path tmp "dst"))
+    (is (fs/exists? (fs/path tmp "dst" "foo" "bar")))
+    (when (not windows?)
+      ;; you can always write to directories on Windows, even if they are read-only
+      ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
+      (is (not (fs/writable? (fs/path tmp "dst" "foo")))))))
+
 (deftest components-test
   (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
     (is (= "foo" (last paths)))
