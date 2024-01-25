@@ -496,16 +496,6 @@
 (declare posix-file-permissions)
 (declare set-posix-file-permissions)
 
-(defn- u+wx
-  [f]
-  (if win?
-    (.setWritable (file f) true)
-    (let [^HashSet perms (posix-file-permissions f)
-          p1 (.add perms PosixFilePermission/OWNER_WRITE)
-          p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
-      (when (or p1 p2)
-        (set-posix-file-permissions f perms)))))
-
 (defn temp-dir
   "Returns `java.io.tmpdir` property as path."
   []
