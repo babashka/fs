@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.walk :as walk])
-  (:import [java.io File]
+  (:import [java.io File InputStream]
            [java.net URI]
            [java.nio.file StandardOpenOption CopyOption
             #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
@@ -966,11 +966,11 @@
   ([zip-file dest] (unzip zip-file dest nil))
   ([zip-file dest {:keys [replace-existing]}]
    (let [output-path (as-path dest)
-         zip-file (as-path zip-file)
          _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)]
      (with-open
-      [fis (Files/newInputStream zip-file (into-array java.nio.file.OpenOption []))
+      [fis (if (instance? InputStream zip-file) zip-file
+                (Files/newInputStream (as-path zip-file) (into-array java.nio.file.OpenOption [])))
        zis (ZipInputStream. fis)]
        (loop []
          (let [entry (.getNextEntry zis)]
