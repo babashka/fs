@@ -969,8 +969,9 @@
          _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)]
      (with-open
-      [fis (if (instance? InputStream zip-file) zip-file
-                (Files/newInputStream (as-path zip-file) (into-array java.nio.file.OpenOption [])))
+       [^InputStream fis
+        (if (instance? InputStream zip-file) zip-file
+            (Files/newInputStream (as-path zip-file) (into-array java.nio.file.OpenOption [])))
        zis (ZipInputStream. fis)]
        (loop []
          (let [entry (.getNextEntry zis)]
