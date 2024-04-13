@@ -384,7 +384,9 @@
   (PosixFilePermissions/toString p))
 
 (defn str->posix
-  "Converts a string to a set of PosixFilePermission."
+  "Converts a string to a set of PosixFilePermission.
+
+  `s` is a string like `\"rwx------\"`."
   [s]
   (PosixFilePermissions/fromString s))
 
@@ -508,7 +510,9 @@
   `(create-temp-dir {:keys [:prefix :dir :posix-file-permissions]})`:
 
   create temp dir in dir path with prefix. If prefix is not provided, a random one
-  is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`. The `:posix-file-permissions` option is a string like `\"rwx------\"`."
+  is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`.
+  File permissions can be specified with an `:posix-file-permissions` option.
+  String format for posix file permissions is described in the `str->posix` docstring."
   ([]
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
@@ -530,10 +534,12 @@
   "Creates an empty temporary file using Files#createTempFile.
 
   - `(create-temp-file)`: creates temp file with random prefix and suffix.
-  - `(create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]})`: create
-  temp file in path with prefix. If prefix and suffix are not
-  provided, random ones are generated. The `:posix-file-permissions`
-  option is a string like `\"rwx------\"`."
+
+  - `(create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]})`:
+  create temp file in path with prefix. If prefix and suffix are not provided,
+  random ones are generated.
+  File permissions can be specified with an `:posix-file-permissions` option.
+  String format for posix file permissions is described in the `str->posix` docstring."
   ([]
    (Files/createTempFile
     (str (java.util.UUID/randomUUID))
@@ -614,7 +620,10 @@
                                         :continue)}))))
 
 (defn create-file
-  "Creates empty file using `Files#createFile`."
+  "Creates empty file using `Files#createFile`.
+
+  File permissions can be specified with an `:posix-file-permissions` option.
+  String format for posix file permissions is described in the `str->posix` docstring."
   ([path]
    (create-file path nil))
   ([path {:keys [:posix-file-permissions]}]

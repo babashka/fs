@@ -7,6 +7,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#122](https://github.com/babashka/fs/issues/122): `fs/copy-tree`: fix copying read-only directories with children ([@sohalt](https://github.com/sohalt))
+- [#127](https://github.com/babashka/fs/issues/127): Inconsistent documentation for the `:posix-file-permissions` options ([@teodorlu](https://github.com/teodorlu))
 
 ## v0.5.20 (2023-12-21)
 
