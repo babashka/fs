@@ -614,7 +614,9 @@
                                         :continue)}))))
 
 (defn create-file
-  "Creates empty file using `Files#createFile`."
+  "Creates empty file using `Files#createFile`.
+
+  The `:posix-file-permissions` option is a string like `\"rwx------\"`."
   ([path]
    (create-file path nil))
   ([path {:keys [:posix-file-permissions]}]
