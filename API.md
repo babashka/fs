@@ -222,15 +222,15 @@ Create a soft link from path to target.
 ``` clojure
 
 (create-temp-dir)
-(create-temp-dir {:keys [:prefix :dir :posix-file-permissions], :as opts})
+(create-temp-dir {:keys [:dir :prefix :posix-file-permissions], :as opts})
 ```
 
 Creates a temporary directory using Files#createDirectories.
 
-  `(create-temp-dir)`: creates temp dir with random prefix.
-  `(create-temp-dir {:keys [:prefix :dir :posix-file-permissions]})`:
+  - `(create-temp-dir)`: creates temp dir with random prefix.
 
-  create temp dir in dir path with prefix. If prefix is not provided, a random one
+  - `(create-temp-dir {:keys [:dir :prefix :posix-file-permissions]})`:
+  create temp dir in dir with prefix. If prefix is not provided, a random one
   is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`.
   File permissions can be specified with an `:posix-file-permissions` option.
   String format for posix file permissions is described in the [`str->posix`](#babashka.fs/str->posix) docstring.
@@ -247,8 +247,8 @@ Creates an empty temporary file using Files#createTempFile.
 
   - `(create-temp-file)`: creates temp file with random prefix and suffix.
 
-  - `(create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]})`:
-  create temp file in path with prefix. If prefix and suffix are not provided,
+  - `(create-temp-dir {:keys [:dir :prefix :suffix :posix-file-permissions]})`:
+  create temp file in dir with prefix. If prefix and suffix are not provided,
   random ones are generated.
   File permissions can be specified with an `:posix-file-permissions` option.
   String format for posix file permissions is described in the [`str->posix`](#babashka.fs/str->posix) docstring.

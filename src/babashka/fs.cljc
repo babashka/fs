@@ -506,10 +506,10 @@
 (defn create-temp-dir
   "Creates a temporary directory using Files#createDirectories.
 
-  `(create-temp-dir)`: creates temp dir with random prefix.
-  `(create-temp-dir {:keys [:prefix :dir :posix-file-permissions]})`:
+  - `(create-temp-dir)`: creates temp dir with random prefix.
 
-  create temp dir in dir path with prefix. If prefix is not provided, a random one
+  - `(create-temp-dir {:keys [:dir :prefix :posix-file-permissions]})`:
+  create temp dir in dir with prefix. If prefix is not provided, a random one
   is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`.
   File permissions can be specified with an `:posix-file-permissions` option.
   String format for posix file permissions is described in the `str->posix` docstring."
@@ -517,7 +517,7 @@
    (Files/createTempDirectory
     (str (java.util.UUID/randomUUID))
     (make-array FileAttribute 0)))
-  ([{:keys [:prefix :dir :posix-file-permissions] :as opts}]
+  ([{:keys [:dir :prefix :posix-file-permissions] :as opts}]
    (let [attrs (posix->attrs posix-file-permissions)
          prefix (or prefix (str (java.util.UUID/randomUUID)))
          dir (or dir (:path opts))]
@@ -535,8 +535,8 @@
 
   - `(create-temp-file)`: creates temp file with random prefix and suffix.
 
-  - `(create-temp-dir {:keys [:prefix :suffix :path :posix-file-permissions]})`:
-  create temp file in path with prefix. If prefix and suffix are not provided,
+  - `(create-temp-dir {:keys [:dir :prefix :suffix :posix-file-permissions]})`:
+  create temp file in dir with prefix. If prefix and suffix are not provided,
   random ones are generated.
   File permissions can be specified with an `:posix-file-permissions` option.
   String format for posix file permissions is described in the `str->posix` docstring."
