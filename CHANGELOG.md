@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## v0.5.21 (2024-05-17)
 
 - [#122](https://github.com/babashka/fs/issues/122): `fs/copy-tree`: fix copying read-only directories with children ([@sohalt](https://github.com/sohalt))
 - [#127](https://github.com/babashka/fs/issues/127): Inconsistent documentation for the `:posix-file-permissions` options ([@teodorlu](https://github.com/teodorlu))
