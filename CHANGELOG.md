@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Unreleased
+
+- [#130](https://github.com/babashka/fs/issues/130) Unclear from `fs/glob`docs that it supports a `:max-depth` option ([@teodorlu](https://github.com/teodorlu))
+
 ## v0.5.21 (2024-05-17)
 
 - [#125](https://github.com/babashka/fs/issues/125) Allow `unzip` to take a `java.io.InputStream`
