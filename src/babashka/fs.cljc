@@ -336,6 +336,7 @@
   * `:hidden` - match hidden paths. Implied when `pattern` starts with a dot. Note: on Windows files starting with a dot are not hidden, unless their hidden attribute is set.
   * `:follow-links` - follow symlinks.
   * `:recursive` - force recursive search. Implied when `pattern` contains `**` or `/`.
+  * `:max-depth` - max depth to descend into directory structure.
 
   Examples:
   `(fs/glob \".\" \"**.clj\")`"
