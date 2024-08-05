@@ -63,7 +63,9 @@
       (let [tmp-dir1 (temp-dir)
             _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
             tmp-dir2 (temp-dir)
-            sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
+            sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)
+            target (fs/read-link sym-link)]
+        (is (= (str target) (str tmp-dir1)))
         (is (empty? (fs/match sym-link "regex:.*")))
         (is (= 1 (count (fs/match sym-link "regex:.*" {:follow-links true}))))
         (is (= 1 (count (fs/match (fs/real-path sym-link) "regex:.*")))))))
