@@ -579,6 +579,11 @@
    (as-path path)
    (as-path target)))
 
+(defn read-link
+  "Reads the target of a symbolic link. The target need not exist."
+  [path]
+  (java.nio.file.Files/readSymbolicLink (as-path path)))
+
 (defn delete
   "Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks."
