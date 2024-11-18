@@ -536,7 +536,7 @@
 
   - `(create-temp-file)`: creates temp file with random prefix and suffix.
 
-  - `(create-temp-dir {:keys [:dir :prefix :suffix :posix-file-permissions]})`:
+  - `(create-temp-file {:keys [:dir :prefix :suffix :posix-file-permissions]})`:
   create temp file in dir with prefix. If prefix and suffix are not provided,
   random ones are generated.
   File permissions can be specified with an `:posix-file-permissions` option.
