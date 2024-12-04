@@ -35,6 +35,14 @@
 
 (defn- as-path
   ^Path [path]
+  (cond
+    (instance? Path path) path
+    (instance? URI path) (Path/of ^java.net.URI path)
+    (instance? File path) (.toPath ^java.io.File path)
+    :else (Path/of (str path) (make-array String 0))))
+
+#_(defn- as-path
+  ^Path [path]
   (if (instance? Path path) path
       (if (instance? URI path)
         (java.nio.file.Paths/get ^URI path)

@@ -6,7 +6,7 @@
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src"]
-  :dependencies [[org.clojure/clojure "1.9.0"]]
+  :dependencies [[org.clojure/clojure "1.10.0"]]
   :plugins [[lein-codox "0.10.7"]
             [lein-cloverage "1.2.2"]]
   :codox {:output-path "gh-pages"}
