@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## v0.5.23 (2024-12-04)
+
+- [#135](https://github.com/babashka/fs/issues/135): preserve protocol when calling `fs/path` on multiple arguments ([@mk](https://github.com/mk))
+
 ## v0.5.22 (2024-08-05)
 
 - [#130](https://github.com/babashka/fs/issues/130) Unclear from `fs/glob` docs that it supports a `:max-depth` option ([@teodorlu](https://github.com/teodorlu))
