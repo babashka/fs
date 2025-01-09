@@ -838,5 +838,8 @@
 (deftest issue-135-test
   (let [uri (java.net.URI/create (str "jar:file:" (fs/unixify (fs/cwd)) "/test-resources/bencode-1.1.0.jar"))
         fs (java.nio.file.FileSystems/newFileSystem uri {})
-        path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String []))]
-    (is (fs/path path-in-zip "core.clj"))))
+        path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String []))
+        zip-path (fs/path path-in-zip "core.clj")]
+    (is zip-path)
+    (is (= "/bencode/core.clj" (str zip-path)))
+    (is (instance? jdk.nio.zipfs.ZipPath zip-path))))
