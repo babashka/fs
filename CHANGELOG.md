@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## v0.5.24 (2025-01-09)
+
+- [#135](https://github.com/babashka/fs/issues/135): additional fix for preserving protocol when calling `fs/path` on multiple arguments ([@Sohalt](https://github.com/Sohalt))
+
 ## v0.5.23 (2024-12-04)
 
 - [#135](https://github.com/babashka/fs/issues/135): preserve protocol when calling `fs/path` on multiple arguments ([@mk](https://github.com/mk))
