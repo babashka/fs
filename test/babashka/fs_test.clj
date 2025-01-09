@@ -835,3 +835,10 @@
           file-in-dir (fs/create-temp-file {:dir dir})]
       (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
 
+(deftest issue-135-test
+  (def u (java.net.URI/create (str "jar:file:" (fs/cwd) "/test-resources/bencode-1.1.0.jar")))
+  (def fs (java.nio.file.FileSystems/newFileSystem u {}))
+
+  (def path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String [])))
+
+  (fs/path path-in-zip "core.clj"))
