@@ -56,7 +56,9 @@
    (as-path f))
   (^Path [parent child]
    (if parent
-     (.resolve (as-path parent) (as-path child))
+     (if (string? child)
+       (.resolve ^Path (as-path parent) ^String child)
+       (.resolve ^Path (as-path parent) (as-path child)))
      (as-path child)))
   (^Path [parent child & more]
    (reduce path (path parent child) more)))
