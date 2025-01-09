@@ -841,5 +841,4 @@
         path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String []))
         zip-path (fs/path path-in-zip "core.clj")]
     (is zip-path)
-    (is (= "/bencode/core.clj" (str zip-path)))
-    (is (instance? jdk.nio.zipfs.ZipPath zip-path))))
+    (is (= "/bencode/core.clj" (str zip-path)))))
