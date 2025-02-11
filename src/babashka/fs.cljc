@@ -1256,9 +1256,9 @@
          {:keys [charset]
           :or {charset "utf-8"}} opts
          opts [:encoding charset]
-         old-val (apply slurp file opts)
+         old-val (apply slurp (as-file file) opts)
          new-val (apply f old-val xs)]
-     (apply spit file new-val opts)
+     (apply spit (as-file file) new-val opts)
      new-val)))
 
 (defn unixify

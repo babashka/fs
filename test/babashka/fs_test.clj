@@ -779,7 +779,11 @@
 
   (let [file (fs/file (fs/temp-dir) (str (gensym)))]
     (spit file ", ")
-    (is (= "foo, bar, baz" (fs/update-file file str/join ["foo" "bar" "baz"])))))
+    (is (= "foo, bar, baz" (fs/update-file file str/join ["foo" "bar" "baz"]))))
+
+  (let [path (fs/path (fs/file (fs/temp-dir) (str (gensym))))]
+    (spit (fs/file path) "foo")
+    (is (= "foobar" (fs/update-file path str "bar")))))
 
 (deftest unixify-test
   (when windows?
