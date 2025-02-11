@@ -1248,17 +1248,17 @@
   Options:
 
   * `:charset` - charset of file, default to \"utf-8\""
-  {:arglists '([file f & xs] [file opts f & xs])}
-  ([file f & xs]
+  {:arglists '([path f & xs] [path opts f & xs])}
+  ([path f & xs]
    (let [[opts f xs] (if (map? f)
                        [f (first xs) (rest xs)]
                        [nil f xs])
          {:keys [charset]
           :or {charset "utf-8"}} opts
          opts [:encoding charset]
-         old-val (apply slurp file opts)
+         old-val (apply slurp (as-file path) opts)
          new-val (apply f old-val xs)]
-     (apply spit file new-val opts)
+     (apply spit (as-file path) new-val opts)
      new-val)))
 
 (defn unixify
