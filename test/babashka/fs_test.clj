@@ -78,6 +78,11 @@
                         (fs/match tmp-dir1 "regex:foo\\\\bar\\\\baz\\\\.*" {:recursive true})
                         (fs/match tmp-dir1 "regex:foo/bar/baz/.*" {:recursive true})))))))
   (testing "match on root with special chars"
+    (let [dir (fs/create-dirs (fs/path "test-resources" "foo*{[]}"))
+          txt-file (fs/file dir "test.txt")]
+      (fs/delete-on-exit dir)
+      (fs/delete-on-exit txt-file)
+      (spit txt-file "hello"))
     (is (= "test.txt" (fs/file-name (first (fs/match "test-resources/foo*{[]}" "glob:*.txt")))))
     (is (= "test.txt" (fs/file-name (first (fs/match "test-resources/foo*{[]}" "regex:.*\\.txt")))))))
 
