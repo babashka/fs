@@ -291,23 +291,26 @@
   `(fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})`"
   ([root pattern] (match root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth recursive]}]
-   (let [base-path (-> root absolutize normalize)
-         base-path (if win?
-                     (str/replace base-path file-separator (str "\\" file-separator))
-                     (str base-path))
-         skip-hidden? (not hidden)
-         results (atom (transient []))
-         past-root? (volatile! nil)
-         [prefix pattern] (str/split pattern #":")
-         base-path-escaped (case prefix
+   (let [[prefix pattern] (str/split pattern #":")
+         base-path (-> root absolutize normalize str)
+         escaped-base-path (case prefix
                              "glob" (escape-glob-chars base-path)
                              "regex" (escape-regex-chars base-path)
                              base-path)
+         [base-path escaped-base-path]
+         (if win?
+           (mapv (fn [s]
+                   (str/replace s file-separator (str "\\" file-separator)))
+                 [base-path escaped-base-path])
+           [base-path escaped-base-path])
+         skip-hidden? (not hidden)
+         results (atom (transient []))
+         past-root? (volatile! nil)
          pattern (let [separator (when-not (str/ends-with? base-path file-separator)
                                    ;; we need to escape the file separator on Windows
                                    (str (when win? "\\")
                                         file-separator))]
-                   (str base-path-escaped
+                   (str escaped-base-path
                         separator
                         (if win?
                           (str/replace pattern "/" "\\\\")
