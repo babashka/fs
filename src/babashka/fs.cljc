@@ -297,13 +297,6 @@
                              "glob" (escape-glob-chars base-path)
                              "regex" (escape-regex-chars base-path)
                              base-path)
-         [base-path escaped-base-path]
-         (if win?
-           (mapv (fn [s]
-                   (str/replace s file-separator (str "\\" file-separator)))
-                 [base-path escaped-base-path])
-           [base-path escaped-base-path])
-         _ (prn :base-path base-path :escaped-path escaped-base-path)
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
