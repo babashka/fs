@@ -76,7 +76,10 @@
           _ (spit (fs/file nested-dir "dude.txt") "contents")]
       (is (= 1 (count (if windows?
                         (fs/match tmp-dir1 "regex:foo\\\\bar\\\\baz\\\\.*" {:recursive true})
-                        (fs/match tmp-dir1 "regex:foo/bar/baz/.*" {:recursive true}))))))))
+                        (fs/match tmp-dir1 "regex:foo/bar/baz/.*" {:recursive true})))))))
+  (testing "match on root with special chars"
+    (is (= "test.txt" (fs/file-name (first (fs/match "test-resources/foo*{[]}" "glob:*.txt")))))
+    (is (= "test.txt" (fs/file-name (first (fs/match "test-resources/foo*{[]}" "regex:.*\\.txt")))))))
 
 (deftest glob-test
   (let [readme-match (fs/glob "." "README.md")]
