@@ -259,6 +259,21 @@
       (str/lower-case)
       (str/includes? "win")))
 
+(defn- escape-glob-chars
+  "Escapes special glob characters in the input string."
+  [s]
+  (let [special-chars #{\\ \* \? \[ \] \{ \}}
+        escape-char (fn [c]
+                      (if (contains? special-chars c)
+                        (str "\\" c)
+                        (str c)))]
+    (apply str (map escape-char s))))
+
+(defn- escape-regex-chars
+  "Escapes a string so it can be used literally in a regular expression."
+  [s]
+  (java.util.regex.Pattern/quote s))
+
 (defn match
   "Given a file and match pattern, returns matches as vector of
   paths. Pattern interpretation is done using the rules described in
@@ -276,19 +291,20 @@
   `(fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})`"
   ([root pattern] (match root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth recursive]}]
-   (let [base-path (-> root absolutize normalize)
-         base-path (if win?
-                     (str/replace base-path file-separator (str "\\" file-separator))
-                     (str base-path))
+   (let [[prefix pattern] (str/split pattern #":")
+         base-path (-> root absolutize normalize str)
+         escaped-base-path (case prefix
+                             "glob" (escape-glob-chars base-path)
+                             "regex" (escape-regex-chars base-path)
+                             base-path)
          skip-hidden? (not hidden)
          results (atom (transient []))
          past-root? (volatile! nil)
-         [prefix pattern] (str/split pattern #":")
          pattern (let [separator (when-not (str/ends-with? base-path file-separator)
                                    ;; we need to escape the file separator on Windows
                                    (str (when win? "\\")
                                         file-separator))]
-                   (str base-path
+                   (str escaped-base-path
                         separator
                         (if win?
                           (str/replace pattern "/" "\\\\")

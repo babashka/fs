@@ -4,6 +4,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Unreleased
+
+- #141: `fs/match` doesn't match when root dir contains glob or regex characters in path
 - [#138](https://github.com/babashka/fs/issues/138): Fix `fs/update-file` to support paths ([@rfhayashi](https://github.com/rfhayashi))
 
 ## v0.5.24 (2025-01-09)
