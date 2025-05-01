@@ -33,7 +33,7 @@
     -  [`file-time->millis`](#babashka.fs/file-time->millis) - Converts a java.nio.file.attribute.FileTime to epoch millis (long).
     -  [`get-attribute`](#babashka.fs/get-attribute)
     -  [`glob`](#babashka.fs/glob) - Given a file and glob pattern, returns matches as vector of paths.
-    -  [`gunzip`](#babashka.fs/gunzip) - Extracts <code>gz-file</code> to <code>dest</code> directory (default <code>"."</code>).
+    -  [`gunzip`](#babashka.fs/gunzip) - Extracts <code>gz-file</code> to <code>dest</code> directory (default <code>&quot;.&quot;</code>).
     -  [`gzip`](#babashka.fs/gzip) - Gzips <code>source-file</code> and writes the output to <code>dir/out-file</code>.
     -  [`hidden?`](#babashka.fs/hidden?) - Returns true if f is hidden.
     -  [`home`](#babashka.fs/home) - With no arguments, returns the current value of the <code>user.home</code> system property.
@@ -76,7 +76,7 @@
     -  [`sym-link?`](#babashka.fs/sym-link?) - Determines if <code>f</code> is a symbolic link via <code>java.nio.file.Files/isSymbolicLink</code>.
     -  [`temp-dir`](#babashka.fs/temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
     -  [`unixify`](#babashka.fs/unixify) - Returns path as string with Unix-style file separators (<code>/</code>).
-    -  [`unzip`](#babashka.fs/unzip) - Unzips <code>zip-file</code> to <code>dest</code> directory (default <code>"."</code>).
+    -  [`unzip`](#babashka.fs/unzip) - Unzips <code>zip-file</code> to <code>dest</code> directory (default <code>&quot;.&quot;</code>).
     -  [`update-file`](#babashka.fs/update-file) - Updates the contents of text file <code>path</code> using <code>f</code> applied to old contents and <code>xs</code>.
     -  [`walk-file-tree`](#babashka.fs/walk-file-tree) - Walks f using Files/walkFileTree.
     -  [`which`](#babashka.fs/which) - Returns Path to first executable <code>program</code> found in <code>:paths</code> <code>opt</code>, similar to the which Unix command.
@@ -105,6 +105,7 @@
 
 (absolute? f)
 ```
+Function.
 
 Returns true if f represents an absolute path.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L119-L121">Source</a></sub></p>
@@ -114,6 +115,7 @@ Returns true if f represents an absolute path.
 
 (absolutize f)
 ```
+Function.
 
 Converts f into an absolute path via Path#toAbsolutePath.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L158-L160">Source</a></sub></p>
@@ -124,6 +126,7 @@ Converts f into an absolute path via Path#toAbsolutePath.
 (canonicalize f)
 (canonicalize f {:keys [:nofollow-links]})
 ```
+Function.
 
 Returns the canonical path via
   java.io.File#getCanonicalPath. If `:nofollow-links` is set, then it
@@ -136,6 +139,7 @@ Returns the canonical path via
 
 (components f)
 ```
+Function.
 
 Returns a seq of all components of f as paths, i.e. split on the file
   separator.
@@ -147,6 +151,7 @@ Returns a seq of all components of f as paths, i.e. split on the file
 (copy src dest)
 (copy src dest {:keys [replace-existing copy-attributes nofollow-links]})
 ```
+Function.
 
 Copies src file to dest dir or file.
   Options:
@@ -161,6 +166,7 @@ Copies src file to dest dir or file.
 (copy-tree src dest)
 (copy-tree src dest {:keys [:replace-existing :copy-attributes :nofollow-links], :as opts})
 ```
+Function.
 
 Copies entire file tree from src to dest. Creates dest if needed
   using [`create-dirs`](#babashka.fs/create-dirs), passing it the `:posix-file-permissions`
@@ -173,6 +179,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 (create-dir path)
 (create-dir path {:keys [:posix-file-permissions]})
 ```
+Function.
 
 Creates dir using `Files#createDirectory`. Does not create parents.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L435-L441">Source</a></sub></p>
@@ -183,6 +190,7 @@ Creates dir using `Files#createDirectory`. Does not create parents.
 (create-dirs path)
 (create-dirs path {:keys [:posix-file-permissions]})
 ```
+Function.
 
 Creates directories using `Files#createDirectories`. Also creates parents if needed.
   Doesn't throw an exception if the dirs exist already. Similar to `mkdir -p`
@@ -194,6 +202,7 @@ Creates directories using `Files#createDirectories`. Also creates parents if nee
 (create-file path)
 (create-file path {:keys [:posix-file-permissions]})
 ```
+Function.
 
 Creates empty file using `Files#createFile`.
 
@@ -206,6 +215,7 @@ Creates empty file using `Files#createFile`.
 
 (create-link path target)
 ```
+Function.
 
 Create a hard link from path to target.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L595-L600">Source</a></sub></p>
@@ -215,6 +225,7 @@ Create a hard link from path to target.
 
 (create-sym-link path target)
 ```
+Function.
 
 Create a soft link from path to target.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L587-L593">Source</a></sub></p>
@@ -225,6 +236,7 @@ Create a soft link from path to target.
 (create-temp-dir)
 (create-temp-dir {:keys [:dir :prefix :posix-file-permissions], :as opts})
 ```
+Function.
 
 Creates a temporary directory using Files#createDirectories.
 
@@ -243,6 +255,7 @@ Creates a temporary directory using Files#createDirectories.
 (create-temp-file)
 (create-temp-file {:keys [:dir :prefix :suffix :posix-file-permissions], :as opts})
 ```
+Function.
 
 Creates an empty temporary file using Files#createTempFile.
 
@@ -261,6 +274,7 @@ Creates an empty temporary file using Files#createTempFile.
 (creation-time f)
 (creation-time f {:keys [nofollow-links], :as opts})
 ```
+Function.
 
 Returns creation time as FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L806-L811">Source</a></sub></p>
@@ -270,6 +284,7 @@ Returns creation time as FileTime.
 
 (cwd)
 ```
+Function.
 
 Returns current working directory as path
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1188-L1191">Source</a></sub></p>
@@ -279,6 +294,7 @@ Returns current working directory as path
 
 (delete f)
 ```
+Function.
 
 Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks.
@@ -289,6 +305,7 @@ Deletes f. Returns nil if the delete was successful,
 
 (delete-if-exists f)
 ```
+Function.
 
 Deletes f if it exists. Returns true if the delete was successful,
   false if f didn't exist. Does not follow symlinks.
@@ -299,6 +316,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 
 (delete-on-exit f)
 ```
+Function.
 
 Requests delete on exit via `File#deleteOnExit`. Returns f.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L684-L688">Source</a></sub></p>
@@ -309,6 +327,7 @@ Requests delete on exit via `File#deleteOnExit`. Returns f.
 (delete-tree root)
 (delete-tree root {:keys [force]})
 ```
+Function.
 
 Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Similar to `rm -rf`. Does not follow symlinks.
    `force` ensures read-only directories/files are deleted. Similar to `chmod -R +wx` + `rm -rf`
@@ -320,6 +339,7 @@ Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Simil
 (directory? f)
 (directory? f {:keys [:nofollow-links]})
 ```
+Function.
 
 Returns true if f is a directory, using Files/isDirectory.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L102-L107">Source</a></sub></p>
@@ -329,6 +349,7 @@ Returns true if f is a directory, using Files/isDirectory.
 
 (ends-with? this other)
 ```
+Function.
 
 Returns true if path this ends with path other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L948-L951">Source</a></sub></p>
@@ -338,6 +359,7 @@ Returns true if path this ends with path other.
 
 (exec-paths)
 ```
+Function.
 
 Returns executable paths (using the PATH environment variable). Same
   as `(split-paths (System/getenv "PATH"))`.
@@ -348,6 +370,7 @@ Returns executable paths (using the PATH environment variable). Same
 
 (executable? f)
 ```
+Function.
 
 Returns true if f is executable.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L123-L125">Source</a></sub></p>
@@ -358,6 +381,7 @@ Returns true if f is executable.
 (exists? f)
 (exists? f {:keys [:nofollow-links]})
 ```
+Function.
 
 Returns true if f exists.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L139-L148">Source</a></sub></p>
@@ -367,9 +391,10 @@ Returns true if f exists.
 
 (expand-home f)
 ```
+Function.
 
-If [[`path`](#babashka.fs/path)](#babashka.fs/path) begins with a tilde (`~`), expand the tilde to the value
-  of the `user.home` system property. If the [[`path`](#babashka.fs/path)](#babashka.fs/path) begins with a
+If [`path`](#babashka.fs/path) begins with a tilde (`~`), expand the tilde to the value
+  of the `user.home` system property. If the [`path`](#babashka.fs/path) begins with a
   tilde immediately followed by some characters, they are assumed to
   be a username. This is expanded to the path to that user's home
   directory. This is (naively) assumed to be a directory with the same
@@ -382,6 +407,7 @@ If [[`path`](#babashka.fs/path)](#babashka.fs/path) begins with a tilde (`~`), e
 
 (extension path)
 ```
+Function.
 
 Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L853-L856">Source</a></sub></p>
@@ -392,6 +418,7 @@ Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
 (file f)
 (file f & fs)
 ```
+Function.
 
 Coerces f into a File. Multiple-arg versions treat the first argument
   as parent and subsequent args as children relative to the parent.
@@ -402,6 +429,7 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 
 (file-name x)
 ```
+Function.
 
 Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") returns "baz".
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L183-L186">Source</a></sub></p>
@@ -417,6 +445,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 
 (file-time->instant ft)
 ```
+Function.
 
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L767-L770">Source</a></sub></p>
@@ -426,6 +455,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 
 (file-time->millis ft)
 ```
+Function.
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L777-L780">Source</a></sub></p>
@@ -436,6 +466,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 (get-attribute path attribute)
 (get-attribute path attribute {:keys [:nofollow-links]})
 ```
+Function.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L717-L723">Source</a></sub></p>
 
 ## <a name="babashka.fs/glob">`glob`</a><a name="babashka.fs/glob"></a>
@@ -444,6 +475,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 (glob root pattern)
 (glob root pattern opts)
 ```
+Function.
 
 Given a file and glob pattern, returns matches as vector of
   paths. Patterns containing `**` or `/` will cause a recursive walk over
@@ -470,6 +502,7 @@ Given a file and glob pattern, returns matches as vector of
 (gunzip gz-file dest)
 (gunzip gz-file dest {:keys [replace-existing]})
 ```
+Function.
 
 Extracts `gz-file` to `dest` directory (default `"."`).
 
@@ -483,6 +516,7 @@ Extracts `gz-file` to `dest` directory (default `"."`).
 (gzip source-file)
 (gzip source-file {:keys [dir out-file], :or {dir "."}})
 ```
+Function.
 
 Gzips `source-file` and writes the output to `dir/out-file`.
   If `out-file` is not provided, the `source-file` name with `.gz` appended is used.
@@ -495,6 +529,7 @@ Gzips `source-file` and writes the output to `dir/out-file`.
 
 (hidden? f)
 ```
+Function.
 
 Returns true if f is hidden.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L115-L117">Source</a></sub></p>
@@ -505,6 +540,7 @@ Returns true if f is hidden.
 (home)
 (home user)
 ```
+Function.
 
 With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
@@ -516,6 +552,7 @@ With no arguments, returns the current value of the `user.home`
 
 (instant->file-time instant)
 ```
+Function.
 
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L772-L775">Source</a></sub></p>
@@ -526,6 +563,7 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 (last-modified-time f)
 (last-modified-time f {:keys [nofollow-links], :as opts})
 ```
+Function.
 
 Returns last modified time as a java.nio.file.attribute.FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L792-L797">Source</a></sub></p>
@@ -536,6 +574,7 @@ Returns last modified time as a java.nio.file.attribute.FileTime.
 (list-dir dir)
 (list-dir dir glob-or-accept)
 ```
+Function.
 
 Returns all paths in dir as vector. For descending into subdirectories use `glob.`
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
@@ -546,6 +585,7 @@ Returns all paths in dir as vector. For descending into subdirectories use `glob
 
 (list-dirs dirs glob-or-accept)
 ```
+Function.
 
 Similar to list-dir but accepts multiple roots and returns the concatenated results.
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
@@ -557,6 +597,7 @@ Similar to list-dir but accepts multiple roots and returns the concatenated resu
 (match root pattern)
 (match root pattern {:keys [hidden follow-links max-depth recursive]})
 ```
+Function.
 
 Given a file and match pattern, returns matches as vector of
   paths. Pattern interpretation is done using the rules described in
@@ -579,6 +620,7 @@ Given a file and match pattern, returns matches as vector of
 
 (millis->file-time millis)
 ```
+Function.
 
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L782-L785">Source</a></sub></p>
@@ -588,6 +630,7 @@ Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
 
 (modified-since anchor file-set)
 ```
+Function.
 
 Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
   The anchor path can be a regular file or directory, in which case
@@ -603,6 +646,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 (move source target)
 (move source target {:keys [:replace-existing :atomic-move :nofollow-links]})
 ```
+Function.
 
 Move or rename a file to a target dir or file via `Files/move`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L659-L672">Source</a></sub></p>
@@ -612,6 +656,7 @@ Move or rename a file to a target dir or file via `Files/move`.
 
 (normalize f)
 ```
+Function.
 
 Normalizes f via Path#normalize.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L167-L170">Source</a></sub></p>
@@ -622,6 +667,7 @@ Normalizes f via Path#normalize.
 (owner f)
 (owner f {:keys [:nofollow-links]})
 ```
+Function.
 
 Returns the owner of a file. Call `str` on it to get the owner name
   as a string.
@@ -632,6 +678,7 @@ Returns the owner of a file. Call `str` on it to get the owner name
 
 (parent f)
 ```
+Function.
 
 Returns parent of f. Akin to `dirname` in bash.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L674-L677">Source</a></sub></p>
@@ -643,6 +690,7 @@ Returns parent of f. Akin to `dirname` in bash.
 (path parent child)
 (path parent child & more)
 ```
+Function.
 
 Coerces f into a Path. Multiple-arg versions treat the first argument as
   parent and subsequent args as children relative to the parent.
@@ -659,6 +707,7 @@ Coerces f into a Path. Multiple-arg versions treat the first argument as
 
 (posix->str p)
 ```
+Function.
 
 Converts a set of PosixFilePermission to a string.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L402-L405">Source</a></sub></p>
@@ -674,6 +723,7 @@ Converts a set of PosixFilePermission to a string.
 
 (read-all-bytes f)
 ```
+Function.
 
 Returns contents of file as byte array.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L695-L698">Source</a></sub></p>
@@ -684,6 +734,7 @@ Returns contents of file as byte array.
 (read-all-lines f)
 (read-all-lines f {:keys [charset], :or {charset "utf-8"}})
 ```
+Function.
 
 Read all lines from a file.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L705-L713">Source</a></sub></p>
@@ -694,6 +745,7 @@ Read all lines from a file.
 (read-attributes path attributes)
 (read-attributes path attributes {:keys [:nofollow-links :key-fn], :as opts})
 ```
+Function.
 
 Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
@@ -705,6 +757,7 @@ Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes
 (read-attributes* path attributes)
 (read-attributes* path attributes {:keys [:nofollow-links]})
 ```
+Function.
 
 Reads attributes via Files/readAttributes.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L730-L746">Source</a></sub></p>
@@ -714,6 +767,7 @@ Reads attributes via Files/readAttributes.
 
 (read-link path)
 ```
+Function.
 
 Reads the target of a symbolic link. The target need not exist.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L602-L605">Source</a></sub></p>
@@ -723,6 +777,7 @@ Reads the target of a symbolic link. The target need not exist.
 
 (readable? f)
 ```
+Function.
 
 Returns true if f is readable
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L127-L129">Source</a></sub></p>
@@ -733,6 +788,7 @@ Returns true if f is readable
 (real-path f)
 (real-path f {:keys [:nofollow-links]})
 ```
+Function.
 
 Converts f into real path via Path#toRealPath.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L80-L84">Source</a></sub></p>
@@ -743,6 +799,7 @@ Converts f into real path via Path#toRealPath.
 (regular-file? f)
 (regular-file? f {:keys [:nofollow-links]})
 ```
+Function.
 
 Returns true if f is a regular file, using Files/isRegularFile.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L95-L100">Source</a></sub></p>
@@ -752,6 +809,7 @@ Returns true if f is a regular file, using Files/isRegularFile.
 
 (relative? f)
 ```
+Function.
 
 Returns true if f represents a relative path.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L135-L137">Source</a></sub></p>
@@ -761,6 +819,7 @@ Returns true if f represents a relative path.
 
 (relativize this other)
 ```
+Function.
 
 Returns relative path by comparing this with other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L162-L165">Source</a></sub></p>
@@ -770,6 +829,7 @@ Returns relative path by comparing this with other.
 
 (same-file? this other)
 ```
+Function.
 
 Returns true if this is the same file as other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L690-L693">Source</a></sub></p>
@@ -780,6 +840,7 @@ Returns true if this is the same file as other.
 (set-attribute path attribute value)
 (set-attribute path attribute value {:keys [:nofollow-links]})
 ```
+Function.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L758-L765">Source</a></sub></p>
 
 ## <a name="babashka.fs/set-creation-time">`set-creation-time`</a><a name="babashka.fs/set-creation-time"></a>
@@ -788,6 +849,7 @@ Returns true if this is the same file as other.
 (set-creation-time f time)
 (set-creation-time f time {:keys [nofollow-links], :as opts})
 ```
+Function.
 
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L813-L818">Source</a></sub></p>
@@ -798,6 +860,7 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 (set-last-modified-time f time)
 (set-last-modified-time f time {:keys [nofollow-links], :as opts})
 ```
+Function.
 
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L799-L804">Source</a></sub></p>
@@ -813,6 +876,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 
 (size f)
 ```
+Function.
 
 Returns the size of a file (in bytes).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L679-L682">Source</a></sub></p>
@@ -823,6 +887,7 @@ Returns the size of a file (in bytes).
 (split-ext path)
 (split-ext path {:keys [ext]})
 ```
+Function.
 
 Splits path on extension If provided, a specific extension `ext`, the
   extension (without dot), will be used for splitting.  Directories
@@ -834,6 +899,7 @@ Splits path on extension If provided, a specific extension `ext`, the
 
 (split-paths joined-paths)
 ```
+Function.
 
 Splits a path list given as a string joined by the OS-specific path-separator into a vec of paths.
   On UNIX systems, the separator is ':', on Microsoft Windows systems it is ';'.
@@ -844,6 +910,7 @@ Splits a path list given as a string joined by the OS-specific path-separator in
 
 (starts-with? this other)
 ```
+Function.
 
 Returns true if path this starts with path other.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L943-L946">Source</a></sub></p>
@@ -853,6 +920,7 @@ Returns true if path this starts with path other.
 
 (str->posix s)
 ```
+Function.
 
 Converts a string to a set of PosixFilePermission.
 
@@ -865,6 +933,7 @@ Converts a string to a set of PosixFilePermission.
 (strip-ext path)
 (strip-ext path {:keys [ext], :as opts})
 ```
+Function.
 
 Strips extension via [`split-ext`](#babashka.fs/split-ext).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L846-L851">Source</a></sub></p>
@@ -874,6 +943,7 @@ Strips extension via [`split-ext`](#babashka.fs/split-ext).
 
 (sym-link? f)
 ```
+Function.
 
 Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L621-L624">Source</a></sub></p>
@@ -883,6 +953,7 @@ Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
 
 (temp-dir)
 ```
+Function.
 
 Returns `java.io.tmpdir` property as path.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L522-L525">Source</a></sub></p>
@@ -892,6 +963,7 @@ Returns `java.io.tmpdir` property as path.
 
 (unixify f)
 ```
+Function.
 
 Returns path as string with Unix-style file separators (`/`).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1280-L1285">Source</a></sub></p>
@@ -903,6 +975,7 @@ Returns path as string with Unix-style file separators (`/`).
 (unzip zip-file dest)
 (unzip zip-file dest {:keys [replace-existing]})
 ```
+Function.
 
 Unzips `zip-file` to `dest` directory (default `"."`).
 
@@ -916,6 +989,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
 (update-file path f & xs)
 (update-file path opts f & xs)
 ```
+Function.
 
 Updates the contents of text file [`path`](#babashka.fs/path) using `f` applied to old contents and `xs`.
   Returns the new contents.
@@ -930,6 +1004,7 @@ Updates the contents of text file [`path`](#babashka.fs/path) using `f` applied 
 
 (walk-file-tree f {:keys [:pre-visit-dir :post-visit-dir :visit-file :visit-file-failed :follow-links :max-depth]})
 ```
+Function.
 
 Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   :post-visit-dir, :visit-file, :visit-file-failed. All visitor functions
@@ -944,6 +1019,7 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
 (which program)
 (which program opts)
 ```
+Function.
 
 Returns Path to first executable `program` found in `:paths` `opt`, similar to the which Unix command.
   Default for `:paths` is `(exec-paths)`.
@@ -963,6 +1039,7 @@ Returns Path to first executable `program` found in `:paths` `opt`, similar to t
 (which-all program)
 (which-all program opts)
 ```
+Function.
 
 Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths)). See [`which`](#babashka.fs/which).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L931-L935">Source</a></sub></p>
@@ -972,6 +1049,7 @@ Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths
 
 (windows?)
 ```
+Function.
 
 Returns true if OS is Windows.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1183-L1186">Source</a></sub></p>
@@ -981,7 +1059,7 @@ Returns true if OS is Windows.
 
 (with-temp-dir [binding-name options] & body)
 ```
-Function.
+Macro.
 
 Evaluate body with binding-name bound to a temporary directory.
 
@@ -996,6 +1074,7 @@ Evaluate body with binding-name bound to a temporary directory.
 
 (writable? f)
 ```
+Function.
 
 Returns true if f is writable
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L131-L133">Source</a></sub></p>
@@ -1006,6 +1085,7 @@ Returns true if f is writable
 (write-bytes path bytes)
 (write-bytes path bytes {:keys [append create truncate-existing write], :as opts})
 ```
+Function.
 
 Writes `bytes` to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
   Supported options:
@@ -1029,6 +1109,7 @@ Writes `bytes` to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
 (write-lines path lines)
 (write-lines path lines {:keys [charset], :or {charset "utf-8"}, :as opts})
 ```
+Function.
 
 Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
 
@@ -1049,6 +1130,7 @@ Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.ni
 (xdg-cache-home)
 (xdg-cache-home app)
 ```
+Function.
 
 Path representing the base directory relative to which user-specific non-essential data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
@@ -1062,6 +1144,7 @@ Path representing the base directory relative to which user-specific non-essenti
 (xdg-config-home)
 (xdg-config-home app)
 ```
+Function.
 
 Path representing the base directory relative to which user-specific configuration files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
@@ -1075,6 +1158,7 @@ Path representing the base directory relative to which user-specific configurati
 (xdg-data-home)
 (xdg-data-home app)
 ```
+Function.
 
 Path representing the base directory relative to which user-specific data files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
@@ -1088,6 +1172,7 @@ Path representing the base directory relative to which user-specific data files 
 (xdg-state-home)
 (xdg-state-home app)
 ```
+Function.
 
 Path representing the base directory relative to which user-specific state files should be stored as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
@@ -1101,6 +1186,7 @@ Path representing the base directory relative to which user-specific state files
 (zip zip-file entries)
 (zip zip-file entries opts)
 ```
+Function.
 
 Zips entry or entries into zip-file. An entry may be a file or
   directory. Directories are included recursively and their names are
