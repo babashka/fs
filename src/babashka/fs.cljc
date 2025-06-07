@@ -952,17 +952,53 @@
 
 ;;;; Modified since
 
+;; (defn- last-modified-1
+;;   "Returns max last-modified of regular file f. Returns 0 if file does not exist."
+;;   ^FileTime [f]
+;;   (if (exists? f)
+;;     (last-modified-time f)
+;;     (FileTime/fromMillis 0)))
+
+;; (defn- max-filetime [filetimes]
+;;   (reduce #(if (pos? (.compareTo ^FileTime %1 ^FileTime %2))
+;;              %1 %2)
+;;           (FileTime/fromMillis 0) filetimes))
+
+;; (defn- last-modified
+;;   "Returns max last-modified of f or of all files within f"
+;;   [f]
+;;   (if (exists? f)
+;;     (if (regular-file? f)
+;;       (last-modified-1 f)
+;;       (max-filetime
+;;              (map last-modified-1
+;;                   (filter regular-file? (file-seq (file f))))))
+;;     (FileTime/fromMillis 0)))
+
+;; (defn- expand-file-set
+;;   [file-set]
+;;   (if (coll? file-set)
+;;     (mapcat expand-file-set file-set)
+;;     (filter regular-file? (file-seq (file file-set)))))
+
+;; (defn modified-since
+;;   "Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
+;;   The anchor path can be a regular file or directory, in which case
+;;   the recursive max last modified time stamp is used as the timestamp
+;;   to compare with.  The file-set may be a regular file, directory or
+;;   collection of files (e.g. returned by glob). Directories are
+;;   searched recursively."
+;;   [anchor file-set]
+;;   (let [lm (last-modified anchor)]
+;;     (map path (filter #(pos? (.compareTo (last-modified-1 %) lm)) (expand-file-set file-set)))))
+
 (defn- last-modified-1
   "Returns max last-modified of regular file f. Returns 0 if file does not exist."
-  ^FileTime [f]
+  [f]
   (if (exists? f)
-    (last-modified-time f)
-    (FileTime/fromMillis 0)))
-
-(defn- max-filetime [filetimes]
-  (reduce #(if (pos? (.compareTo ^FileTime %1 ^FileTime %2))
-             %1 %2)
-          (FileTime/fromMillis 0) filetimes))
+    (file-time->millis
+     (last-modified-time f))
+    0))
 
 (defn- last-modified
   "Returns max last-modified of f or of all files within f"
@@ -970,10 +1006,10 @@
   (if (exists? f)
     (if (regular-file? f)
       (last-modified-1 f)
-      (max-filetime
+      (apply max 0
              (map last-modified-1
                   (filter regular-file? (file-seq (file f))))))
-    (FileTime/fromMillis 0)))
+    0))
 
 (defn- expand-file-set
   [file-set]
@@ -990,7 +1026,7 @@
   searched recursively."
   [anchor file-set]
   (let [lm (last-modified anchor)]
-    (map path (filter #(pos? (.compareTo (last-modified-1 %) lm)) (expand-file-set file-set)))))
+    (map path (filter #(> (last-modified-1 %) lm) (expand-file-set file-set)))))
 
 ;;;; End modified since
 
