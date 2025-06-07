@@ -564,19 +564,40 @@
   (is (= "test-resources/dir.dot/no-ext" (fs/strip-ext "test-resources/dir.dot/no-ext"))))
 
 (deftest modified-since-test
-  (let [td0 (fs/create-temp-dir)
-        anchor (fs/file td0 "f0")
-        _ (spit anchor "content")
-        td1 (fs/create-temp-dir)
-        f1 (fs/file td1 "f1")
-        _ (spit f1 "content")
-        f2 (fs/file td1 "f2")
-        _ (spit f2 "content")]
-    (is (= #{f1} (into #{} (map fs/file (fs/modified-since anchor f1)))))
-    (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since anchor td1)))))
-    (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
-    (fs/set-last-modified-time anchor (fs/last-modified-time f1))
-    (is (not (seq (fs/modified-since anchor f1))))))
+  (testing "with sleep"
+    (let [td0 (fs/create-temp-dir)
+          anchor (fs/file td0 "f0")
+          _ (spit anchor "content")
+          _ (Thread/sleep 1)
+          td1 (fs/create-temp-dir)
+          f1 (fs/file td1 "f1")
+          _ (spit f1 "content")
+          f2 (fs/file td1 "f2")
+          _ (spit f2 "content")]
+      (is (= #{f1} (into #{} (map fs/file (fs/modified-since anchor f1)))))
+      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since anchor td1)))))
+      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
+      (fs/set-last-modified-time anchor (fs/last-modified-time f1))
+      (is (not (seq (fs/modified-since anchor f1))))))
+  (testing "without sleep"
+    (let [td0 (fs/create-temp-dir)
+          anchor (fs/file td0 "f0")
+          now (java.time.Instant/now)
+          _ (spit anchor "content")
+          _ (fs/set-last-modified-time anchor now)
+          later (.plusNanos (java.time.Instant/now) 10000)
+          td1 (fs/create-temp-dir)
+          f1 (fs/file td1 "f1")
+          _ (spit f1 "content")
+          _ (fs/set-last-modified-time f1 later)
+          f2 (fs/file td1 "f2")
+          _ (spit f2 "content")
+          _ (fs/set-last-modified-time f2 later)]
+      (is (= #{f1} (into #{} (map fs/file (fs/modified-since anchor f1)))))
+      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since anchor td1)))))
+      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
+      (fs/set-last-modified-time anchor (fs/last-modified-time f1))
+      (is (not (seq (fs/modified-since anchor f1)))))))
 
 (deftest zip-unzip-test
   (let [td (fs/create-temp-dir)
