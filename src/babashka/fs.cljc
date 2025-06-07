@@ -954,11 +954,15 @@
 
 (defn- last-modified-1
   "Returns max last-modified of regular file f. Returns 0 if file does not exist."
-  [f]
+  ^FileTime [f]
   (if (exists? f)
-    (file-time->millis
-     (last-modified-time f))
-    0))
+    (last-modified-time f)
+    (FileTime/fromMillis 0)))
+
+(defn- max-filetime [filetimes]
+  (reduce #(if (pos? (.compareTo ^FileTime %1 ^FileTime %2))
+             %1 %2)
+          (FileTime/fromMillis 0) filetimes))
 
 (defn- last-modified
   "Returns max last-modified of f or of all files within f"
@@ -966,10 +970,10 @@
   (if (exists? f)
     (if (regular-file? f)
       (last-modified-1 f)
-      (apply max 0
+      (max-filetime
              (map last-modified-1
                   (filter regular-file? (file-seq (file f))))))
-    0))
+    (FileTime/fromMillis 0)))
 
 (defn- expand-file-set
   [file-set]
@@ -986,7 +990,7 @@
   searched recursively."
   [anchor file-set]
   (let [lm (last-modified anchor)]
-    (map path (filter #(> (last-modified-1 %) lm) (expand-file-set file-set)))))
+    (map path (filter #(pos? (.compareTo (last-modified-1 %) lm)) (expand-file-set file-set)))))
 
 ;;;; End modified since
 
