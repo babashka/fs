@@ -567,7 +567,6 @@
   (let [td0 (fs/create-temp-dir)
         anchor (fs/file td0 "f0")
         _ (spit anchor "content")
-        _ (Thread/sleep 10)
         td1 (fs/create-temp-dir)
         f1 (fs/file td1 "f1")
         _ (spit f1 "content")
