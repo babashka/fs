@@ -644,7 +644,43 @@
       (is (fs/exists? (fs/file td-out "babashka")))
       (is (fs/directory? (fs/file td-out "babashka")))
       (is (fs/exists? (fs/file td-out "babashka" "fs.cljc")))
-      (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc")))))))
+      (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc"))))))
+  (testing "Use extract-fn with :name key"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          zip-file (fs/path td "foo.zip")]
+      (fs/zip zip-file ["src" "README.md"])
+      (fs/unzip zip-file td-out {:extract-fn #(str/ends-with? (:name %) ".cljc")})
+      ;; only files that have names ending in .cljc should present
+      (is (fs/exists? (fs/file td-out "src" "babashka" "fs.cljc")))
+      (is (not (fs/exists? (fs/file td-out "README.md"))))
+      ;; directories are not subject to extract-fn
+      (is (fs/exists? (fs/file td-out "src" "babashka")))
+      (is (fs/directory? (fs/file td-out "src" "babashka")))))
+  (testing "Use extract-fn and :entry key"
+    (let [td (fs/create-temp-dir)
+          td-out1 (fs/path td "out1")
+          td-out2 (fs/path td "out2")
+          zip-file (fs/path td "foo.zip")
+          readme-time (atom nil)]
+      (fs/zip zip-file ["src" "README.md"])
+      ;; find out time for README.md by extracting to out1
+      (fs/unzip zip-file td-out1
+                {:extract-fn #(do
+                                (when (str/ends-with? (:name %) "README.md")
+                                  (let [time (.getTime (:entry %))]
+                                    (reset! readme-time time)))
+                                true)})
+      ;; only extract files to out2 that have the same time as README.md
+      (fs/unzip zip-file td-out2
+                {:extract-fn #(= (.getTime (:entry %)) @readme-time)})
+      ;; only files that have the same last modified time as README.md
+      (is (fs/exists? (fs/file td-out2 "README.md")))
+      ;; unlikely that fs.cljc would have the same last modified time
+      (is (not (fs/exists? (fs/file td-out2 "src" "babashka" "fs.cljc"))))
+      ;; all zipped directories should be included
+      (is (fs/exists? (fs/file td-out2 "src")))
+      (is (fs/exists? (fs/file td-out2 "src" "babashka"))))))
 
 (deftest gzip-gunzip-test
   (let [td (fs/create-temp-dir)
