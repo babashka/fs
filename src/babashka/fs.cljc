@@ -1003,7 +1003,7 @@
    * `:replace-existing` - `true` / `false`: overwrite existing files
    * `:extract-fn` - function that decides if the current ZipEntry
      should be extracted. The function is only called for the file case
-     (not directories) and expects a single argument, a map with entries:
+     (not directories) with a map with entries:
      * `:entry` and the current ZipEntry
      * `:name` and the name of the ZipEntry (result of calling `getName`)
      Extraction only occurs if a truthy value is returned (i.e. not
