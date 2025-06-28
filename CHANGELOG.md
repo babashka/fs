@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Unreleased
+
+- [#147](https://github.com/babashka/fs/issues/147): `fs/unzip` should allow selective extraction of files
+
 ## v0.5.26 (2025-05-07)
 
 - [#145](https://github.com/babashka/fs/issues/145): `fs/modified-since` works only with ms precision but should support the precision of the filesystem

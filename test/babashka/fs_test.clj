@@ -644,7 +644,44 @@
       (is (fs/exists? (fs/file td-out "babashka")))
       (is (fs/directory? (fs/file td-out "babashka")))
       (is (fs/exists? (fs/file td-out "babashka" "fs.cljc")))
-      (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc")))))))
+      (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc"))))))
+  (testing "Use extract-fn with :name key"
+    (let [td (fs/create-temp-dir)
+          td-out (fs/path td "out")
+          zip-file (fs/path td "foo.zip")]
+      (fs/zip zip-file ["src" "README.md"])
+      (fs/unzip zip-file td-out {:extract-fn #(str/ends-with? (:name %) ".cljc")})
+      ;; only files that have names ending in .cljc should present
+      (is (fs/exists? (fs/file td-out "src" "babashka" "fs.cljc")))
+      (is (not (fs/exists? (fs/file td-out "README.md"))))
+      ;; directories are not subject to extract-fn
+      (is (fs/exists? (fs/file td-out "src" "babashka")))
+      (is (fs/directory? (fs/file td-out "src" "babashka")))))
+  (testing "Use extract-fn and :entry key"
+    (let [td (fs/create-temp-dir)
+          td-out1 (fs/path td "out1")
+          td-out2 (fs/path td "out2")
+          zip-file (fs/path td "foo.zip")
+          times (atom #{})
+          readme-time (atom nil)]
+      (fs/zip zip-file ["LICENSE" "README.md"])
+      ;; find out times for files by extracting to out1
+      (fs/unzip zip-file td-out1
+                {:extract-fn #(let [time (.getTime (:entry %))]
+                                (swap! times conj time)
+                                (when (= (:name %) "README.md")
+                                  (reset! readme-time time))
+                                true)})
+      ;; extract files to out2 that have the same time as README.md
+      (fs/unzip zip-file td-out2
+                {:extract-fn #(= (.getTime (:entry %)) @readme-time)})
+      ;; README.md should be extracted for sure
+      (is (fs/exists? (fs/file td-out2 "README.md")))
+      ;; LICENSE sometimes has the same time as README.md
+      (let [fs-path (fs/file td-out2 "LICENSE")]
+        (if (= 1 (count @times))
+          (is (fs/exists? fs-path))
+          (is (not (fs/exists? fs-path))))))))
 
 (deftest gzip-gunzip-test
   (let [td (fs/create-temp-dir)

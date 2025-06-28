@@ -1000,10 +1000,17 @@
   "Unzips `zip-file` to `dest` directory (default `\".\"`).
 
    Options:
-   * `:replace-existing` - `true` / `false`: overwrite existing files"
+   * `:replace-existing` - `true` / `false`: overwrite existing files
+   * `:extract-fn` - function that decides if the current ZipEntry
+     should be extracted. The function is only called for the file case
+     (not directories) and expects a single argument, a map with entries:
+     * `:entry` and the current ZipEntry
+     * `:name` and the name of the ZipEntry (result of calling `getName`)
+     Extraction only occurs if a truthy value is returned (i.e. not
+     nil/false)."
   ([zip-file] (unzip zip-file "."))
   ([zip-file dest] (unzip zip-file dest nil))
-  ([zip-file dest {:keys [replace-existing]}]
+  ([zip-file dest {:keys [replace-existing extract-fn]}]
    (let [output-path (as-path dest)
          _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)]
@@ -1019,7 +1026,9 @@
                    new-path (.resolve output-path entry-name)]
                (if (.isDirectory entry)
                  (create-dirs new-path)
-                 (do
+                 (when (or (nil? extract-fn)
+                           (and (fn? extract-fn)
+                                (extract-fn {:entry entry :name entry-name})))
                    (create-dirs (parent new-path))
                    (Files/copy ^java.io.InputStream zis
                                new-path
