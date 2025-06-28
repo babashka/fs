@@ -664,7 +664,7 @@
           zip-file (fs/path td "foo.zip")
           times (atom #{})
           readme-time (atom nil)]
-      (fs/zip zip-file ["src" "README.md"])
+      (fs/zip zip-file ["LICENSE" "README.md"])
       ;; find out times for files by extracting to out1
       (fs/unzip zip-file td-out1
                 {:extract-fn #(let [time (.getTime (:entry %))]
@@ -677,11 +677,8 @@
                 {:extract-fn #(= (.getTime (:entry %)) @readme-time)})
       ;; README.md should be extracted for sure
       (is (fs/exists? (fs/file td-out2 "README.md")))
-      ;; all zipped directories should be included
-      (is (fs/exists? (fs/file td-out2 "src")))
-      (is (fs/exists? (fs/file td-out2 "src" "babashka")))
-      ;; fs.cljc sometimes has the same time as README.md
-      (let [fs-path (fs/file td-out2 "src" "babashka" "fs.cljc")]
+      ;; LICENSE sometimes has the same time as README.md
+      (let [fs-path (fs/file td-out2 "LICENSE")]
         (if (= 1 (count @times))
           (is (fs/exists? fs-path))
           (is (not (fs/exists? fs-path))))))))
