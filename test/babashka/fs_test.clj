@@ -662,25 +662,29 @@
           td-out1 (fs/path td "out1")
           td-out2 (fs/path td "out2")
           zip-file (fs/path td "foo.zip")
+          times (atom #{})
           readme-time (atom nil)]
       (fs/zip zip-file ["src" "README.md"])
-      ;; find out time for README.md by extracting to out1
+      ;; find out times for files by extracting to out1
       (fs/unzip zip-file td-out1
-                {:extract-fn #(do
-                                (when (str/ends-with? (:name %) "README.md")
-                                  (let [time (.getTime (:entry %))]
-                                    (reset! readme-time time)))
+                {:extract-fn #(let [time (.getTime (:entry %))]
+                                (swap! times conj time)
+                                (when (= (:name %) "README.md")
+                                  (reset! readme-time time))
                                 true)})
-      ;; only extract files to out2 that have the same time as README.md
+      ;; extract files to out2 that have the same time as README.md
       (fs/unzip zip-file td-out2
                 {:extract-fn #(= (.getTime (:entry %)) @readme-time)})
-      ;; only files that have the same last modified time as README.md
+      ;; README.md should be extracted for sure
       (is (fs/exists? (fs/file td-out2 "README.md")))
-      ;; unlikely that fs.cljc would have the same last modified time
-      (is (not (fs/exists? (fs/file td-out2 "src" "babashka" "fs.cljc"))))
       ;; all zipped directories should be included
       (is (fs/exists? (fs/file td-out2 "src")))
-      (is (fs/exists? (fs/file td-out2 "src" "babashka"))))))
+      (is (fs/exists? (fs/file td-out2 "src" "babashka")))
+      ;; fs.cljc sometimes has the same time as README.md
+      (let [fs-path (fs/file td-out2 "src" "babashka" "fs.cljc")]
+        (if (= 1 (count @times))
+          (is (fs/exists? fs-path))
+          (is (not (fs/exists? fs-path))))))))
 
 (deftest gzip-gunzip-test
   (let [td (fs/create-temp-dir)
