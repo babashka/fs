@@ -284,10 +284,12 @@
   Options:
 
   * `:hidden` - match hidden paths - note: on Windows paths starting with
-  a dot are not hidden, unless their hidden attribute is set.
-  * `:follow-links` - follow symlinks.
-  * `:recursive` - match recursively.
-  * `:max-depth` - max depth to descend into directory structure.
+  a dot are not hidden, unless their hidden attribute is set. Defaults to
+  false, i.e. skip hidden files and folders.
+  * `:follow-links` - follow symlinks. Defaults to false.
+  * `:recursive` - match recursively. Defaults to false.
+  * `:max-depth` - max depth to descend into directory structure, when
+  matching recursively. Defaults to Integer/MAX_VALUE.
 
   Examples:
   `(fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})`"
@@ -355,10 +357,14 @@
 
   Options:
 
-  * `:hidden` - match hidden paths. Implied when `pattern` starts with a dot. Note: on Windows files starting with a dot are not hidden, unless their hidden attribute is set.
-  * `:follow-links` - follow symlinks.
-  * `:recursive` - force recursive search. Implied when `pattern` contains `**` or `/`.
-  * `:max-depth` - max depth to descend into directory structure.
+  * `:hidden` - match hidden paths. Implied when `pattern` starts with a dot;
+  otherwise, default to false. Note: on Windows files starting with a dot are
+  not hidden, unless their hidden attribute is set.
+  * `:follow-links` - follow symlinks. Defaults to false.
+  * `:recursive` - force recursive search. Implied when `pattern` contains
+  `**` or `/`; otherwise, defaults to false.
+  * `:max-depth` - max depth to descend into directory structure, when
+  recursing. Defaults to Integer/MAX_VALUE.
 
   Examples:
   `(fs/glob \".\" \"**.clj\")`"
