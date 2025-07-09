@@ -65,8 +65,9 @@
    (reduce path (path parent child) more)))
 
 (defn file
-  "Coerces f into a File. Multiple-arg versions treat the first argument
-  as parent and subsequent args as children relative to the parent."
+  "Coerces one arg into a File, or combines multiple paths into one.
+  Multiple-arg versions treat the first argument as parent and subsequent args
+  as children relative to the parent."
   (^File [f] (as-file f))
   (^File [f & fs]
    (apply io/file (map as-file (cons f fs)))))

@@ -26,7 +26,7 @@
     -  [`exists?`](#babashka.fs/exists?) - Returns true if f exists.
     -  [`expand-home`](#babashka.fs/expand-home) - If <code>path</code> begins with a tilde (<code>~</code>), expand the tilde to the value of the <code>user.home</code> system property.
     -  [`extension`](#babashka.fs/extension) - Returns the extension of a file via <code>split-ext</code>.
-    -  [`file`](#babashka.fs/file) - Coerces f into a File.
+    -  [`file`](#babashka.fs/file) - Coerces one arg into a File, or combines multiple paths into one.
     -  [`file-name`](#babashka.fs/file-name) - Returns the name of the file or directory.
     -  [`file-separator`](#babashka.fs/file-separator)
     -  [`file-time->instant`](#babashka.fs/file-time->instant) - Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
@@ -108,7 +108,7 @@
 Function.
 
 Returns true if f represents an absolute path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L120-L122">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L121-L123">Source</a></sub></p>
 
 ## <a name="babashka.fs/absolutize">`absolutize`</a><a name="babashka.fs/absolutize"></a>
 ``` clojure
@@ -118,7 +118,7 @@ Returns true if f represents an absolute path.
 Function.
 
 Converts f into an absolute path via Path#toAbsolutePath.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L159-L161">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L160-L162">Source</a></sub></p>
 
 ## <a name="babashka.fs/canonicalize">`canonicalize`</a><a name="babashka.fs/canonicalize"></a>
 ``` clojure
@@ -132,7 +132,7 @@ Returns the canonical path via
   java.io.File#getCanonicalPath. If `:nofollow-links` is set, then it
   will fall back on [`absolutize`](#babashka.fs/absolutize) + `normalize.` This function can be used
   as an alternative to [`real-path`](#babashka.fs/real-path) which requires files to exist.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L173-L182">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L174-L183">Source</a></sub></p>
 
 ## <a name="babashka.fs/components">`components`</a><a name="babashka.fs/components"></a>
 ``` clojure
@@ -143,7 +143,7 @@ Function.
 
 Returns a seq of all components of f as paths, i.e. split on the file
   separator.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L153-L157">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L154-L158">Source</a></sub></p>
 
 ## <a name="babashka.fs/copy">`copy`</a><a name="babashka.fs/copy"></a>
 ``` clojure
@@ -158,7 +158,7 @@ Copies src file to dest dir or file.
   * `:replace-existing`
   * `:copy-attributes`
   * `:nofollow-links` (used to determine to copy symbolic link itself or not).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L383-L401">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L384-L402">Source</a></sub></p>
 
 ## <a name="babashka.fs/copy-tree">`copy-tree`</a><a name="babashka.fs/copy-tree"></a>
 ``` clojure
@@ -171,7 +171,7 @@ Function.
 Copies entire file tree from src to dest. Creates dest if needed
   using [`create-dirs`](#babashka.fs/create-dirs), passing it the `:posix-file-permissions`
   option. Supports same options as copy.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L472-L519">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L473-L520">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-dir">`create-dir`</a><a name="babashka.fs/create-dir"></a>
 ``` clojure
@@ -182,7 +182,7 @@ Copies entire file tree from src to dest. Creates dest if needed
 Function.
 
 Creates dir using `Files#createDirectory`. Does not create parents.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L436-L442">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L437-L443">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-dirs">`create-dirs`</a><a name="babashka.fs/create-dirs"></a>
 ``` clojure
@@ -194,7 +194,7 @@ Function.
 
 Creates directories using `Files#createDirectories`. Also creates parents if needed.
   Doesn't throw an exception if the dirs exist already. Similar to `mkdir -p`
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L444-L449">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L445-L450">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-file">`create-file`</a><a name="babashka.fs/create-file"></a>
 ``` clojure
@@ -208,7 +208,7 @@ Creates empty file using `Files#createFile`.
 
   File permissions can be specified with an `:posix-file-permissions` option.
   String format for posix file permissions is described in the [`str->posix`](#babashka.fs/str->posix) docstring.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L649-L658">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L650-L659">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-link">`create-link`</a><a name="babashka.fs/create-link"></a>
 ``` clojure
@@ -218,7 +218,7 @@ Creates empty file using `Files#createFile`.
 Function.
 
 Create a hard link from path to target.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L596-L601">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L597-L602">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-sym-link">`create-sym-link`</a><a name="babashka.fs/create-sym-link"></a>
 ``` clojure
@@ -228,7 +228,7 @@ Create a hard link from path to target.
 Function.
 
 Create a soft link from path to target.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L588-L594">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L589-L595">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-temp-dir">`create-temp-dir`</a><a name="babashka.fs/create-temp-dir"></a>
 ``` clojure
@@ -247,7 +247,7 @@ Creates a temporary directory using Files#createDirectories.
   is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`.
   File permissions can be specified with an `:posix-file-permissions` option.
   String format for posix file permissions is described in the [`str->posix`](#babashka.fs/str->posix) docstring.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L528-L553">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L529-L554">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-temp-file">`create-temp-file`</a><a name="babashka.fs/create-temp-file"></a>
 ``` clojure
@@ -266,7 +266,7 @@ Creates an empty temporary file using Files#createTempFile.
   random ones are generated.
   File permissions can be specified with an `:posix-file-permissions` option.
   String format for posix file permissions is described in the [`str->posix`](#babashka.fs/str->posix) docstring.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L555-L586">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L556-L587">Source</a></sub></p>
 
 ## <a name="babashka.fs/creation-time">`creation-time`</a><a name="babashka.fs/creation-time"></a>
 ``` clojure
@@ -277,7 +277,7 @@ Creates an empty temporary file using Files#createTempFile.
 Function.
 
 Returns creation time as FileTime.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L807-L812">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L808-L813">Source</a></sub></p>
 
 ## <a name="babashka.fs/cwd">`cwd`</a><a name="babashka.fs/cwd"></a>
 ``` clojure
@@ -287,7 +287,7 @@ Returns creation time as FileTime.
 Function.
 
 Returns current working directory as path
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1202-L1205">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1203-L1206">Source</a></sub></p>
 
 ## <a name="babashka.fs/delete">`delete`</a><a name="babashka.fs/delete"></a>
 ``` clojure
@@ -298,7 +298,7 @@ Function.
 
 Deletes f. Returns nil if the delete was successful,
   throws otherwise. Does not follow symlinks.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L608-L614">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L609-L615">Source</a></sub></p>
 
 ## <a name="babashka.fs/delete-if-exists">`delete-if-exists`</a><a name="babashka.fs/delete-if-exists"></a>
 ``` clojure
@@ -309,7 +309,7 @@ Function.
 
 Deletes f if it exists. Returns true if the delete was successful,
   false if f didn't exist. Does not follow symlinks.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L616-L620">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L617-L621">Source</a></sub></p>
 
 ## <a name="babashka.fs/delete-on-exit">`delete-on-exit`</a><a name="babashka.fs/delete-on-exit"></a>
 ``` clojure
@@ -319,7 +319,7 @@ Deletes f if it exists. Returns true if the delete was successful,
 Function.
 
 Requests delete on exit via `File#deleteOnExit`. Returns f.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L685-L689">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L686-L690">Source</a></sub></p>
 
 ## <a name="babashka.fs/delete-tree">`delete-tree`</a><a name="babashka.fs/delete-tree"></a>
 ``` clojure
@@ -331,7 +331,7 @@ Function.
 
 Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Similar to `rm -rf`. Does not follow symlinks.
    `force` ensures read-only directories/files are deleted. Similar to `chmod -R +wx` + `rm -rf`
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L627-L647">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L628-L648">Source</a></sub></p>
 
 ## <a name="babashka.fs/directory?">`directory?`</a><a name="babashka.fs/directory?"></a>
 ``` clojure
@@ -342,7 +342,7 @@ Deletes a file tree using [`walk-file-tree`](#babashka.fs/walk-file-tree). Simil
 Function.
 
 Returns true if f is a directory, using Files/isDirectory.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L103-L108">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L104-L109">Source</a></sub></p>
 
 ## <a name="babashka.fs/ends-with?">`ends-with?`</a><a name="babashka.fs/ends-with?"></a>
 ``` clojure
@@ -352,7 +352,7 @@ Returns true if f is a directory, using Files/isDirectory.
 Function.
 
 Returns true if path this ends with path other.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L949-L952">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L950-L953">Source</a></sub></p>
 
 ## <a name="babashka.fs/exec-paths">`exec-paths`</a><a name="babashka.fs/exec-paths"></a>
 ``` clojure
@@ -363,7 +363,7 @@ Function.
 
 Returns executable paths (using the PATH environment variable). Same
   as `(split-paths (System/getenv "PATH"))`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L865-L869">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L866-L870">Source</a></sub></p>
 
 ## <a name="babashka.fs/executable?">`executable?`</a><a name="babashka.fs/executable?"></a>
 ``` clojure
@@ -373,7 +373,7 @@ Returns executable paths (using the PATH environment variable). Same
 Function.
 
 Returns true if f is executable.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L124-L126">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L125-L127">Source</a></sub></p>
 
 ## <a name="babashka.fs/exists?">`exists?`</a><a name="babashka.fs/exists?"></a>
 ``` clojure
@@ -384,7 +384,7 @@ Returns true if f is executable.
 Function.
 
 Returns true if f exists.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L140-L149">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L141-L150">Source</a></sub></p>
 
 ## <a name="babashka.fs/expand-home">`expand-home`</a><a name="babashka.fs/expand-home"></a>
 ``` clojure
@@ -400,7 +400,7 @@ If [`path`](#babashka.fs/path) begins with a tilde (`~`), expand the tilde to th
   directory. This is (naively) assumed to be a directory with the same
   name as the user relative to the parent of the current value of
   `user.home`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1179-L1195">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1180-L1196">Source</a></sub></p>
 
 ## <a name="babashka.fs/extension">`extension`</a><a name="babashka.fs/extension"></a>
 ``` clojure
@@ -410,7 +410,7 @@ If [`path`](#babashka.fs/path) begins with a tilde (`~`), expand the tilde to th
 Function.
 
 Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L854-L857">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L855-L858">Source</a></sub></p>
 
 ## <a name="babashka.fs/file">`file`</a><a name="babashka.fs/file"></a>
 ``` clojure
@@ -420,9 +420,10 @@ Returns the extension of a file via [`split-ext`](#babashka.fs/split-ext).
 ```
 Function.
 
-Coerces f into a File. Multiple-arg versions treat the first argument
-  as parent and subsequent args as children relative to the parent.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L67-L72">Source</a></sub></p>
+Coerces one arg into a File, or combines multiple paths into one.
+  Multiple-arg versions treat the first argument as parent and subsequent args
+  as children relative to the parent.
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L67-L73">Source</a></sub></p>
 
 ## <a name="babashka.fs/file-name">`file-name`</a><a name="babashka.fs/file-name"></a>
 ``` clojure
@@ -432,13 +433,13 @@ Coerces f into a File. Multiple-arg versions treat the first argument
 Function.
 
 Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") returns "baz".
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L184-L187">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L185-L188">Source</a></sub></p>
 
 ## <a name="babashka.fs/file-separator">`file-separator`</a><a name="babashka.fs/file-separator"></a>
 
 
 
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L255-L255">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L256-L256">Source</a></sub></p>
 
 ## <a name="babashka.fs/file-time->instant">`file-time->instant`</a><a name="babashka.fs/file-time->instant"></a>
 ``` clojure
@@ -448,7 +449,7 @@ Returns the name of the file or directory. E.g. (file-name "foo/bar/baz") return
 Function.
 
 Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L768-L771">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L769-L772">Source</a></sub></p>
 
 ## <a name="babashka.fs/file-time->millis">`file-time->millis`</a><a name="babashka.fs/file-time->millis"></a>
 ``` clojure
@@ -458,7 +459,7 @@ Converts a java.nio.file.attribute.FileTime to a java.time.Instant.
 Function.
 
 Converts a java.nio.file.attribute.FileTime to epoch millis (long).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L778-L781">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L779-L782">Source</a></sub></p>
 
 ## <a name="babashka.fs/get-attribute">`get-attribute`</a><a name="babashka.fs/get-attribute"></a>
 ``` clojure
@@ -467,7 +468,7 @@ Converts a java.nio.file.attribute.FileTime to epoch millis (long).
 (get-attribute path attribute {:keys [:nofollow-links]})
 ```
 Function.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L718-L724">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L719-L725">Source</a></sub></p>
 
 ## <a name="babashka.fs/glob">`glob`</a><a name="babashka.fs/glob"></a>
 ``` clojure
@@ -493,7 +494,7 @@ Given a file and glob pattern, returns matches as vector of
 
   Examples:
   `(fs/glob "." "**.clj")`
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L347-L372">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L348-L373">Source</a></sub></p>
 
 ## <a name="babashka.fs/gunzip">`gunzip`</a><a name="babashka.fs/gunzip"></a>
 ``` clojure
@@ -508,7 +509,7 @@ Extracts `gz-file` to `dest` directory (default `"."`).
 
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1102-L1122">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1103-L1123">Source</a></sub></p>
 
 ## <a name="babashka.fs/gzip">`gzip`</a><a name="babashka.fs/gzip"></a>
 ``` clojure
@@ -522,7 +523,7 @@ Gzips `source-file` and writes the output to `dir/out-file`.
   If `out-file` is not provided, the `source-file` name with `.gz` appended is used.
   If `dir` is not provided, the current directory is used.
   Returns the created gzip file.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1124-L1145">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1125-L1146">Source</a></sub></p>
 
 ## <a name="babashka.fs/hidden?">`hidden?`</a><a name="babashka.fs/hidden?"></a>
 ``` clojure
@@ -532,7 +533,7 @@ Gzips `source-file` and writes the output to `dir/out-file`.
 Function.
 
 Returns true if f is hidden.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L116-L118">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L117-L119">Source</a></sub></p>
 
 ## <a name="babashka.fs/home">`home`</a><a name="babashka.fs/home"></a>
 ``` clojure
@@ -545,7 +546,7 @@ Function.
 With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1171-L1177">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1172-L1178">Source</a></sub></p>
 
 ## <a name="babashka.fs/instant->file-time">`instant->file-time`</a><a name="babashka.fs/instant->file-time"></a>
 ``` clojure
@@ -555,7 +556,7 @@ With no arguments, returns the current value of the `user.home`
 Function.
 
 Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L773-L776">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L774-L777">Source</a></sub></p>
 
 ## <a name="babashka.fs/last-modified-time">`last-modified-time`</a><a name="babashka.fs/last-modified-time"></a>
 ``` clojure
@@ -566,7 +567,7 @@ Converts a java.time.Instant to a java.nio.file.attribute.FileTime.
 Function.
 
 Returns last modified time as a java.nio.file.attribute.FileTime.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L793-L798">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L794-L799">Source</a></sub></p>
 
 ## <a name="babashka.fs/list-dir">`list-dir`</a><a name="babashka.fs/list-dir"></a>
 ``` clojure
@@ -578,7 +579,7 @@ Function.
 
 Returns all paths in dir as vector. For descending into subdirectories use `glob.`
      - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L245-L253">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L246-L254">Source</a></sub></p>
 
 ## <a name="babashka.fs/list-dirs">`list-dirs`</a><a name="babashka.fs/list-dirs"></a>
 ``` clojure
@@ -589,7 +590,7 @@ Function.
 
 Similar to list-dir but accepts multiple roots and returns the concatenated results.
   - `glob-or-accept` - a glob string such as "*.edn" or a (fn accept [^java.nio.file.Path p]) -> truthy
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L821-L825">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L822-L826">Source</a></sub></p>
 
 ## <a name="babashka.fs/match">`match`</a><a name="babashka.fs/match"></a>
 ``` clojure
@@ -613,7 +614,7 @@ Given a file and match pattern, returns matches as vector of
 
   Examples:
   `(fs/match "." "regex:.*\\.clj" {:recursive true})`
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L278-L345">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L279-L346">Source</a></sub></p>
 
 ## <a name="babashka.fs/millis->file-time">`millis->file-time`</a><a name="babashka.fs/millis->file-time"></a>
 ``` clojure
@@ -623,7 +624,7 @@ Given a file and match pattern, returns matches as vector of
 Function.
 
 Converts epoch millis (long) to a java.nio.file.attribute.FileTime.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L783-L786">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L784-L787">Source</a></sub></p>
 
 ## <a name="babashka.fs/modified-since">`modified-since`</a><a name="babashka.fs/modified-since"></a>
 ``` clojure
@@ -638,7 +639,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
   to compare with.  The file-set may be a regular file, directory or
   collection of files (e.g. returned by glob). Directories are
   searched recursively.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L985-L994">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L986-L995">Source</a></sub></p>
 
 ## <a name="babashka.fs/move">`move`</a><a name="babashka.fs/move"></a>
 ``` clojure
@@ -649,7 +650,7 @@ Returns seq of regular files (non-directories, non-symlinks) from file-set that 
 Function.
 
 Move or rename a file to a target dir or file via `Files/move`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L660-L673">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L661-L674">Source</a></sub></p>
 
 ## <a name="babashka.fs/normalize">`normalize`</a><a name="babashka.fs/normalize"></a>
 ``` clojure
@@ -659,7 +660,7 @@ Move or rename a file to a target dir or file via `Files/move`.
 Function.
 
 Normalizes f via Path#normalize.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L168-L171">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L169-L172">Source</a></sub></p>
 
 ## <a name="babashka.fs/owner">`owner`</a><a name="babashka.fs/owner"></a>
 ``` clojure
@@ -671,7 +672,7 @@ Function.
 
 Returns the owner of a file. Call `str` on it to get the owner name
   as a string.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L87-L92">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L88-L93">Source</a></sub></p>
 
 ## <a name="babashka.fs/parent">`parent`</a><a name="babashka.fs/parent"></a>
 ``` clojure
@@ -681,7 +682,7 @@ Returns the owner of a file. Call `str` on it to get the owner name
 Function.
 
 Returns parent of f. Akin to `dirname` in bash.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L675-L678">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L676-L679">Source</a></sub></p>
 
 ## <a name="babashka.fs/path">`path`</a><a name="babashka.fs/path"></a>
 ``` clojure
@@ -701,7 +702,7 @@ Coerces one arg into a Path, or combines multiple paths into one.
 
 
 
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L256-L256">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L257-L257">Source</a></sub></p>
 
 ## <a name="babashka.fs/posix->str">`posix->str`</a><a name="babashka.fs/posix->str"></a>
 ``` clojure
@@ -711,13 +712,13 @@ Coerces one arg into a Path, or combines multiple paths into one.
 Function.
 
 Converts a set of PosixFilePermission to a string.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L403-L406">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L404-L407">Source</a></sub></p>
 
 ## <a name="babashka.fs/posix-file-permissions">`posix-file-permissions`</a><a name="babashka.fs/posix-file-permissions"></a>
 
 
 
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L520-L520">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L521-L521">Source</a></sub></p>
 
 ## <a name="babashka.fs/read-all-bytes">`read-all-bytes`</a><a name="babashka.fs/read-all-bytes"></a>
 ``` clojure
@@ -727,7 +728,7 @@ Converts a set of PosixFilePermission to a string.
 Function.
 
 Returns contents of file as byte array.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L696-L699">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L697-L700">Source</a></sub></p>
 
 ## <a name="babashka.fs/read-all-lines">`read-all-lines`</a><a name="babashka.fs/read-all-lines"></a>
 ``` clojure
@@ -738,7 +739,7 @@ Returns contents of file as byte array.
 Function.
 
 Read all lines from a file.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L706-L714">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L707-L715">Source</a></sub></p>
 
 ## <a name="babashka.fs/read-attributes">`read-attributes`</a><a name="babashka.fs/read-attributes"></a>
 ``` clojure
@@ -750,7 +751,7 @@ Function.
 
 Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L749-L757">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L750-L758">Source</a></sub></p>
 
 ## <a name="babashka.fs/read-attributes*">`read-attributes*`</a><a name="babashka.fs/read-attributes*"></a>
 ``` clojure
@@ -761,7 +762,7 @@ Same as [`read-attributes*`](#babashka.fs/read-attributes*) but turns attributes
 Function.
 
 Reads attributes via Files/readAttributes.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L731-L747">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L732-L748">Source</a></sub></p>
 
 ## <a name="babashka.fs/read-link">`read-link`</a><a name="babashka.fs/read-link"></a>
 ``` clojure
@@ -771,7 +772,7 @@ Reads attributes via Files/readAttributes.
 Function.
 
 Reads the target of a symbolic link. The target need not exist.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L603-L606">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L604-L607">Source</a></sub></p>
 
 ## <a name="babashka.fs/readable?">`readable?`</a><a name="babashka.fs/readable?"></a>
 ``` clojure
@@ -781,7 +782,7 @@ Reads the target of a symbolic link. The target need not exist.
 Function.
 
 Returns true if f is readable
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L128-L130">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L129-L131">Source</a></sub></p>
 
 ## <a name="babashka.fs/real-path">`real-path`</a><a name="babashka.fs/real-path"></a>
 ``` clojure
@@ -792,7 +793,7 @@ Returns true if f is readable
 Function.
 
 Converts f into real path via Path#toRealPath.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L81-L85">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L82-L86">Source</a></sub></p>
 
 ## <a name="babashka.fs/regular-file?">`regular-file?`</a><a name="babashka.fs/regular-file?"></a>
 ``` clojure
@@ -803,7 +804,7 @@ Converts f into real path via Path#toRealPath.
 Function.
 
 Returns true if f is a regular file, using Files/isRegularFile.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L96-L101">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L97-L102">Source</a></sub></p>
 
 ## <a name="babashka.fs/relative?">`relative?`</a><a name="babashka.fs/relative?"></a>
 ``` clojure
@@ -813,7 +814,7 @@ Returns true if f is a regular file, using Files/isRegularFile.
 Function.
 
 Returns true if f represents a relative path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L136-L138">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L137-L139">Source</a></sub></p>
 
 ## <a name="babashka.fs/relativize">`relativize`</a><a name="babashka.fs/relativize"></a>
 ``` clojure
@@ -823,7 +824,7 @@ Returns true if f represents a relative path.
 Function.
 
 Returns relative path by comparing this with other.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L163-L166">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L164-L167">Source</a></sub></p>
 
 ## <a name="babashka.fs/same-file?">`same-file?`</a><a name="babashka.fs/same-file?"></a>
 ``` clojure
@@ -833,7 +834,7 @@ Returns relative path by comparing this with other.
 Function.
 
 Returns true if this is the same file as other.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L691-L694">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L692-L695">Source</a></sub></p>
 
 ## <a name="babashka.fs/set-attribute">`set-attribute`</a><a name="babashka.fs/set-attribute"></a>
 ``` clojure
@@ -842,7 +843,7 @@ Returns true if this is the same file as other.
 (set-attribute path attribute value {:keys [:nofollow-links]})
 ```
 Function.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L759-L766">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L760-L767">Source</a></sub></p>
 
 ## <a name="babashka.fs/set-creation-time">`set-creation-time`</a><a name="babashka.fs/set-creation-time"></a>
 ``` clojure
@@ -853,7 +854,7 @@ Function.
 Function.
 
 Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L814-L819">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L815-L820">Source</a></sub></p>
 
 ## <a name="babashka.fs/set-last-modified-time">`set-last-modified-time`</a><a name="babashka.fs/set-last-modified-time"></a>
 ``` clojure
@@ -864,13 +865,13 @@ Sets creation time of f to time (millis, java.time.Instant or java.nio.file.attr
 Function.
 
 Sets last modified time of f to time (millis, java.time.Instant or java.nio.file.attribute.FileTime).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L800-L805">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L801-L806">Source</a></sub></p>
 
 ## <a name="babashka.fs/set-posix-file-permissions">`set-posix-file-permissions`</a><a name="babashka.fs/set-posix-file-permissions"></a>
 
 
 
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L521-L521">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L522-L522">Source</a></sub></p>
 
 ## <a name="babashka.fs/size">`size`</a><a name="babashka.fs/size"></a>
 ``` clojure
@@ -880,7 +881,7 @@ Sets last modified time of f to time (millis, java.time.Instant or java.nio.file
 Function.
 
 Returns the size of a file (in bytes).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L680-L683">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L681-L684">Source</a></sub></p>
 
 ## <a name="babashka.fs/split-ext">`split-ext`</a><a name="babashka.fs/split-ext"></a>
 ``` clojure
@@ -893,7 +894,7 @@ Function.
 Splits path on extension If provided, a specific extension `ext`, the
   extension (without dot), will be used for splitting.  Directories
   are not processed.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L827-L845">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L828-L846">Source</a></sub></p>
 
 ## <a name="babashka.fs/split-paths">`split-paths`</a><a name="babashka.fs/split-paths"></a>
 ``` clojure
@@ -904,7 +905,7 @@ Function.
 
 Splits a path list given as a string joined by the OS-specific path-separator into a vec of paths.
   On UNIX systems, the separator is ':', on Microsoft Windows systems it is ';'.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L859-L863">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L860-L864">Source</a></sub></p>
 
 ## <a name="babashka.fs/starts-with?">`starts-with?`</a><a name="babashka.fs/starts-with?"></a>
 ``` clojure
@@ -914,7 +915,7 @@ Splits a path list given as a string joined by the OS-specific path-separator in
 Function.
 
 Returns true if path this starts with path other.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L944-L947">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L945-L948">Source</a></sub></p>
 
 ## <a name="babashka.fs/str->posix">`str->posix`</a><a name="babashka.fs/str->posix"></a>
 ``` clojure
@@ -926,7 +927,7 @@ Function.
 Converts a string to a set of PosixFilePermission.
 
   `s` is a string like `"rwx------"`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L408-L413">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L409-L414">Source</a></sub></p>
 
 ## <a name="babashka.fs/strip-ext">`strip-ext`</a><a name="babashka.fs/strip-ext"></a>
 ``` clojure
@@ -937,7 +938,7 @@ Converts a string to a set of PosixFilePermission.
 Function.
 
 Strips extension via [`split-ext`](#babashka.fs/split-ext).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L847-L852">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L848-L853">Source</a></sub></p>
 
 ## <a name="babashka.fs/sym-link?">`sym-link?`</a><a name="babashka.fs/sym-link?"></a>
 ``` clojure
@@ -947,7 +948,7 @@ Strips extension via [`split-ext`](#babashka.fs/split-ext).
 Function.
 
 Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L622-L625">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L623-L626">Source</a></sub></p>
 
 ## <a name="babashka.fs/temp-dir">`temp-dir`</a><a name="babashka.fs/temp-dir"></a>
 ``` clojure
@@ -957,7 +958,7 @@ Determines if `f` is a symbolic link via `java.nio.file.Files/isSymbolicLink`.
 Function.
 
 Returns `java.io.tmpdir` property as path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L523-L526">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L524-L527">Source</a></sub></p>
 
 ## <a name="babashka.fs/unixify">`unixify`</a><a name="babashka.fs/unixify"></a>
 ``` clojure
@@ -967,7 +968,7 @@ Returns `java.io.tmpdir` property as path.
 Function.
 
 Returns path as string with Unix-style file separators (`/`).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1294-L1299">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1295-L1300">Source</a></sub></p>
 
 ## <a name="babashka.fs/unzip">`unzip`</a><a name="babashka.fs/unzip"></a>
 ``` clojure
@@ -989,7 +990,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
      * `:name` and the name of the ZipEntry (result of calling `getName`)
      Extraction only occurs if a truthy value is returned (i.e. not
      nil/false).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1000-L1037">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1001-L1038">Source</a></sub></p>
 
 ## <a name="babashka.fs/update-file">`update-file`</a><a name="babashka.fs/update-file"></a>
 ``` clojure
@@ -1005,7 +1006,7 @@ Updates the contents of text file [`path`](#babashka.fs/path) using `f` applied 
   Options:
 
   * `:charset` - charset of file, default to "utf-8"
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1274-L1292">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1275-L1293">Source</a></sub></p>
 
 ## <a name="babashka.fs/walk-file-tree">`walk-file-tree`</a><a name="babashka.fs/walk-file-tree"></a>
 ``` clojure
@@ -1019,7 +1020,7 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
   default to (constantly :continue). Supported return
   values: :continue, :skip-subtree, :skip-siblings, :terminate. A
   different return value will throw.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L191-L225">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L192-L226">Source</a></sub></p>
 
 ## <a name="babashka.fs/which">`which`</a><a name="babashka.fs/which"></a>
 ``` clojure
@@ -1039,7 +1040,7 @@ Returns Path to first executable `program` found in `:paths` `opt`, similar to t
   When `program` is a relative or absolute path, `:paths` is not consulted. On Windows, the `:win-exts`
   variants are still searched. On other OSes, the path for `program` will be returned if executable,
   else nil.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L878-L930">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L879-L931">Source</a></sub></p>
 
 ## <a name="babashka.fs/which-all">`which-all`</a><a name="babashka.fs/which-all"></a>
 ``` clojure
@@ -1050,7 +1051,7 @@ Returns Path to first executable `program` found in `:paths` `opt`, similar to t
 Function.
 
 Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths)). See [`which`](#babashka.fs/which).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L932-L936">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L933-L937">Source</a></sub></p>
 
 ## <a name="babashka.fs/windows?">`windows?`</a><a name="babashka.fs/windows?"></a>
 ``` clojure
@@ -1060,7 +1061,7 @@ Returns every Path to `program` found in ([`exec-paths`](#babashka.fs/exec-paths
 Function.
 
 Returns true if OS is Windows.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1197-L1200">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1198-L1201">Source</a></sub></p>
 
 ## <a name="babashka.fs/with-temp-dir">`with-temp-dir`</a><a name="babashka.fs/with-temp-dir"></a>
 ``` clojure
@@ -1075,7 +1076,7 @@ Evaluate body with binding-name bound to a temporary directory.
   and will be removed with [`delete-tree`](#babashka.fs/delete-tree) on exit from the scope.
 
   `options` is a map with the keys as for create-temp-dir.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1149-L1163">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1150-L1164">Source</a></sub></p>
 
 ## <a name="babashka.fs/writable?">`writable?`</a><a name="babashka.fs/writable?"></a>
 ``` clojure
@@ -1085,7 +1086,7 @@ Evaluate body with binding-name bound to a temporary directory.
 Function.
 
 Returns true if f is writable
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L132-L134">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L133-L135">Source</a></sub></p>
 
 ## <a name="babashka.fs/write-bytes">`write-bytes`</a><a name="babashka.fs/write-bytes"></a>
 ``` clojure
@@ -1109,7 +1110,7 @@ Writes `bytes` to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
   (fs/write-bytes f (.getBytes (String. "foo"))) ;; overwrites + truncates or creates new file
   (fs/write-bytes f (.getBytes (String. "foo")) {:append true})
   ```
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1228-L1251">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1229-L1252">Source</a></sub></p>
 
 ## <a name="babashka.fs/write-lines">`write-lines`</a><a name="babashka.fs/write-lines"></a>
 ``` clojure
@@ -1130,7 +1131,7 @@ Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.ni
   * `:write` (default `true`)
   * `:append` (default `false`)
   * or any `java.nio.file.StandardOption`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1253-L1272">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1254-L1273">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-cache-home">`xdg-cache-home`</a><a name="babashka.fs/xdg-cache-home"></a>
 ``` clojure
@@ -1144,7 +1145,7 @@ Path representing the base directory relative to which user-specific non-essenti
 
   Returns path based on the value of env-var `XDG_CACHE_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".cache")`.
   When provided, appends `app` to the path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1331-L1339">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1332-L1340">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-config-home">`xdg-config-home`</a><a name="babashka.fs/xdg-config-home"></a>
 ``` clojure
@@ -1158,7 +1159,7 @@ Path representing the base directory relative to which user-specific configurati
 
   Returns path based on the value of env-var `XDG_CONFIG_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".config")`.
   When provided, appends `app` to the path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1321-L1329">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1322-L1330">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-data-home">`xdg-data-home`</a><a name="babashka.fs/xdg-data-home"></a>
 ``` clojure
@@ -1172,7 +1173,7 @@ Path representing the base directory relative to which user-specific data files 
 
   Returns path based on the value of env-var `XDG_DATA_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".local" "share")`.
   When provided, appends `app` to the path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1341-L1349">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1342-L1350">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-state-home">`xdg-state-home`</a><a name="babashka.fs/xdg-state-home"></a>
 ``` clojure
@@ -1186,7 +1187,7 @@ Path representing the base directory relative to which user-specific state files
 
   Returns path based on the value of env-var `XDG_STATE_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".local" "state")`.
   When provided, appends `app` to the path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1351-L1359">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1352-L1360">Source</a></sub></p>
 
 ## <a name="babashka.fs/zip">`zip`</a><a name="babashka.fs/zip"></a>
 ``` clojure
@@ -1204,4 +1205,4 @@ Zips entry or entries into zip-file. An entry may be a file or
   * `:root`: directory which will be elided in zip. E.g.: `(fs/zip ["src"] {:root "src"})`
   * `:path-fn`: a single-arg function from file system path to zip entry path.
   
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1070-L1096">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1071-L1097">Source</a></sub></p>
