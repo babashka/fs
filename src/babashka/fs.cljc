@@ -50,8 +50,9 @@
   (System/getenv k))
 
 (defn path
-  "Coerces f into a Path. Multiple-arg versions treat the first argument as
-  parent and subsequent args as children relative to the parent."
+  "Coerces one arg into a Path, or combines multiple paths into one.
+  Multiple-arg versions treat the first argument as parent and subsequent
+  args as children relative to the parent."
   (^Path [f]
    (as-path f))
   (^Path [parent child]
