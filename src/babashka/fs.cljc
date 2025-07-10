@@ -533,19 +533,30 @@
   (as-path (System/getProperty "java.io.tmpdir")))
 
 (defn create-temp-dir
-  "Creates a temporary directory using Files#createDirectories.
+  "Creates a directory using [Files#createTempDirectory](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempDirectory-java.nio.file.Path-java.lang.String-java.nio.file.attribute.FileAttribute...-).
 
-  - `(create-temp-dir)`: creates temp dir with random prefix.
+  This function does not set up any automatic deletion of the directories it
+  creates. See `with-temp-dir` for that functionality.
 
-  - `(create-temp-dir {:keys [:dir :prefix :posix-file-permissions]})`:
-  create temp dir in dir with prefix. If prefix is not provided, a random one
-  is generated. If path is not provided, the directory is created as if called with `(create-temp-dir)`.
-  File permissions can be specified with an `:posix-file-permissions` option.
-  String format for posix file permissions is described in the `str->posix` docstring."
-  ([]
-   (Files/createTempDirectory
-    (str (java.util.UUID/randomUUID))
-    (make-array FileAttribute 0)))
+  Options:
+  - `:dir`: Directory in which to create the new directory. Defaults to default
+  system temp dir (e.g. `/tmp`); see `temp-dir`. Must already exist.
+  - `:prefix`: Provided as a hint to the process that generates the name of the
+  new directory. In most cases, this will be the beginning of the new directory
+  name. Defaults to a random (v4) UUID.
+  - `:posix-file-permissions`: The new directory will be created with these
+  permissions, given as a String as described in `str->posix`. If not
+  specified, uses the file system default permissions for new directories.
+  - :warning: `:path` **[DEPRECATED]** Previous name for `:dir`, kept
+  for backwards compatibility. If both `:path` and `:dir` are given (don't do
+  that!), `:dir` is used.
+
+  Examples:
+  - `(create-temp-dir)`
+  - `(create-temp-dir {:posix-file-permissions \"rwx------\"})`
+  - `(create-temp-dir {:dir (path (cwd) \"_workdir\") :prefix \"process-1-\"})`
+  "
+  ([] (create-temp-dir {}))
   ([{:keys [:dir :prefix :posix-file-permissions] :as opts}]
    (let [attrs (posix->attrs posix-file-permissions)
          prefix (or prefix (str (java.util.UUID/randomUUID)))
@@ -560,20 +571,33 @@
         attrs)))))
 
 (defn create-temp-file
-  "Creates an empty temporary file using Files#createTempFile.
+  "Creates an empty file using [Files#createTempFile](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempFile-java.nio.file.Path-java.lang.String-java.lang.String-java.nio.file.attribute.FileAttribute...-).
 
-  - `(create-temp-file)`: creates temp file with random prefix and suffix.
+  This function does not set up any automatic deletion of the files it
+  creates. Create the file in a `with-temp-dir` for that functionality.
 
-  - `(create-temp-file {:keys [:dir :prefix :suffix :posix-file-permissions]})`:
-  create temp file in dir with prefix. If prefix and suffix are not provided,
-  random ones are generated.
-  File permissions can be specified with an `:posix-file-permissions` option.
-  String format for posix file permissions is described in the `str->posix` docstring."
-  ([]
-   (Files/createTempFile
-    (str (java.util.UUID/randomUUID))
-    (str (java.util.UUID/randomUUID))
-    (make-array FileAttribute 0)))
+  Options:
+  - `:dir`: Directory in which to create the new file. Defaults to default
+  system temp dir (e.g. `/tmp`); see `temp-dir`. Must already exist.
+  - `:prefix`: Provided as a hint to the process that generates the name of the
+  new file. In most cases, this will be the beginning of the new file name.
+  Defaults to a random (v4) UUID.
+  - `:suffix`: Provided as a hint to the process that generates the name of the
+  new file. In most cases, this will be the end of the new file name.
+  Defaults to a random (v4) UUID.
+  - `:posix-file-permissions`: The new file will be created with these
+  permissions, given as a String as described in `str->posix`. If not
+  specified, uses the file system default permissions for new files.
+  - :warning: `:path` **[DEPRECATED]** Previous name for `:dir`, kept
+  for backwards compatibility. If both `:path` and `:dir` are given (don't do
+  that!), `:dir` is used.
+
+  Examples:
+  - `(create-temp-file)`
+  - `(create-temp-file {:posix-file-permissions \"rw-------\"})`
+  - `(create-temp-file {:dir (path (cwd) \"_workdir\") :prefix \"process-1-\" :suffix \"-queue\"})`
+  "
+  ([] (create-temp-file {}))
   ([{:keys [:dir :prefix :suffix :posix-file-permissions] :as opts}]
    (let [attrs (posix->attrs posix-file-permissions)
          prefix (or prefix (str (java.util.UUID/randomUUID)))
@@ -1154,13 +1178,25 @@
 ;;;; End gzip
 
 (defmacro with-temp-dir
-  "Evaluate body with binding-name bound to a temporary directory.
+  "Evaluates body with binding-name bound to the result of `(create-temp-dir
+  options)`, then cleans up. See [`create-temp-dir`](#babashka.fs/create-temp-dir)
+  for valid `options`.
 
-  The directory is created by passing `options` to `create-temp-dir`,
-  and will be removed with `delete-tree` on exit from the scope.
+  The directory will be removed with `delete-tree` on exit from the scope.
 
-  `options` is a map with the keys as for create-temp-dir."
-  {:arglists '[[[binding-name options] & body]]}
+  Example:
+
+  ```
+  (with-temp-dir [d]
+    (let [t (path d \"extract\")
+      (create-dir t)
+      (gunzip path-to-zip t)
+      (copy (path t \"the-one-file-I-wanted.txt\") (path permanent-dir \"file-I-extracted.txt\"))))
+  ;; d no longer exists here
+  ```
+  "
+  {:arglists '[[[binding-name] & body]
+               [[binding-name options] & body]]}
   [[binding-name options & more] & body]
   {:pre [(empty? more) (symbol? binding-name)]}
   `(let [~binding-name (create-temp-dir ~options)]
