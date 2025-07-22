@@ -7,6 +7,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#147](https://github.com/babashka/fs/issues/147): `fs/unzip` should allow selective extraction of files ([@sogaiu](https://github.com/sogaiu))
+- Improve documentation of `create-sym-link` and `create-link`
 
 ## v0.5.26 (2025-05-07)
 

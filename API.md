@@ -9,8 +9,8 @@
     -  [`create-dir`](#babashka.fs/create-dir) - Creates dir using <code>Files#createDirectory</code>.
     -  [`create-dirs`](#babashka.fs/create-dirs) - Creates directories using <code>Files#createDirectories</code>.
     -  [`create-file`](#babashka.fs/create-file) - Creates empty file using <code>Files#createFile</code>.
-    -  [`create-link`](#babashka.fs/create-link) - Create a hard link from path to target.
-    -  [`create-sym-link`](#babashka.fs/create-sym-link) - Create a soft link from path to target.
+    -  [`create-link`](#babashka.fs/create-link) - Create a new <code>link</code> (directory entry) for an <code>existing</code> file.
+    -  [`create-sym-link`](#babashka.fs/create-sym-link) - Create a symbolic <code>link</code> to <code>target</code>.
     -  [`create-temp-dir`](#babashka.fs/create-temp-dir) - Creates a directory using [Files#createTempDirectory](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempDirectory-java.nio.file.Path-java.lang.String-java.nio.file.attribute.FileAttribute...-).
     -  [`create-temp-file`](#babashka.fs/create-temp-file) - Creates an empty file using [Files#createTempFile](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempFile-java.nio.file.Path-java.lang.String-java.lang.String-java.nio.file.attribute.FileAttribute...-).
     -  [`creation-time`](#babashka.fs/creation-time) - Returns creation time as FileTime.
@@ -213,21 +213,21 @@ Creates empty file using `Files#createFile`.
 ## <a name="babashka.fs/create-link">`create-link`</a><a name="babashka.fs/create-link"></a>
 ``` clojure
 
-(create-link path target)
+(create-link link existing)
 ```
 Function.
 
-Create a hard link from path to target.
+Create a new `link` (directory entry) for an `existing` file.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L627-L632">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-sym-link">`create-sym-link`</a><a name="babashka.fs/create-sym-link"></a>
 ``` clojure
 
-(create-sym-link path target)
+(create-sym-link link target)
 ```
 Function.
 
-Create a soft link from path to target.
+Create a symbolic `link` to `target`.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L619-L625">Source</a></sub></p>
 
 ## <a name="babashka.fs/create-temp-dir">`create-temp-dir`</a><a name="babashka.fs/create-temp-dir"></a>

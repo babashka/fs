@@ -617,19 +617,19 @@
         attrs)))))
 
 (defn create-sym-link
-  "Create a soft link from path to target."
-  [path target]
+  "Create a symbolic `link` to `target`."
+  [link target]
   (Files/createSymbolicLink
-   (as-path path)
+   (as-path link)
    (as-path target)
    (make-array FileAttribute 0)))
 
 (defn create-link
-  "Create a hard link from path to target."
-  [path target]
+  "Create a new `link` (directory entry) for an `existing` file."
+  [link existing]
   (Files/createLink
-   (as-path path)
-   (as-path target)))
+   (as-path link)
+   (as-path existing)))
 
 (defn read-link
   "Reads the target of a symbolic link. The target need not exist."
