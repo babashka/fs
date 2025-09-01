@@ -4,10 +4,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## 0.5.27 (2025-09-01)
 
 - [#147](https://github.com/babashka/fs/issues/147): `fs/unzip` should allow selective extraction of files ([@sogaiu](https://github.com/sogaiu))
 - Improve documentation of `create-sym-link` and `create-link`
+- Fix wrong type hint in private function `u+wx`
 
 ## v0.5.26 (2025-05-07)
 
