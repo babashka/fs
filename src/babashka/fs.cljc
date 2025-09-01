@@ -470,7 +470,7 @@
   [f]
   (if win?
     (.setWritable (file f) true)
-    (let [^HashSet perms (posix-file-permissions f)
+    (let [^java.util.Set perms (posix-file-permissions f)
           p1 (.add perms PosixFilePermission/OWNER_WRITE)
           p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
       (when (or p1 p2)
