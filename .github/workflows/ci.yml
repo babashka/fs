@@ -32,7 +32,7 @@ jobs:
 
       # Optional step:
       - name: Cache clojure dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.m2/repository
