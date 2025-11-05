@@ -7,9 +7,7 @@
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src"]
   :dependencies [[org.clojure/clojure "1.9.0"]]
-  :plugins [[lein-codox "0.10.7"]
-            [lein-cloverage "1.2.2"]]
-  :codox {:output-path "gh-pages"}
+  :plugins [[lein-cloverage "1.2.4"]]
   :profiles {:test {:jvm-opts ["-Djdk.attach.allowAttachSelf"]
                     :dependencies [[clj-commons/conch "0.9.2"]]}}
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo"

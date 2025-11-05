@@ -1,7 +1,7 @@
 {:min-bb-version "0.9.161"
  :deps {io.github.borkdude/quickdoc
         #_{:local/root "/Users/borkdude/dev/quickdoc"}
-        {:git/tag "v0.2.4", :git/sha "7402269"}}
+        {:git/tag "v0.2.5", :git/sha "25784ca"}}
  :tasks
  {:requires ([babashka.fs :as fs]
              [clojure.string :as str])
