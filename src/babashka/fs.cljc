@@ -15,7 +15,6 @@
             FileVisitor]
            [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions PosixFilePermission]
            [java.nio.charset Charset]
-           [java.util HashSet]
            [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry]
            [java.io File BufferedInputStream FileInputStream FileOutputStream]))
 
