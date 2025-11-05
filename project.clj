@@ -8,7 +8,7 @@
   :source-paths ["src"]
   :dependencies [[org.clojure/clojure "1.9.0"]]
   :plugins [[lein-codox "0.10.7"]
-            [lein-cloverage "1.2.2"]]
+            [lein-cloverage "1.2.4"]]
   :codox {:output-path "gh-pages"}
   :profiles {:test {:jvm-opts ["-Djdk.attach.allowAttachSelf"]
                     :dependencies [[clj-commons/conch "0.9.2"]]}}
