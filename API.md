@@ -516,6 +516,9 @@ Given a file and glob pattern, returns matches as vector of
   Glob interpretation is done using the rules described in
   https://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String).
 
+Note that if `root` itself is a symlink you need to specify `{:follow-links true}` or
+  expand `root` to its canonical path using `real-path`.
+  
   Options:
 
   * `:hidden` - match hidden paths. Implied when `pattern` starts with a dot;
