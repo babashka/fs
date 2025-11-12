@@ -3,8 +3,9 @@
 [![Clojars Project](https://img.shields.io/clojars/v/babashka/fs.svg)](https://clojars.org/babashka/fs) [![ci](https://github.com/babashka/fs/actions/workflows/ci.yml/badge.svg)](https://github.com/babashka/fs/actions/workflows/ci.yml)
 [![bb built-in](https://raw.githubusercontent.com/babashka/babashka/master/logo/built-in-badge.svg)](https://book.babashka.org#badges)
 
-File system utilities. This library can be used on the JVM and is also included
-in [babashka](https://github.com/babashka/babashka) (>= 0.2.9).
+File system utilities. This library can used from:
+- [Clojure on the JVM](https://www.clojure.org/guides/install_clojure) - we support Java 11 and above.
+- [babashka](https://github.com/babashka/babashka) - it has been a built-in library since babashka v0.2.9.
 
 ## Why
 
