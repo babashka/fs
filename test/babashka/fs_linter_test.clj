@@ -1,5 +1,6 @@
 (ns babashka.fs-linter-test
   (:require
+   [babashka.test-report]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.hooks-api :as hooks-api]
    [clojure.string :as str]
