@@ -5,12 +5,50 @@
  :tasks
  {:requires ([babashka.fs :as fs]
              [clojure.string :as str])
-  test (clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
-                "-M:test")
+  :init (do
+          (defn from-scratch-cwd [desc aliases]
+            (let [test-cwd "target/test-cwd"]
+              (fs/delete-tree test-cwd)
+              (fs/create-dirs test-cwd)
+              (println "Running" desc "from:" test-cwd)
+              (apply clojure
+                     {:dir test-cwd}
+                     "-Sdeps" (if (fs/windows?)
+                                ;; unsure why do we need to do this escaping for windows
+                                "\"../../deps.edn\""
+                                "../../deps.edn")
+                     (str "-M" aliases)
+                     *command-line-args*))))
 
-  quickdoc {:doc "Invoke quickdoc"
-            :requires ([quickdoc.api :as api])
-            :task (api/quickdoc {:git/branch "master"
-                                 :github/repo "https://github.com/babashka/fs"
-                                 :toc true
-                                 :var-links true})}}}
+  test
+  {:doc "Run default tests"
+   :task (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+                "-M:test-runner:test"
+                *command-line-args*)}
+
+  test-cwd
+  {:doc "Run current working directory tests (from scratch cwd)"
+   :task (from-scratch-cwd "tests" ":test-runner:test:test-cwd")}
+
+
+  dev
+  {:doc "Launch an nREPL for default tests"
+   :task (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+                "-M:test-runner:test:repl-runner"
+                *command-line-args*)}
+  
+  dev-cwd
+  {:doc "Launch an nREPL for cwd tests (from scratch cwd)"
+   :task (from-scratch-cwd "repl" ":test-runner:test:test-cwd:repl-runner")}
+
+  test-all
+  {:doc "Run all tests"
+   :depends [test test-cwd]}
+  
+  quickdoc
+  {:doc "Invoke quickdoc"
+   :requires ([quickdoc.api :as api])
+   :task (api/quickdoc {:git/branch "master"
+                        :github/repo "https://github.com/babashka/fs"
+                        :toc true
+                        :var-links true})}}}
