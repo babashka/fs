@@ -63,10 +63,14 @@ For convenience, the above use case is also supported using the `which` function
 "/Users/borkdude/.jenv/versions/11.0/bin/java"
 ```
 
+## Notes 
+
+The underlying JDK file APIs (and, by extension, babashka.fs) typically consider an empty-string path `""` to be the current working directory. This means that `(fs/list-dir "")` is functionally equivalent to `(fs/list-dir ".")`.
+
 ## Test
 
 ``` clojure
-$ bb test
+$ bb test-all
 ```
 
 ## License
