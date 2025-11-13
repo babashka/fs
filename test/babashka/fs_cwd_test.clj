@@ -429,7 +429,6 @@
   (is (thrown? java.io.FileNotFoundException (fs/update-file "" str "updated"))))
 
 (deftest es-walk-file-tree-test
-  ;; side issue: docstring dose not describe fn sigs
   (let [files (atom [])]
     (fs/walk-file-tree "" {:visit-file (fn [f _attrs]
                                          (swap! files conj f)
