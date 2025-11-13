@@ -114,7 +114,10 @@
   [^Path f] (Files/isDirectory f simple-link-opts))
 
 (defn hidden?
-  "Returns true if f is hidden."
+  "Returns true if f is hidden.
+
+  TIP: some older JDKs can throw on empty-string path `(hidden \"\")`.
+  Consider instead checking cwd via `(hidden \".\")`." 
   [f] (Files/isHidden (as-path f)))
 
 (defn absolute?
@@ -623,7 +626,10 @@
         attrs)))))
 
 (defn create-sym-link
-  "Create a symbolic `link` to `target`."
+  "Create a symbolic `link` to `target`.
+
+  As of this writing, JDKs do not recognize empty-string `target` `\"\"` as the cwd.
+  Consider instead using a `target` of `\".\"` to link to the cwd."
   [link target]
   (Files/createSymbolicLink
    (as-path link)
