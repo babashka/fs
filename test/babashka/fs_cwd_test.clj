@@ -38,8 +38,15 @@
         (fs/absolute? x) (str "/"))
       (str x))))
 
+(defn path-seq
+  [path]
+  (tree-seq
+   (fn [path] (fs/directory? path))
+   (fn [path] (seq (fs/list-dir path)))
+   (fs/path path)))
+
 (defn- fsnapshot []
-  (->> (#'fs/path-seq ".")
+  (->> (path-seq ".")
        (map (fn [p]
               {:path (fs/unixify (path->str p))
                :content (when (fs/regular-file? p)
@@ -182,7 +189,7 @@
 (deftest es-delete-on-exit-test
   ;; tested elsewhere, here we just check that it does not throw
   ;; NOTE: this does not seem to actually delete on exit, perhaps because the dir is in use?
-  (fs/delete-on-exit "."))
+  (fs/delete-on-exit ""))
 
 (deftest es-delete-tree-test
   ;; although this throws, assumedly on attempting to delete cwd, it first deletes all files and subdirs
@@ -237,7 +244,6 @@
 
 (deftest es-hidden-test
   (if (and (not (fs/windows?)) (< (jdk-major) 17))
-    ;; linux jdk8, jdk11 throws java.lang.ArrayIndexOutOfBoundsException
     (is (thrown? java.lang.ArrayIndexOutOfBoundsException (fs/hidden? "")))
     (is (= false (fs/hidden? "")))))
 
@@ -429,7 +435,6 @@
                                          (swap! files conj f)
                                          :continue)})
     (is (= ["da1/da2/da3/da4/f2.ext" "f1.ext"] (sort (mapv path->str @files))))))
-
 
 (deftest es-which-test
   (is (nil? (fs/which ""))))
