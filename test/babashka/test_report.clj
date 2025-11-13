@@ -2,7 +2,7 @@
   (:require [clojure.test]))
 
 (def platform
-  (if-let [bb-version (System/getProperty" babashka.version")]
+  (if-let [bb-version (System/getProperty "babashka.version")]
     (str "bb " bb-version)
     (str "jdk " (System/getProperty "java.version"))))
 
