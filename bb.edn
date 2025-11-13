@@ -4,21 +4,21 @@
         {:git/tag "v0.2.5", :git/sha "25784ca"}}
  :tasks
  {:requires ([babashka.fs :as fs]
+             [clojure.edn :as edn]
              [clojure.string :as str])
   :init (do
           (defn from-scratch-cwd [desc aliases]
-            (let [test-cwd "target/test-cwd"]
+            (let [test-cwd "target/test-cwd"
+                  cp (with-out-str (clojure (str "-Spath -M" (str/join aliases))))
+                  run-alias (last aliases)
+                  main-opts (-> "deps.edn" slurp edn/read-string :aliases run-alias :main-opts)]
               (fs/delete-tree test-cwd)
               (fs/create-dirs test-cwd)
               (println "Running" desc "from:" test-cwd)
               (apply clojure
                      {:dir test-cwd}
-                     "-Sdeps" (if (fs/windows?)
-                                ;; unsure why do we need to do this escaping for windows
-                                "\"../../deps.edn\""
-                                "../../deps.edn")
-                     (str "-M" aliases)
-                     *command-line-args*))))
+                     "-Scp" cp
+                     "-M" (into main-opts *command-line-args*)))))
 
   test
   {:doc "Run default tests"
@@ -28,7 +28,7 @@
 
   test-cwd
   {:doc "Run current working directory tests (from scratch cwd)"
-   :task (from-scratch-cwd "tests" ":test-runner:test:test-cwd")}
+   :task (from-scratch-cwd "tests" [:test-runner :test :test-cwd])}
 
 
   dev
@@ -39,7 +39,7 @@
   
   dev-cwd
   {:doc "Launch an nREPL for cwd tests (from scratch cwd)"
-   :task (from-scratch-cwd "repl" ":test-runner:test:test-cwd:repl-runner")}
+   :task (from-scratch-cwd "repl" [:test-runner :test :test-cwd :repl-runner])}
 
   test-all
   {:doc "Run all tests"
