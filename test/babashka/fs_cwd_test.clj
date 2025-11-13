@@ -160,15 +160,15 @@
 
 (deftest es-create-temp-dir-test
   (let [temp-dir (fs/create-temp-dir {:dir "" :prefix ""})]
-      (is (re-matches #".+" (path->str temp-dir)))
-      (is (= true (fs/exists? (fs/file-name temp-dir))))
-      (is (= true (fs/directory? temp-dir)))))
+    (is (re-matches #".+" (path->str temp-dir)))
+    (is (= true (fs/exists? (fs/file-name temp-dir))))
+    (is (= true (fs/directory? temp-dir)))))
 
 (deftest es-create-temp-file-test
   (let [temp-file (fs/create-temp-file {:dir "" :prefix ""})]
-      (is (re-matches #".+" (path->str temp-file)))
-      (is (= true (fs/exists? (fs/file-name temp-file))))
-      (is (= true (fs/regular-file? temp-file)))))
+    (is (re-matches #".+" (path->str temp-file)))
+    (is (= true (fs/exists? (fs/file-name temp-file))))
+    (is (= true (fs/regular-file? temp-file)))))
 
 (deftest es-creation-time-test
   (let [dir-creation-time (fs/creation-time ".")]
@@ -270,7 +270,7 @@
     (is (= [] (fs/modified-since "" "da1/da2/da3/da4/f2.ext")))
     (is (= [] (fs/modified-since "" "da1")))
     (is (= [] (fs/modified-since "da1/da2/da3/da4/f2.ext" "")))
-    
+
     (fs/set-last-modified-time "" later)
     (fs/set-last-modified-time "f1.ext" later)
     (fs/set-last-modified-time "da1/da2/da3/da4/f2.ext" earlier)
@@ -296,7 +296,7 @@
   (is (= false (fs/exists? "da1/da2/da3"))))
 
 (deftest es-normalize-test
-  (is (= "" (path->str (fs/normalize "")) )))
+  (is (= "" (path->str (fs/normalize "")))))
 
 (deftest es-owner-test
   (is (= (fs/owner "") (fs/owner "f1.ext"))))
@@ -328,7 +328,7 @@
   (is (= true (fs/readable? ""))))
 
 (deftest es-real-path-test
-  (is (= (path->str (System/getProperty "user.dir")) (path->str (fs/real-path "")))) )
+  (is (= (path->str (System/getProperty "user.dir")) (path->str (fs/real-path "")))))
 
 (deftest es-regular-file?-test
   (is (= false (fs/regular-file? ""))))
@@ -375,7 +375,7 @@
       (is (= old-create-time (fs/creation-time "")) "returns original creation time"))))
 
 (deftest es-set-last-modified-time-test
-  (let [old-time (fs/last-modified-time "") 
+  (let [old-time (fs/last-modified-time "")
         new-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:03.00Z"))]
     (fs/set-last-modified-time "" new-time)
     (is (not= old-time (fs/last-modified-time "")))
