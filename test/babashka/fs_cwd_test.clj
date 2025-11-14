@@ -38,15 +38,8 @@
         (fs/absolute? x) (str "/"))
       (str x))))
 
-(defn path-seq
-  [path]
-  (tree-seq
-   (fn [path] (fs/directory? path))
-   (fn [path] (seq (fs/list-dir path)))
-   (fs/path path)))
-
 (defn- fsnapshot []
-  (->> (path-seq ".")
+  (->> (#'fs/path-seq ".")
        (map (fn [p]
               {:path (fs/unixify (path->str p))
                :content (when (fs/regular-file? p)
