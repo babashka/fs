@@ -4,13 +4,55 @@
         {:git/tag "v0.2.5", :git/sha "25784ca"}}
  :tasks
  {:requires ([babashka.fs :as fs]
+             [clojure.edn :as edn]
              [clojure.string :as str])
-  test (clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
-                "-M:test")
+  :init (do
+          (defn from-scratch-cwd [desc aliases]
+            (let [test-cwd "target/test-cwd"
+                  cp (str/trim (with-out-str (clojure (str "-Spath -M" (str/join aliases)))))
+                  cp (->> (fs/split-paths cp)
+                          (mapv (fn [p] (if (fs/relative? p)
+                                          (str (fs/file ".." ".." p))
+                                          p)))
+                          (str/join fs/path-separator))
+                  run-alias (last aliases)
+                  main-opts (-> "deps.edn" slurp edn/read-string :aliases run-alias :main-opts)]
+              (fs/delete-tree test-cwd)
+              (fs/create-dirs test-cwd)
+              (println "Running" desc "from:" test-cwd)
+              (apply clojure
+                     {:dir test-cwd}
+                     "-Scp" cp
+                     "-M" (into main-opts *command-line-args*)))))
 
-  quickdoc {:doc "Invoke quickdoc"
-            :requires ([quickdoc.api :as api])
-            :task (api/quickdoc {:git/branch "master"
-                                 :github/repo "https://github.com/babashka/fs"
-                                 :toc true
-                                 :var-links true})}}}
+  test
+  {:doc "Run default tests"
+   :task (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+                "-M:test-runner:test"
+                *command-line-args*)}
+
+  test-cwd
+  {:doc "Run current working directory tests (from scratch cwd)"
+   :task (from-scratch-cwd "tests" [:test-runner :test :test-cwd])}
+
+  dev
+  {:doc "Launch an nREPL for default tests"
+   :task (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+                "-M:test-runner:test:repl-runner"
+                *command-line-args*)}
+
+  dev-cwd
+  {:doc "Launch an nREPL for cwd tests (from scratch cwd)"
+   :task (from-scratch-cwd "repl" [:test-runner :test :test-cwd :repl-runner])}
+
+  test-all
+  {:doc "Run all tests"
+   :depends [test test-cwd]}
+
+  quickdoc
+  {:doc "Invoke quickdoc"
+   :requires ([quickdoc.api :as api])
+   :task (api/quickdoc {:git/branch "master"
+                        :github/repo "https://github.com/babashka/fs"
+                        :toc true
+                        :var-links true})}}}
