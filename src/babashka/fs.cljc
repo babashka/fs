@@ -176,8 +176,8 @@
 (defn canonicalize
   "Returns the canonical path via
   java.io.File#getCanonicalPath. If `:nofollow-links` is set, then it
-  will fall back on `absolutize` + `normalize.` This function can be used
-  as an alternative to `real-path` which requires files to exist."
+  will fall back on [[absolutize]] + [[normalize]]. This function can be used
+  as an alternative to [[real-path]] which requires files to exist."
   (^Path [f] (canonicalize f nil))
   (^Path [f {:keys [:nofollow-links]}]
    (if nofollow-links
@@ -494,7 +494,7 @@
 
 (defn copy-tree
   "Copies entire file tree from src to dest. Creates dest if needed
-  using `create-dirs`, passing it the `:posix-file-permissions`
+  using [[create-dirs]], passing it the `:posix-file-permissions`
   option. Supports same options as copy.
   Returns `dest` as path"
   ([src dest] (copy-tree src dest nil))
@@ -553,16 +553,16 @@
   "Creates a directory using [Files#createTempDirectory](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempDirectory-java.nio.file.Path-java.lang.String-java.nio.file.attribute.FileAttribute...-).
 
   This function does not set up any automatic deletion of the directories it
-  creates. See `with-temp-dir` for that functionality.
+  creates. See [[with-temp-dir]] for that functionality.
 
   Options:
   - `:dir`: Directory in which to create the new directory. Defaults to default
-  system temp dir (e.g. `/tmp`); see `temp-dir`. Must already exist.
+  system temp dir (e.g. `/tmp`); see [[temp-dir]]. Must already exist.
   - `:prefix`: Provided as a hint to the process that generates the name of the
   new directory. In most cases, this will be the beginning of the new directory
   name. Defaults to a random (v4) UUID.
   - `:posix-file-permissions`: The new directory will be created with these
-  permissions, given as a String as described in `str->posix`. If not
+  permissions, given as a String as described in [[str->posix]]. If not
   specified, uses the file system default permissions for new directories.
   - :warning: `:path` **[DEPRECATED]** Previous name for `:dir`, kept
   for backwards compatibility. If both `:path` and `:dir` are given (don't do
@@ -591,11 +591,11 @@
   "Creates an empty file using [Files#createTempFile](https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempFile-java.nio.file.Path-java.lang.String-java.lang.String-java.nio.file.attribute.FileAttribute...-).
 
   This function does not set up any automatic deletion of the files it
-  creates. Create the file in a `with-temp-dir` for that functionality.
+  creates. Create the file in a [[with-temp-dir]] for that functionality.
 
   Options:
   - `:dir`: Directory in which to create the new file. Defaults to default
-  system temp dir (e.g. `/tmp`); see `temp-dir`. Must already exist.
+  system temp dir (e.g. `/tmp`); see [[temp-dir]]. Must already exist.
   - `:prefix`: Provided as a hint to the process that generates the name of the
   new file. In most cases, this will be the beginning of the new file name.
   Defaults to a random (v4) UUID.
@@ -603,7 +603,7 @@
   new file. In most cases, this will be the end of the new file name.
   Defaults to a random (v4) UUID.
   - `:posix-file-permissions`: The new file will be created with these
-  permissions, given as a String as described in `str->posix`. If not
+  permissions, given as a String as described in [[str->posix]]. If not
   specified, uses the file system default permissions for new files.
   - :warning: `:path` **[DEPRECATED]** Previous name for `:dir`, kept
   for backwards compatibility. If both `:path` and `:dir` are given (don't do
@@ -676,7 +676,7 @@
   (Files/isSymbolicLink (as-path f)))
 
 (defn delete-tree
-  "Deletes a file tree using `walk-file-tree`. Similar to `rm -rf`. Does not follow symlinks.
+  "Deletes a file tree using [[walk-file-tree]]. Similar to `rm -rf`. Does not follow symlinks.
    `force` ensures read-only directories/files are deleted. Similar to `chmod -R +wx` + `rm -rf`"
   ;; See delete-permission-assumptions-test
   ;; Implementation with the force flag is based on those assumptions
@@ -701,7 +701,7 @@
   "Creates empty file using `Files#createFile`.
 
   File permissions can be specified with an `:posix-file-permissions` option.
-  String format for posix file permissions is described in the `str->posix` docstring."
+  String format for posix file permissions is described in the [[str->posix]] docstring."
   ([path]
    (create-file path nil))
   ([path {:keys [:posix-file-permissions]}]
@@ -799,7 +799,7 @@
      attrs)))
 
 (defn read-attributes
-  "Same as `read-attributes*` but turns attributes into a map and keywordizes keys.
+  "Same as [[read-attributes*]] but turns attributes into a map and keywordizes keys.
   Keywordizing can be changed by passing a :key-fn in the options map."
   ([path attributes]
    (read-attributes path attributes nil))
@@ -897,14 +897,14 @@
          [path-str nil])))))
 
 (defn strip-ext
-  "Strips extension via `split-ext`."
+  "Strips extension via [[split-ext]]."
   ([path]
    (strip-ext path nil))
   ([path {:keys [ext] :as opts}]
    (first (split-ext path opts))))
 
 (defn extension
-  "Returns the extension of a file via `split-ext`."
+  "Returns the extension of a file via [[split-ext]]."
   [path]
   (-> path split-ext last))
 
@@ -929,7 +929,7 @@
 
 (defn which
   "Returns Path to first executable `program` found in `:paths` `opt`, similar to the which Unix command.
-  Default for `:paths` is `(exec-paths)`.
+  Default for `:paths` is ([[exec-paths]]).
 
   On Windows, searches for `program` with filename extensions specified in `:win-exts` `opt`.
   Default is `[\"com\" \"exe\" \"bat\" \"cmd\"]`.
@@ -982,7 +982,7 @@
          (if (:all opts) results (first results)))))))
 
 (defn which-all
-  "Returns every Path to `program` found in (`exec-paths`). See `which`."
+  "Returns every Path to `program` found in ([[exec-paths]]). See [[which]]."
   ([program] (which-all program nil))
   ([program opts]
    (which program (assoc opts :all true))))
@@ -1201,10 +1201,10 @@
 
 (defmacro with-temp-dir
   "Evaluates body with binding-name bound to the result of `(create-temp-dir
-  options)`, then cleans up. See [`create-temp-dir`](#babashka.fs/create-temp-dir)
+  options)`, then cleans up. See [[create-temp-dir]]
   for valid `options`.
 
-  The directory will be removed with `delete-tree` on exit from the scope.
+  The directory will be removed with [[delete-tree]] on exit from the scope.
 
   Example:
 
