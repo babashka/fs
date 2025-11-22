@@ -193,10 +193,12 @@
 
 (defn walk-file-tree
   "Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
-  :post-visit-dir, :visit-file, :visit-file-failed. All visitor functions
-  default to (constantly :continue). Supported return
-  values: :continue, :skip-subtree, :skip-siblings, :terminate. A
-  different return value will throw."
+  :post-visit-dir, :visit-file, :visit-file-failed. All visitor functions have
+  the signature `[dir attrs]` and are supposed to return one of
+  `:continue, :skip-subtree, :skip-siblings, :terminate`. A different return
+  value will throw. When not supplied, visitor functions default
+  to `(constantly :continue)`. A different return value will throw.  Returns
+  `f`."
   [f
    {:keys [:pre-visit-dir :post-visit-dir
            :visit-file :visit-file-failed
