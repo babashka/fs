@@ -403,7 +403,8 @@
   Options:
   * `:replace-existing`
   * `:copy-attributes`
-  * `:nofollow-links` (used to determine to copy symbolic link itself or not)."
+  * `:nofollow-links` (used to determine to copy symbolic link itself or not).
+  Returns `dest` as path."
   ([src dest] (copy src dest nil))
   ([src dest {:keys [replace-existing
                      copy-attributes
@@ -490,7 +491,8 @@
 (defn copy-tree
   "Copies entire file tree from src to dest. Creates dest if needed
   using `create-dirs`, passing it the `:posix-file-permissions`
-  option. Supports same options as copy."
+  option. Supports same options as copy.
+  Returns `dest` as path"
   ([src dest] (copy-tree src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
@@ -703,7 +705,8 @@
      (Files/createFile (as-path path) attrs))))
 
 (defn move
-  "Move or rename a file to a target dir or file via `Files/move`."
+  "Move or rename a file to a target dir or file via `Files/move`.
+  Returns `target` as path."
   ([source target] (move source target nil))
   ([source target {:keys [:replace-existing
                           :atomic-move
