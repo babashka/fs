@@ -854,8 +854,8 @@
 
 (deftest unixify-test
   (when windows?
-    (is (str/includes? (fs/unixify (fs/normalize "README.md")) "/"))
-    (is (not (str/includes? (fs/unixify (fs/normalize "README.md")) fs/file-separator)))))
+    (is (str/includes? (fs/unixify (fs/absolutize "README.md")) "/"))
+    (is (not (str/includes? (fs/unixify (fs/absolutize "README.md")) fs/file-separator)))))
 
 (deftest xdg-*-home-test
   (let [default-path (fs/path (fs/home) ".config")]
@@ -907,6 +907,8 @@
       (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
 
 (deftest issue-135-test
+  (prn :cwd (fs/cwd))
+  (prn :cwd+unixify (fs/unixify (fs/cwd)))
   (let [uri (java.net.URI/create (str "jar:file:" (fs/unixify (fs/cwd)) "/test-resources/bencode-1.1.0.jar"))
         fs (java.nio.file.FileSystems/newFileSystem uri {})
         path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String []))
