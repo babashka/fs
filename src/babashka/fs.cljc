@@ -1084,7 +1084,7 @@
 (defn- add-zip-entry
   [^ZipOutputStream output-stream ^Path f fpath]
   (let [dir (directory? f)
-        attrs (Files/readAttributes (as-path f) BasicFileAttributes
+        attrs (Files/readAttributes f BasicFileAttributes
                                     (->link-opts []))
         entry (doto (ZipEntry. (str fpath))
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
