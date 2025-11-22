@@ -1359,9 +1359,10 @@
 (defn unixify
   "Returns path as string with Unix-style file separators (`/`)."
   [f]
-  (if win?
-    (-> f as-path .toUri .getPath)
-    (str f)))
+  (let [s (str f)]
+    (if win?
+      (.replace s "\\" "/")
+      s)))
 
 (defn- xdg-path-from-env-var
   "Yields value of environment variable `k` as path if it's an absolute

@@ -854,8 +854,8 @@
 
 (deftest unixify-test
   (when windows?
-    (is (str/includes? (fs/unixify (fs/normalize "README.md")) "/"))
-    (is (not (str/includes? (fs/unixify (fs/normalize "README.md")) fs/file-separator)))))
+    (is (str/includes? (fs/unixify (fs/absolutize "README.md")) "/"))
+    (is (not (str/includes? (fs/unixify (fs/absolutize "README.md")) fs/file-separator)))))
 
 (deftest xdg-*-home-test
   (let [default-path (fs/path (fs/home) ".config")]
