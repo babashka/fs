@@ -117,7 +117,7 @@
   "Returns true if f is hidden.
 
   TIP: some older JDKs can throw on empty-string path `(hidden \"\")`.
-  Consider instead checking cwd via `(hidden \".\")`." 
+  Consider instead checking cwd via `(hidden \".\")`."
   [f] (Files/isHidden (as-path f)))
 
 (defn absolute?
