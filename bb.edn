@@ -55,4 +55,5 @@
    :task (api/quickdoc {:git/branch "master"
                         :github/repo "https://github.com/babashka/fs"
                         :toc true
-                        :var-links true})}}}
+                        :var-links true
+                        :var-pattern :wikilinks})}}}

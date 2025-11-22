@@ -18,14 +18,14 @@
     -  [`delete`](#babashka.fs/delete) - Deletes f.
     -  [`delete-if-exists`](#babashka.fs/delete-if-exists) - Deletes f if it exists.
     -  [`delete-on-exit`](#babashka.fs/delete-on-exit) - Requests delete on exit via <code>File#deleteOnExit</code>.
-    -  [`delete-tree`](#babashka.fs/delete-tree) - Deletes a file tree using <code>walk-file-tree</code>.
+    -  [`delete-tree`](#babashka.fs/delete-tree) - Deletes a file tree using [[walk-file-tree]].
     -  [`directory?`](#babashka.fs/directory?) - Returns true if f is a directory, using Files/isDirectory.
     -  [`ends-with?`](#babashka.fs/ends-with?) - Returns true if path this ends with path other.
     -  [`exec-paths`](#babashka.fs/exec-paths) - Returns executable paths (using the PATH environment variable).
     -  [`executable?`](#babashka.fs/executable?) - Returns true if f is executable.
     -  [`exists?`](#babashka.fs/exists?) - Returns true if f exists.
     -  [`expand-home`](#babashka.fs/expand-home) - If <code>path</code> begins with a tilde (<code>~</code>), expand the tilde to the value of the <code>user.home</code> system property.
-    -  [`extension`](#babashka.fs/extension) - Returns the extension of a file via <code>split-ext</code>.
+    -  [`extension`](#babashka.fs/extension) - Returns the extension of a file via [[split-ext]].
     -  [`file`](#babashka.fs/file) - Coerces one arg into a File, or combines multiple paths into one.
     -  [`file-name`](#babashka.fs/file-name) - Returns the name of the file or directory.
     -  [`file-separator`](#babashka.fs/file-separator) - The system-dependent default name-separator character (as string).
@@ -54,7 +54,7 @@
     -  [`posix-file-permissions`](#babashka.fs/posix-file-permissions)
     -  [`read-all-bytes`](#babashka.fs/read-all-bytes) - Returns contents of file as byte array.
     -  [`read-all-lines`](#babashka.fs/read-all-lines) - Read all lines from a file.
-    -  [`read-attributes`](#babashka.fs/read-attributes) - Same as <code>read-attributes*</code> but turns attributes into a map and keywordizes keys.
+    -  [`read-attributes`](#babashka.fs/read-attributes) - Same as [[read-attributes*]] but turns attributes into a map and keywordizes keys.
     -  [`read-attributes*`](#babashka.fs/read-attributes*) - Reads attributes via Files/readAttributes.
     -  [`read-link`](#babashka.fs/read-link) - Reads the target of a symbolic link.
     -  [`readable?`](#babashka.fs/readable?) - Returns true if f is readable.
@@ -72,7 +72,7 @@
     -  [`split-paths`](#babashka.fs/split-paths) - Splits a path list given as a string joined by the OS-specific path-separator into a vec of paths.
     -  [`starts-with?`](#babashka.fs/starts-with?) - Returns true if path this starts with path other.
     -  [`str->posix`](#babashka.fs/str->posix) - Converts a string to a set of PosixFilePermission.
-    -  [`strip-ext`](#babashka.fs/strip-ext) - Strips extension via <code>split-ext</code>.
+    -  [`strip-ext`](#babashka.fs/strip-ext) - Strips extension via [[split-ext]].
     -  [`sym-link?`](#babashka.fs/sym-link?) - Determines if <code>f</code> is a symbolic link via <code>java.nio.file.Files/isSymbolicLink</code>.
     -  [`temp-dir`](#babashka.fs/temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
     -  [`unixify`](#babashka.fs/unixify) - Returns path as string with Unix-style file separators (<code>/</code>).
@@ -80,7 +80,7 @@
     -  [`update-file`](#babashka.fs/update-file) - Updates the contents of text file <code>path</code> using <code>f</code> applied to old contents and <code>xs</code>.
     -  [`walk-file-tree`](#babashka.fs/walk-file-tree) - Walks f using Files/walkFileTree.
     -  [`which`](#babashka.fs/which) - Returns Path to first executable <code>program</code> found in <code>:paths</code> <code>opt</code>, similar to the which Unix command.
-    -  [`which-all`](#babashka.fs/which-all) - Returns every Path to <code>program</code> found in (<code>exec-paths</code>).
+    -  [`which-all`](#babashka.fs/which-all) - Returns every Path to <code>program</code> found in ([[exec-paths]]).
     -  [`windows?`](#babashka.fs/windows?) - Returns true if OS is Windows.
     -  [`with-temp-dir`](#babashka.fs/with-temp-dir) - Evaluates body with binding-name bound to the result of <code>(create-temp-dir options)</code>, then cleans up.
     -  [`writable?`](#babashka.fs/writable?) - Returns true if f is writable.
@@ -130,7 +130,7 @@ Function.
 
 Returns the canonical path via
   java.io.File#getCanonicalPath. If `:nofollow-links` is set, then it
-  will fall back on [`absolutize`](#babashka.fs/absolutize) + `normalize.` This function can be used
+  will fall back on [`absolutize`](#babashka.fs/absolutize) + [`normalize`](#babashka.fs/normalize). This function can be used
   as an alternative to [`real-path`](#babashka.fs/real-path) which requires files to exist.
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L176-L185">Source</a></sub></p>
 
@@ -429,8 +429,8 @@ Returns true if f exists.
 ```
 Function.
 
-If [`path`](#babashka.fs/path) begins with a tilde (`~`), expand the tilde to the value
-  of the `user.home` system property. If the [`path`](#babashka.fs/path) begins with a
+If `path` begins with a tilde (`~`), expand the tilde to the value
+  of the `user.home` system property. If the `path` begins with a
   tilde immediately followed by some characters, they are assumed to
   be a username. This is expanded to the path to that user's home
   directory. This is (naively) assumed to be a directory with the same
@@ -1050,7 +1050,7 @@ Unzips `zip-file` to `dest` directory (default `"."`).
 ```
 Function.
 
-Updates the contents of text file [`path`](#babashka.fs/path) using `f` applied to old contents and `xs`.
+Updates the contents of text file `path` using `f` applied to old contents and `xs`.
   Returns the new contents.
 
   Options:
@@ -1083,7 +1083,7 @@ Walks f using Files/walkFileTree. Visitor functions: :pre-visit-dir,
 Function.
 
 Returns Path to first executable `program` found in `:paths` `opt`, similar to the which Unix command.
-  Default for `:paths` is `(exec-paths)`.
+  Default for `:paths` is ([`exec-paths`](#babashka.fs/exec-paths)).
 
   On Windows, searches for `program` with filename extensions specified in `:win-exts` `opt`.
   Default is `["com" "exe" "bat" "cmd"]`.
@@ -1160,7 +1160,7 @@ Returns true if f is writable
 ```
 Function.
 
-Writes `bytes` to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
+Writes `bytes` to `path` via `java.nio.file.Files/write`.
   Supported options:
   * `:create` (default `true`)
   * `:truncate-existing` (default `true`)
@@ -1184,7 +1184,7 @@ Writes `bytes` to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
 ```
 Function.
 
-Writes `lines`, a seqable of strings to [`path`](#babashka.fs/path) via `java.nio.file.Files/write`.
+Writes `lines`, a seqable of strings to `path` via `java.nio.file.Files/write`.
 
   Supported options:
   * `:charset` (default `"utf-8"`)
