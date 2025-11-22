@@ -264,8 +264,12 @@
    (fn [^Path path] (seq (list-dir path)))
    (as-path path)))
 
-(def file-separator File/separator)
-(def path-separator File/pathSeparator)
+(def file-separator
+  "The system-dependent default name-separator character (as string)"
+  File/separator)
+(def path-separator
+  "The system-dependent path-separator character (as string)."
+  File/pathSeparator)
 
 (def ^:private win?
   (-> (System/getProperty "os.name")
