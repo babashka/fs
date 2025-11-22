@@ -1,7 +1,21 @@
 {:deps {}
- :aliases {:test {:extra-paths ["test"]
-                  :extra-deps {io.github.cognitect-labs/test-runner
-                               {:git/tag "v0.5.1" :git/sha "dfb30dd"}
-                               clj-kondo/clj-kondo {:mvn/version "2025.10.23"}
-                               nubank/matcher-combinators {:mvn/version "3.9.2"}}
-                  :main-opts ["-m" "cognitect.test-runner"]}}}
+ :aliases {:test-runner {:extra-paths ["test"]
+                         :extra-deps {io.github.cognitect-labs/test-runner
+                                      {:git/tag "v0.5.1" :git/sha "dfb30dd"}
+                                      clj-kondo/clj-kondo {:mvn/version "2025.10.23"}
+                                      nubank/matcher-combinators {:mvn/version "3.9.2"}}}
+
+           :repl-runner {:extra-deps {nrepl/nrepl {:mvn/version "1.5.1"}
+                                      refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
+                                      cider/cider-nrepl {:mvn/version "0.58.0"}}
+                         :jvm-opts ["-XX:-OmitStackTraceInFastThrow" "-Djdk.attach.allowAttachSelf"]
+                         :main-opts  ["-m" "nrepl.cmdline"
+                                      "--middleware" "[refactor-nrepl.middleware/wrap-refactor cider.nrepl/cider-middleware]"
+                                      "-i"]}
+
+           :test {:main-opts ["-m" "cognitect.test-runner"
+                              "--namespace-regex" ".*(?<!-cwd)-test$"]}
+
+           :test-cwd {:main-opts ["-m" "cognitect.test-runner"
+                                  "--namespace-regex" ".*-cwd-test"
+                                  "--dir" "../.."]}}}

@@ -1,6 +1,7 @@
 (ns babashka.fs-test
   (:require
    [babashka.fs :as fs]
+   [babashka.test-report]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
@@ -912,3 +913,4 @@
         zip-path (fs/path path-in-zip "core.clj")]
     (is zip-path)
     (is (= "/bencode/core.clj" (str zip-path)))))
+

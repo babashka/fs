@@ -114,7 +114,10 @@
   [^Path f] (Files/isDirectory f simple-link-opts))
 
 (defn hidden?
-  "Returns true if f is hidden."
+  "Returns true if f is hidden.
+
+  TIP: some older JDKs can throw on empty-string path `(hidden \"\")`.
+  Consider instead checking cwd via `(hidden \".\")`." 
   [f] (Files/isHidden (as-path f)))
 
 (defn absolute?
@@ -251,6 +254,13 @@
      ([dir glob-or-accept]
       (with-open [stream (directory-stream dir glob-or-accept)]
         (vec stream)))))
+
+(defn- path-seq
+  [path]
+  (tree-seq
+   (fn [^Path path] (directory? path))
+   (fn [^Path path] (seq (list-dir path)))
+   (as-path path)))
 
 (def file-separator File/separator)
 (def path-separator File/pathSeparator)
@@ -616,7 +626,10 @@
         attrs)))))
 
 (defn create-sym-link
-  "Create a symbolic `link` to `target`."
+  "Create a symbolic `link` to `target`.
+
+  As of this writing, JDKs do not recognize empty-string `target` `\"\"` as the cwd.
+  Consider instead using a `target` of `\".\"` to link to the cwd."
   [link target]
   (Files/createSymbolicLink
    (as-path link)
@@ -1003,14 +1016,14 @@
       (last-modified-1 f)
       (max-filetime
              (map last-modified-1
-                  (filter regular-file? (file-seq (file f))))))
+                  (filter regular-file? (path-seq f)))))
     (FileTime/fromMillis 0)))
 
 (defn- expand-file-set
   [file-set]
   (if (coll? file-set)
     (mapcat expand-file-set file-set)
-    (filter regular-file? (file-seq (file file-set)))))
+    (filter regular-file? (path-seq file-set))))
 
 (defn modified-since
   "Returns seq of regular files (non-directories, non-symlinks) from file-set that were modified since the anchor path.
@@ -1060,7 +1073,8 @@
                  (when (or (nil? extract-fn)
                            (and (fn? extract-fn)
                                 (extract-fn {:entry entry :name entry-name})))
-                   (create-dirs (parent new-path))
+                   (when-let [p (parent new-path)]
+                     (create-dirs p))
                    (Files/copy ^java.io.InputStream zis
                                new-path
                                cp-opts))))
@@ -1068,15 +1082,15 @@
 
 ;; partially borrowed from tools.build
 (defn- add-zip-entry
-  [^ZipOutputStream output-stream ^File file fpath]
-  (let [dir (.isDirectory file)
-        attrs (Files/readAttributes (as-path file) BasicFileAttributes
+  [^ZipOutputStream output-stream ^Path f fpath]
+  (let [dir (directory? f)
+        attrs (Files/readAttributes (as-path f) BasicFileAttributes
                                     (->link-opts []))
         entry (doto (ZipEntry. (str fpath))
                 (.setLastModifiedTime (.lastModifiedTime attrs)))]
     (.putNextEntry output-stream entry)
     (when-not dir
-      (with-open [fis (BufferedInputStream. (FileInputStream. file))]
+      (with-open [fis (BufferedInputStream. (FileInputStream. (file f)))]
         (io/copy fis output-stream)))
 
     (.closeEntry output-stream)))
@@ -1084,9 +1098,9 @@
 ;; partially borrowed from tools.build
 (defn- copy-to-zip
   [^ZipOutputStream jos f path-fn]
-  (let [files (file-seq (file f))]
-    (run! (fn [^File f]
-            (let [dir (.isDirectory f)
+  (let [files (path-seq f)]
+    (run! (fn [^Path f]
+            (let [dir (directory? f)
                   fpath (str f)
                   fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
                   ;; only use unix-style paths in jars
@@ -1160,7 +1174,7 @@
    (gzip source-file {:dir "."}))
   ([source-file {:keys [dir out-file] :or {dir "."}}]
    (assert source-file "source-file must be specified")
-   (assert (-> source-file io/file .exists) "source-file does not exist")
+   (assert (exists? source-file) "source-file does not exist")
    (let [output-path (as-path dir)
          ^String dest-filename (if (not out-file)
                                  (str source-file ".gz")
