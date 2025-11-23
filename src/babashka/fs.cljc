@@ -580,8 +580,6 @@
                                                  (let [perms (posix-file-permissions (file dir))]
                                                    (Files/setPosixFilePermissions to-dir perms)))
                                                :continue))}))))
-(declare posix-file-permissions)
-(declare set-posix-file-permissions)
 
 (defn temp-dir
   "Returns `java.io.tmpdir` property as path."
