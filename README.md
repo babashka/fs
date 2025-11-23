@@ -99,6 +99,16 @@ As of this writing, our testing has revealed:
 
 See [JDK-8151430](https://bugs.openjdk.org/browse/JDK-8151430)
 
+<!-- note: linked from docstring -->
+### :nofollow-links
+Many babashka.fs functions accept the `:nofollow-links` option.
+These functions will follow symbolic links unless you pass in `{:nofollow-links true}`.
+
+<!-- note: linked from docstring -->
+### :follow-links
+Some babashka.fs functions accept the `:follow-links` option.
+These function will _not_ follow symbolic links unless you pass in `{:follow-links true}`.
+
 ## Test
 
 ``` clojure
