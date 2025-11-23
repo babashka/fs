@@ -1213,7 +1213,8 @@
      (with-open [zos (ZipOutputStream.
                       (FileOutputStream. (file zip-file)))]
        (doseq [zpath entries]
-         (copy-to-zip zos zpath path-fn))))))
+         (copy-to-zip zos zpath #(when-not (same-file? % zip-file)
+                                   (path-fn %))))))))
 
 ;;;; End zip
 
