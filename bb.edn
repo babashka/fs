@@ -7,7 +7,35 @@
              [clojure.edn :as edn]
              [clojure.string :as str])
   :init (do
-          (defn from-scratch-cwd [desc aliases]
+          (defn parse-clj-version []
+            (let [args *command-line-args*
+                  farg (first *command-line-args*)
+               farg (if (and farg (str/starts-with? farg "clj-"))
+                      (str ":" farg)
+                      farg)
+               clj-version-aliases (->> "deps.edn"
+                                        slurp
+                                        edn/read-string
+                                        :aliases
+                                        keys
+                                        (map str)
+                                        (filter (fn [a] (-> a name (str/starts-with? ":clj-"))))
+                                        (into []))]
+              (cond
+                (nil? farg) [[:clj-1.12] []]
+
+                (= ":clj-all" farg) [clj-version-aliases (rest args)]
+
+                (and (str/starts-with? farg ":clj-")
+                     (not (some #{farg} clj-version-aliases)))
+                (throw (ex-info (format "%s not recognized, valid clj- args are: %s or \":clj-all\""
+                                        farg clj-version-aliases) {}))
+
+                (some #{farg} clj-version-aliases) [[farg] (rest args)]
+
+                :else [[":clj-1.12"] args])))
+
+          (defn from-scratch-cwd [desc aliases args]
             (let [test-cwd "target/test-cwd"
                   cp (str/trim (with-out-str (clojure (str "-Spath -M" (str/join aliases)))))
                   cp (->> (fs/split-paths cp)
@@ -23,18 +51,30 @@
               (apply clojure
                      {:dir test-cwd}
                      "-Scp" cp
-                     "-M" (into main-opts *command-line-args*)))))
+                     "-M" (into main-opts args)))))
 
   test
-  {:doc "Run default tests"
-   :task (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
-                "-M:test-runner:test"
-                *command-line-args*)}
+  {:doc "Run default tests, optionally specify clj-version (ex :clj-1.10, :clj-11, :clj-12 (default) or :clj-all)"
+   :task (let [[aliases args] (parse-clj-version)]
+           (doseq [alias aliases]
+             (do
+               (println (format "-[Running test for %s]-" alias))
+               (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
+                      (format "-M%s:test-runner:test" alias)
+                      args))))}
 
   test-cwd
-  {:doc "Run current working directory tests (from scratch cwd)"
-   :task (from-scratch-cwd "tests" [:test-runner :test :test-cwd])}
+  {:doc "Run current working directory tests (from scratch cwd), optional specify clj-version (see test)"
+   :task (let [[aliases args] (parse-clj-version)]
+           (doseq [alias aliases]
+             (do
+               (println (format "-[Running test-cwd for %s]-" alias))
+               (from-scratch-cwd "tests" [alias :test-runner :test :test-cwd] args))))}
 
+  test-all
+  {:doc "Run all tests, optionally specify clj-version (see test)"
+   :depends [test test-cwd]}
+  
   dev
   {:doc "Launch an nREPL for default tests"
    :task (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
@@ -43,11 +83,7 @@
 
   dev-cwd
   {:doc "Launch an nREPL for cwd tests (from scratch cwd)"
-   :task (from-scratch-cwd "repl" [:test-runner :test :test-cwd :repl-runner])}
-
-  test-all
-  {:doc "Run all tests"
-   :depends [test test-cwd]}
+   :task (from-scratch-cwd "repl" [:test-runner :test :test-cwd :repl-runner] *command-line-args*)}
 
   quickdoc
   {:doc "Invoke quickdoc"

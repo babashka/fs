@@ -52,8 +52,8 @@
   (let [version (-> (System/getProperty "java.version")
                     (str/split #"\."))]
     (if (= "1" (first version))
-      (parse-long (second version))
-      (parse-long (first version)))))
+      (Long/valueOf (second version))
+      (Long/valueOf (first version)))))
 
 ;;
 ;; Empty-string tests
