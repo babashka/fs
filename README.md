@@ -4,7 +4,7 @@
 [![bb built-in](https://raw.githubusercontent.com/babashka/babashka/master/logo/built-in-badge.svg)](https://book.babashka.org#badges)
 
 File system utilities. This library can used from:
-- [Clojure on the JVM](https://www.clojure.org/guides/install_clojure) - we support Java 11 and above.
+- [Clojure on the JVM](https://www.clojure.org/guides/install_clojure) - we support Clojure 1.10.3 and above on Java 11 and above.
 - [babashka](https://github.com/babashka/babashka) - it has been a built-in library since babashka v0.2.9.
 
 ## Why
