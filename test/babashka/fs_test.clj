@@ -911,6 +911,8 @@
   (prn :cwd+unixify (fs/unixify (fs/cwd)))
   (prn :absolute (fs/absolutize (fs/cwd)))
   (prn :canonic (fs/canonicalize (fs/cwd)))
+  (prn :absolute? (fs/absolute? (fs/cwd)))
+  (prn :absolute2? (fs/absolute? (fs/absolutize (fs/cwd))))
   (let [uri (java.net.URI/create (str "jar:file:" (fs/unixify (fs/cwd)) "/test-resources/bencode-1.1.0.jar"))
         fs (java.nio.file.FileSystems/newFileSystem uri {})
         path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String []))
