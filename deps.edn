@@ -1,5 +1,9 @@
 {:deps {}
- :aliases {:test-runner {:extra-paths ["test"]
+ :aliases {:clj-1.10 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
+           :clj-1.11 {:extra-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
+           :clj-1.12 {:extra-deps {org.clojure/clojure {:mvn/version "1.12.3"}}}
+
+           :test-runner {:extra-paths ["test"]
                          :extra-deps {io.github.cognitect-labs/test-runner
                                       {:git/tag "v0.5.1" :git/sha "dfb30dd"}
                                       clj-kondo/clj-kondo {:mvn/version "2025.10.23"}

@@ -812,7 +812,8 @@
     (is (false? (fs/exists? "c:/123:456")))))
 
 (deftest write-bytes-test
-  (let [f (fs/path (fs/temp-dir) (str (gensym)))]
+  (let [f (-> (fs/path (fs/temp-dir) (str (gensym)))
+              fs/delete-on-exit)]
     (fs/write-bytes f (.getBytes (String. "foo")))
     (is (= "foo" (String. (fs/read-all-bytes f))))
     ;; again, truncation behavior:
@@ -822,7 +823,8 @@
     (is (= "foobar" (String. (fs/read-all-bytes f))))))
 
 (deftest write-lines-test
-  (let [f (fs/path (fs/temp-dir) (str (gensym)))]
+  (let [f (-> (fs/path (fs/temp-dir) (str (gensym)))
+              fs/delete-on-exit)]
     (fs/write-lines f (repeat 3 "foo"))
     (is (= (repeat 3 "foo") (fs/read-all-lines f)))
     ;; again, truncation behavior:
@@ -846,11 +848,14 @@
     (let [new-val (fs/update-file file str (rand))]
       (is (= new-val (slurp file)))))
 
-  (let [file (fs/file (fs/temp-dir) (str (gensym)))]
+  (let [file (-> (fs/file (fs/temp-dir) (str (gensym)))
+                 fs/delete-on-exit)]
     (spit file ", ")
     (is (= "foo, bar, baz" (fs/update-file file str/join ["foo" "bar" "baz"]))))
 
-  (let [path (fs/path (fs/file (fs/temp-dir) (str (gensym))))]
+  (let [path (-> (fs/file (fs/temp-dir) (str (gensym)))
+                 fs/delete-on-exit
+                 fs/path)]
     (spit (fs/file path) "foo")
     (is (= "foobar" (fs/update-file path str "bar")))))
 
