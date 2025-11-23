@@ -400,10 +400,7 @@
   (is (= "" (fs/strip-ext ""))))
 
 (deftest es-unixify-test
-  (if (fs/windows?)
-    ;; unixify also converts to absolute path with trailing /
-    (is (= (str (path->str (System/getProperty "user.dir")) "/") (fs/unixify "")))
-    (is (= "" (fs/unixify "")))))
+  (is (= "" (fs/unixify ""))))
 
 (deftest es-zip-unzip-test
   (let [before (fsnapshot)
