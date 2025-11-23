@@ -747,6 +747,7 @@
 
 (defn read-all-bytes
   "Returns contents of file as byte array."
+  ^bytes
   [f]
   (Files/readAllBytes (as-path f)))
 
