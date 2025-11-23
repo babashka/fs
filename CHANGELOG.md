@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## 0.5.28 (2025-11-23)
 
 - [#152](https://github.com/babashka/fs/issues/152): an empty-string path `""` is now (typically) understood to be the current working directory (as per underlying JDK file APIs) ([@lread](https://github.com/lread))
 - [#155](https://github.com/babashka/fs/issues/155): `fs/with-temp-dir` clj-kondo linting refinements ([@lread](https://github.com/lread))
