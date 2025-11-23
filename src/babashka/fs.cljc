@@ -755,6 +755,7 @@
 
 (defn read-all-bytes
   "Returns contents of file `f` as byte array via [Files/readAllBytes](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllBytes(java.nio.file.Path))."
+  ^bytes
   [f]
   (Files/readAllBytes (as-path f)))
 
@@ -1372,9 +1373,10 @@
 (defn unixify
   "Returns path as string with Unix-style file separators (`/`)."
   [f]
-  (if win?
-    (-> f as-path .toUri .getPath)
-    (str f)))
+  (let [s (str f)]
+    (if win?
+      (.replace s "\\" "/")
+      s)))
 
 (defn- xdg-path-from-env-var
   "Yields value of environment variable `k` as path if it's an absolute

@@ -8,6 +8,8 @@
    [clojure.test :refer [deftest is testing]])
   (:import [java.io FileNotFoundException]))
 
+(set! *warn-on-reflection* true)
+
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
                   (str/starts-with? "windows")))
@@ -512,7 +514,7 @@
   (let [ls (fs/read-all-lines "README.md")]
     (is (= ls (line-seq (io/reader (fs/file "README.md"))))))
   (let [ls (fs/read-all-lines "test-resources/iso-8859.txt" {:charset "iso-8859-1"})]
-    (is (= ls ["áéíóú" "España"]))))
+    (is (= ["áéíóú" "España"] ls))))
 
 (deftest get-attribute-test
   (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
@@ -548,8 +550,8 @@
 (deftest extension-test
   (is (= "clj" (fs/extension "file-name.clj")))
   (is (= "template" (fs/extension "file-name.html.template")))
-  (is (= nil (fs/extension ".dotfile")))
-  (is (= nil (fs/extension "bin/something"))))
+  (is (nil? (fs/extension ".dotfile")))
+  (is (nil? (fs/extension "bin/something"))))
 
 (deftest strip-ext-test
   (is (= "file-name" (fs/strip-ext "file-name.clj")))
@@ -668,14 +670,14 @@
       (fs/zip zip-file ["LICENSE" "README.md"])
       ;; find out times for files by extracting to out1
       (fs/unzip zip-file td-out1
-                {:extract-fn #(let [time (.getTime (:entry %))]
+                {:extract-fn #(let [time (.getTime ^java.util.zip.ZipEntry (:entry %))]
                                 (swap! times conj time)
-                                (when (= (:name %) "README.md")
+                                (when (= "README.md" (:name %))
                                   (reset! readme-time time))
                                 true)})
       ;; extract files to out2 that have the same time as README.md
       (fs/unzip zip-file td-out2
-                {:extract-fn #(= (.getTime (:entry %)) @readme-time)})
+                {:extract-fn #(= (.getTime ^java.util.zip.ZipEntry (:entry %)) @readme-time)})
       ;; README.md should be extracted for sure
       (is (fs/exists? (fs/file td-out2 "README.md")))
       ;; LICENSE sometimes has the same time as README.md
@@ -807,7 +809,7 @@
   (testing "illegal windows path"
     ;; a `:` outside of the drive letter is illegal but should not
     ;; throw.
-    (is (= (fs/exists? "c:/123:456") false))))
+    (is (false? (fs/exists? "c:/123:456")))))
 
 (deftest write-bytes-test
   (let [f (-> (fs/path (fs/temp-dir) (str (gensym)))
@@ -859,8 +861,9 @@
 
 (deftest unixify-test
   (when windows?
-    (is (str/includes? (fs/unixify (fs/normalize "README.md")) "/"))
-    (is (not (str/includes? (fs/unixify (fs/normalize "README.md")) fs/file-separator)))))
+    (is (str/includes? (fs/unixify (fs/absolutize "README.md")) "/"))
+    (is (not (str/includes? (fs/unixify "README.md") "/")))
+    (is (not (str/includes? (fs/unixify (fs/absolutize "README.md")) fs/file-separator)))))
 
 (deftest xdg-*-home-test
   (let [default-path (fs/path (fs/home) ".config")]
@@ -912,8 +915,8 @@
       (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
 
 (deftest issue-135-test
-  (let [uri (java.net.URI/create (str "jar:file:" (fs/unixify (fs/cwd)) "/test-resources/bencode-1.1.0.jar"))
-        fs (java.nio.file.FileSystems/newFileSystem uri {})
+  (let [uri (java.net.URI/create (str "jar:file:" (-> (fs/cwd) fs/path .toUri .getPath) "/test-resources/bencode-1.1.0.jar"))
+        fs (java.nio.file.FileSystems/newFileSystem uri ^java.util.Map (identity {}))
         path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String []))
         zip-path (fs/path path-in-zip "core.clj")]
     (is zip-path)
