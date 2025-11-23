@@ -194,13 +194,18 @@
 
 (defn walk-file-tree
   "Walks `f` using [Files/walkFileTree](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#walkFileTree(java.nio.file.Path,java.util.Set,int,java.nio.file.FileVisitor)).
-  Visitor functions: :pre-visit-dir,
-  :post-visit-dir, :visit-file, :visit-file-failed. All visitor functions have
-  the signature `[dir attrs]` and are supposed to return one of
-  `:continue, :skip-subtree, :skip-siblings, :terminate`. A different return
-  value will throw. When not supplied, visitor functions default
-  to `(constantly :continue)`. A different return value will throw.  Returns
-  `f`."
+
+  Override default visitor functions via:
+  - `:pre-visit-dir` args `[dir attrs]`
+  - `:post-visit-dir` args `[dir ex]`
+  - `:visit-file` args `[file attrs]`
+  - `:visit-file-failed` args `[file ex]`
+
+  All visitor functions must return one of `:continue`, `:skip-subtree`, `:skip-siblings` or `:terminate`.
+  A different return value will throw. When not supplied, visitor functions default
+  to `(constantly :continue)`.
+
+  Returns `f` as `Path`."
   [f
    {:keys [:pre-visit-dir :post-visit-dir
            :visit-file :visit-file-failed
