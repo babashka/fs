@@ -66,7 +66,38 @@ For convenience, the above use case is also supported using the `which` function
 
 ## Notes 
 
+### File Systems & OSes
+Behaviour can vary on different file systems and OSes.
+If you uncover some interesting nuance, please let us know. 
+
+### Empty String Paths
 The underlying JDK file APIs (and, by extension, babashka.fs) typically consider an empty-string path `""` to be the current working directory. This means that `(fs/list-dir "")` is functionally equivalent to `(fs/list-dir ".")`.
+
+<!-- note: linked from docstring -->
+### creation-time
+Depending on which OS and JDK version you are running, `creation-time` might return unexpected results.
+As of this writing, our testing has revealed: 
+- Windows - returns creation time as expected
+- macOS 
+  - after Java 17 returns creation time as expected
+  - otherwise returns modified time
+- Linux 
+  - before Java 17 returns modified time
+  - otherwise returns creation time
+
+See [JDK-8316304](https://bugs.openjdk.org/browse/JDK-8316304).
+
+<!-- note: linked from docstring -->
+### set-creation-time
+Depending on which OS and JDK version you are running, `set-creation-time` might not do what you would expect. 
+As of this writing, our testing has revealed:
+- Windows - sets creation time as expected
+- macOS
+  - after Java 17 sets creation time as expected
+  - otherwise has no effect
+- Linux - seems to have no effect
+
+See [JDK-8151430](https://bugs.openjdk.org/browse/JDK-8151430)
 
 ## Test
 

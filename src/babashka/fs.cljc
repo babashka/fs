@@ -876,14 +876,18 @@
    (set-attribute f "basic:lastModifiedTime" (->file-time time) opts)))
 
 (defn creation-time
-  "Returns creation time of `f` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)."
+  "Returns creation time of `f` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html).
+
+  See [README notes](/README.md#creation-time) for some details on behaviour."
   ([f]
    (creation-time f nil))
   ([f {:keys [nofollow-links] :as opts}]
    (get-attribute f "basic:creationTime" opts)))
 
 (defn set-creation-time
-  "Sets creation time of `f` to time (`epoch millis` or [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html))."
+  "Sets creation time of `f` to time (`epoch millis` or [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)).
+
+  See [README notes](/README.md#set-creation-time) for some details on behaviour."
   ([f time]
    (set-creation-time f time nil))
   ([f time {:keys [nofollow-links] :as opts}]
