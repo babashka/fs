@@ -9,6 +9,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 - [#152](https://github.com/babashka/fs/issues/152): an empty-string path `""` is now (typically) understood to be the current working directory (as per underlying JDK file APIs) ([@lread](https://github.com/lread))
 - [#155](https://github.com/babashka/fs/issues/155): `fs/with-temp-dir` clj-kondo linting refinements ([@lread](https://github.com/lread))
 - [#162](https://github.com/babashka/fs/issues/162): `unixify` no longer expands into absolute path on Windows (potentially BREAKING)
+- [#165](https://github.com/babashka/fs/issues/165): `zip` now excludes `zip-file` from `zip-file` ([@lread](https://github.com/lread))
 - Add return type hint to `read-all-bytes`
 
 ## 0.5.27 (2025-09-01)

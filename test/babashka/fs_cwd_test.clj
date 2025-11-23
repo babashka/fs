@@ -439,3 +439,24 @@
 
 (deftest es-write-lines-test
   (is (thrown? java.nio.file.FileSystemException (fs/write-lines "" ["foo"]))))
+
+(deftest zip-should-not-zip-self-test
+  (fs/create-dirs "foo/bar/baz")
+  (spit "foo/bar/baz/somefile.txt" "bippity boo")
+  (fs/zip "foo/zippy.zip" "foo")
+  (fs/unzip "foo/zippy.zip" "zip-out")
+  (is (match?
+        ["foo/bar"
+         "foo/bar/baz"
+         "foo/bar/baz/somefile.txt"
+         "foo/zippy.zip"]
+        (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
+      "sources and created zip file present")
+  (is (not (fs/exists? "zip-out/foo/zippy.zip"))
+      "zip file was not zipped")
+  (is (match? ["zip-out/foo"
+               "zip-out/foo/bar"
+               "zip-out/foo/bar/baz"
+               "zip-out/foo/bar/baz/somefile.txt"]
+              (->> (fs/glob "zip-out" "**") (mapv fs/unixify) sort))
+      "all files except zip file zipped"))
