@@ -201,6 +201,21 @@
      (-> f absolutize normalize)
      (as-path (.getCanonicalPath (as-file f))))))
 
+(defn root
+  "Returns `root` for `path` as `Path`, or `nil` via [Path#getRoot](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getRoot()).
+
+  The return value depends upon the runtime platform.
+
+  On Windows, returns Windows specific roots, ex:
+  (replace forward slash with backslash):
+  * `C:/` for `C:/foo/bar`
+  * `C:`  for `C:foo/bar` 
+  * `//server/share` for `//server/share/foo/bar`
+
+  On Linux and macOS, returns the leading `/` for anything that looks like an absolute path."
+  [path]
+  (.getRoot (as-path path)))
+
 (defn file-name
   "Returns the name of the file or directory via [File#getName](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getName()).
   E.g. (file-name \"foo/bar/baz\") returns \"baz\"."
