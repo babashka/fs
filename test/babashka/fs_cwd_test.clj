@@ -460,3 +460,46 @@
                "zip-out/foo/bar/baz/somefile.txt"]
               (->> (fs/glob "zip-out" "**") (mapv fs/unixify) sort))
       "all files except zip file zipped"))
+
+(deftest copy-tree-fails-on-parent-to-child-test
+  (fs/create-dirs "foo/bar/baz")
+  (spit "foo/bar/baz/somefile.txt" "bippity boo")
+  (let [before (fsnapshot)]
+    (is (= (fs/absolutize "foo") (fs/copy-tree "foo" "foo"))
+        "copy to self is allowed and a no-op")
+    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo/new-dir"
+                          (fs/copy-tree "foo" "foo/new-dir"))
+        "copy to new dir under self throws")
+    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo/bar"
+                          (fs/copy-tree "foo" "foo/bar"))
+        "copy to existing dir under self throws")
+    (is (= before (fsnapshot))
+        "files/dirs are unchanged")))
+
+(deftest copy-tree-ok-on-child-to-existing-parent-test
+  (fs/create-dirs "foo/bar/baz")
+  (spit "foo/bar/baz/somefile.txt" "bippity boo")
+  (is (= (fs/absolutize "foo/bar") (fs/copy-tree "foo/bar" "foo"))
+      "copy to dir above self to existing dir is fine")
+  (is (match? ["foo/bar"
+               "foo/bar/baz"
+               "foo/bar/baz/somefile.txt"
+               ;; our copied dir
+               "foo/baz"
+               "foo/baz/somefile.txt"]
+              (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
+      "child copied to parent"))
+
+(deftest copy-tree-ok-on-child-to-new-parent-test
+  (fs/create-dirs "foo/bar/baz")
+  (spit "foo/bar/baz/somefile.txt" "bippity boo")
+  (is (= (fs/absolutize "foo/bar/baz") (fs/copy-tree "foo/bar/baz" "foo/new-dir"))
+      "copy to dir above self to new dir is fine")
+  (is (match? ["foo/bar"
+               "foo/bar/baz"
+               "foo/bar/baz/somefile.txt"
+               ;; our copied dir
+               "foo/new-dir"
+               "foo/new-dir/somefile.txt"]
+              (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
+      "child copied to parent"))

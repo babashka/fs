@@ -564,6 +564,12 @@
               (not (directory? dest)))
      (throw (IllegalArgumentException. (str "Not a directory: " dest))))
    ;; cf. Python
+   (let [csrc (str (canonicalize src))
+         cdest (str (canonicalize dest))]
+     (when (and (not= csrc cdest)
+                (str/starts-with? cdest csrc))
+       (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
+                                  (str src) (str dest))))))
    (create-dirs dest opts)
    (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
          link-options (->link-opts nofollow-links)

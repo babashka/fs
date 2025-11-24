@@ -11,7 +11,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 - [#162](https://github.com/babashka/fs/issues/162): `unixify` no longer expands into absolute path on Windows (potentially BREAKING)
 - [#165](https://github.com/babashka/fs/issues/165): `zip` now excludes `zip-file` from `zip-file` ([@lread](https://github.com/lread))
 - [#167](https://github.com/babashka/fs/issues/167): add `root` fn which exposes `Path` `getRoot` ([@lread](https://github.com/lread))
-
+- [#166](https://github.com/babashka/fs/issues/166): `copy-tree` now fails fast on attempt to copy parent to child ([@lread](https://github.com/lread))
 - Add return type hint to `read-all-bytes`
 
 ## 0.5.27 (2025-09-01)
