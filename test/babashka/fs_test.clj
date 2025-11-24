@@ -170,6 +170,22 @@
             fs/parent
             (= tmp-dir)))))
 
+(deftest root-test
+  (doseq [[path                      expected   expected-windows]
+          [[""                       nil        nil]
+           ["foo"                    nil        nil]
+           ["foo/bar"                nil        nil]
+           ["/foo/bar"               "/"        "/"]
+           ["C:/foo/bar"             nil        "C:/"]
+           ["C:foo/bar"              nil        "C:"]
+           ["//./PIPE/name/foo/bar"  "/"        "//./PIPE/"]
+           ["//server/share/foo/bar" "/"        "//server/share/"]]]
+    (if windows?
+      (is (= expected-windows (some-> (fs/root path) fs/unixify))
+          (str "windows: " path))
+      (is (= expected (some-> (fs/root path) str))
+          (str "macOS/linux: " path)))))
+
 (deftest file-name-test
   (let [tmp-dir (fs/path (temp-dir) "foo")]
     (fs/create-dir tmp-dir)
