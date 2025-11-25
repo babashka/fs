@@ -533,7 +533,7 @@
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([f] (posix-file-permissions f nil))
-  ([f {:keys [:nofollow-links]}] 
+  ([f {:keys [:nofollow-links]}]
    (Files/getPosixFilePermissions (as-path f) (->link-opts nofollow-links))))
 
 (defn- u+wx
@@ -545,6 +545,16 @@
           p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
       (when (or p1 p2)
         (set-posix-file-permissions f perms)))))
+
+(defn starts-with?
+  "Returns `true` if path `this` starts with path `other`."
+  [this other]
+  (.startsWith (as-path this) (as-path other)))
+
+(defn ends-with?
+  "Returns `true` if path `this` ends with path `other`."
+  [this other]
+  (.endsWith (as-path this) (as-path other)))
 
 (defn copy-tree
   "Copies entire file tree from `src` to `dest`. Creates `dest` if needed
@@ -564,10 +574,10 @@
               (not (directory? dest)))
      (throw (IllegalArgumentException. (str "Not a directory: " dest))))
    ;; cf. Python
-   (let [csrc (str (canonicalize src))
-         cdest (str (canonicalize dest))]
+   (let [csrc (canonicalize src)
+         cdest (canonicalize dest)]
      (when (and (not= csrc cdest)
-                (str/starts-with? cdest csrc))
+                (starts-with? cdest csrc))
        (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
                                   (str src) (str dest))))))
    (create-dirs dest opts)
@@ -1078,16 +1088,6 @@
 ;; user=> (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-path)) "java")))
 ;; #object[sun.nio.fs.UnixPath 0x1dd74143 "/Users/borkdude/.jenv/versions/11.0/bin/java"]
 ;; although the which impl is faster
-
-(defn starts-with?
-  "Returns `true` if path `this` starts with path `other`."
-  [this other]
-  (.startsWith (as-path this) (as-path other)))
-
-(defn ends-with?
-  "Returns `true` if path `this` ends with path `other`."
-  [this other]
-  (.endsWith (as-path this) (as-path other)))
 
 ;;;; Modified since
 
