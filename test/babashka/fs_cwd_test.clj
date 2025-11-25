@@ -56,7 +56,7 @@
       (Long/valueOf (first version)))))
 
 ;;
-;; Empty-string tests
+;; es- empty-string tests
 ;; Not all of these require an isolated scratch cwd, but they are grouped here for convenience
 ;; 
 (deftest es-absolute?-test
@@ -505,3 +505,20 @@
                "foo/new-dir/somefile.txt"]
               (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
       "child copied to parent"))
+
+;; sl- symbolic link tests
+
+(when-not (fs/windows?)
+  (deftest sl-delete-tree-good-sym-link-root-test
+    (fs/create-dirs "foo/bar/baz")
+    (fs/create-sym-link "good-link" "foo")
+    (fs/delete-tree "good-link")
+    (is (= false (fs/exists? "good-link" {:nofollow-links true}))
+        "link was deleted")
+    (is (= true (fs/exists? "foo/bar/baz"))
+        "link target was not deleted"))
+
+  (deftest sl-delete-tree-bad-sym-link-root-test
+    (fs/create-sym-link "bad-link" "bad-target")
+    (fs/delete-tree "bad-link")
+    (is (= false (fs/exists? "bad-link" {:nofollow-links true})))))
