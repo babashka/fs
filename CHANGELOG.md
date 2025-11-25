@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## 0.5.30 (2025-11-25)
+
+- [#184](https://github.com/babashka/fs/issues/184): new check in `copy-tree` for copying to self too rigid
+
 ## 0.5.29 (2025-11-24)
 
 - [#165](https://github.com/babashka/fs/issues/165): `zip` now excludes `zip-file` from `zip-file` ([@lread](https://github.com/lread))
