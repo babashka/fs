@@ -743,7 +743,7 @@
   ;; Implementation with the force flag is based on those assumptions
   ([root] (delete-tree root nil))
   ([root {:keys [force]}]
-   (when (exists? root)
+   (when (exists? root {:nofollow-links true})
      (walk-file-tree root
                      {:visit-file (fn [path _]
                                     (when (and win? force)
