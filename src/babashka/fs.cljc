@@ -959,7 +959,7 @@
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)
-  
+
   See [README notes](/README.md#set-creation-time) for some details on behaviour."
   ([f time]
    (set-creation-time f time nil))
