@@ -474,7 +474,9 @@
                           (fs/copy-tree "foo" "foo/bar"))
         "copy to existing dir under self throws")
     (is (= before (fsnapshot))
-        "files/dirs are unchanged")))
+        "files/dirs are unchanged")
+    (fs/copy-tree "foo" "foobar")
+    (is (fs/exists? "foobar/bar/baz/somefile.txt"))))
 
 (deftest copy-tree-ok-on-child-to-existing-parent-test
   (fs/create-dirs "foo/bar/baz")

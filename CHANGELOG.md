@@ -7,6 +7,9 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#181](https://github.com/babashka/fs/issues/181) `delete-tree` now deletes broken symbolic link `root` ([@lread](https://github.com/lread))
+## 0.5.30 (2025-11-25)
+
+- [#184](https://github.com/babashka/fs/issues/184): new check in `copy-tree` for copying to self too rigid
 
 ## 0.5.29 (2025-11-24)
 
