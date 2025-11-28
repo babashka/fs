@@ -547,12 +547,16 @@
         (set-posix-file-permissions f perms)))))
 
 (defn starts-with?
-  "Returns `true` if path `this` starts with path `other`."
+  "Returns `true` if path `this` starts with path `other` via [Path#startsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#startsWith(java.nio.file.Path)).
+
+  See also: [[ends-with?]]"
   [this other]
   (.startsWith (as-path this) (as-path other)))
 
 (defn ends-with?
-  "Returns `true` if path `this` ends with path `other`."
+  "Returns `true` if path `this` ends with path `other` via [Path#endsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#endsWith(java.nio.file.Path)).
+
+  See also: [[starts-with?]]"
   [this other]
   (.endsWith (as-path this) (as-path other)))
 
