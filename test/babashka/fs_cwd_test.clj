@@ -509,6 +509,9 @@
 ;; sl- symbolic link tests
 
 (when-not (fs/windows?)
+  ;;
+  ;; delete-tree
+  ;; 
   (deftest sl-delete-tree-good-sym-link-root-test
     (fs/create-dirs "foo/bar/baz")
     (fs/create-sym-link "good-link" "foo")
@@ -521,4 +524,91 @@
   (deftest sl-delete-tree-bad-sym-link-root-test
     (fs/create-sym-link "bad-link" "bad-target")
     (fs/delete-tree "bad-link")
-    (is (= false (fs/exists? "bad-link" {:nofollow-links true})))))
+    (is (= false (fs/exists? "bad-link" {:nofollow-links true}))))
+
+  ;;
+  ;; move
+  ;; 
+  (deftest sl-move-bad-link-to-bad-link-test
+    (fs/create-sym-link "bad-link1" "bad-target1")
+    (fs/create-sym-link "bad-link2" "bad-target2")
+
+    (fs/move "bad-link1" "bad-link2" {:replace-existing true})
+
+    (is (= false (fs/exists? "bad-link1" {:nofollow-links true})))
+    (is (= (fs/path "bad-target1") (fs/read-link "bad-link2"))))
+
+  (deftest sl-move-good-link-to-good-link-test
+    (fs/create-dir "dir1")
+    (fs/create-dir "dir2")
+    (fs/create-sym-link "good-link1" "dir1")
+    (fs/create-sym-link "good-link2" "dir2")
+
+    (fs/move "good-link1" "good-link2" {:replace-existing true})
+
+    (is (= false (fs/exists? "good-link1" {:nofollow-links true})))
+    (is (= true (fs/directory? "good-link2"))) ;; via link follow
+    (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
+
+  (deftest sl-move-good-link-to-good-link-no-replace-test
+    (fs/create-dir "dir1")
+    (fs/create-dir "dir2")
+    (fs/create-sym-link "good-link1" "dir1")
+    (fs/create-sym-link "good-link2" "dir2")
+
+    (fs/move "good-link1" "good-link2" {:replace-existing true})
+
+    (is (= false (fs/exists? "good-link1" {:nofollow-links true})))
+    (is (= true (fs/directory? "good-link2"))) ;; via link follow
+    (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
+  
+  (deftest sl-move-good-link-under-dir-test
+    (fs/create-dir "dir1")
+    (fs/create-dir "dir2")
+    (fs/create-sym-link "good-link1" "dir1")
+
+    (fs/move "good-link1" "dir2")
+
+    (is (= false (fs/exists? "good-link1" {:nofollow-links true})))
+    (is (= true (fs/exists? (fs/path "dir2" "good-link1") {:nofollow-links true})))
+    ;; moved relative link is now broken
+    (is (= false (fs/exists? (fs/path "dir2" "good-link1")))) ;; via follow
+    (is (= (fs/path "dir1") (fs/read-link (fs/path "dir2" "good-link1")))))
+
+  (deftest sl-move-file-to-to-good-link-test
+    (spit "file1.txt" "foo")
+    (fs/create-dir "dir1")
+    (fs/create-sym-link "good-link1" "dir1")
+
+    (fs/move "file1.txt" "good-link1" {:replace-existing true})
+    (is (= false (fs/exists? "file1.txt" {:nofollow-links true})))
+    (is (= true (fs/exists? "good-link1" {:nofollow-links true})))
+    (is (= false (fs/sym-link? "good-link1"))))
+
+  (deftest sl-move-good-link-to-file-test
+    (spit "file1.txt" "foo")
+    (fs/create-dir "dir1")
+    (fs/create-sym-link "good-link1" "dir1")
+
+    (fs/move "good-link1" "file1.txt" {:replace-existing true})
+    (is (= false (fs/exists? "good-link1" {:nofollow-links true})))
+    (is (= true (fs/exists? "file1.txt" {:nofollow-links true})))
+    (is (= true (fs/sym-link? "file1.txt"))))
+
+  (deftest sl-rename-good-link-test
+    (fs/create-dir "dir1")
+    (fs/create-sym-link "good-link1" "dir1")
+
+    (fs/move "good-link1" "good-link2" )
+    (is (= false (fs/exists? "good-link1" {:nofollow-links true})))
+    (is (= true (fs/exists? "good-link2" {:nofollow-links true})))
+    (is (= true (fs/sym-link? "good-link2")))
+    (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
+
+  (deftest sl-move-link-without-replace-test
+    (fs/create-dir "dir1")
+    (fs/create-dir "dir2")
+    (fs/create-sym-link "good-link1" "dir1")
+    (fs/create-sym-link "good-link2" "dir2")
+
+    (is (thrown-with-msg? java.nio.file.FileAlreadyExistsException #"good-link2" (fs/move "good-link1" "good-link2")))))
