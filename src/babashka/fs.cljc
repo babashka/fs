@@ -784,19 +784,22 @@
      (Files/createFile (as-path path) attrs))))
 
 (defn move
-  "Move or rename a file `source` to a `target` dir or file via [Files/move](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#move(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
+  "Move or rename dir or file `source` to `target` dir or file via [Files/move](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#move(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
+  If `target` is a directory, moves `source` under `target`.
+  Never follows symbolic links.
+
   Returns `target` as `Path`.
 
   Options:
   * `replace-existing` - overwrite existing `target`, default `false`
-  * `atomic-move` - watchers will only see complete `target` file, default `false`
-  * [`:nofollow-links`](/README.md#nofollow-links)" 
+  * `atomic-move` - watchers will only see complete `target` file, default `false`"
   ([source target] (move source target nil))
   ([source target {:keys [:replace-existing
-                          :atomic-move
-                          :nofollow-links]}]
-   (let [target (as-path target)]
-     (if (directory-simple? target)
+                          :atomic-move]}]
+   (let [target (as-path target)
+         nofollow-links true
+         link-opts (->link-opts nofollow-links)]
+     (if (Files/isDirectory target link-opts)
        (Files/move (as-path source)
                    (path target (file-name source))
                    (->copy-opts replace-existing false atomic-move nofollow-links))
