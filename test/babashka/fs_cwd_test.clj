@@ -527,6 +527,47 @@
     (is (= false (fs/exists? "bad-link" {:nofollow-links true}))))
 
   ;;
+  ;; copy-tree
+  ;;
+  (deftest sl-copy-tree-nofollow-src-link-throws-test
+    (fs/create-dirs "src-dir/bar/baz")
+    (spit "src-dir/bar/baz/somefile.txt" "bippity boo")
+    (fs/create-sym-link "link-src-dir" "src-dir")
+
+    (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-src-dir"
+                          (fs/copy-tree "link-src-dir" "dest-dir" {:nofollow-links true}))))
+
+  (deftest sl-copy-tree-nofollow-dest-link-throws-test
+    (fs/create-dirs "src-dir/bar/baz")
+    (spit "src-dir/bar/baz/somefile.txt" "bippity boo")
+    (fs/create-sym-link "link-dest-dir" "dest-dir")
+    (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-dest-dir"
+                          (fs/copy-tree "src-dir" "link-dest-dir" {:nofollow-links true}))))
+
+  (deftest sl-copy-tree-follow-src-dest-links-test
+    (fs/create-dirs "src-dir/src-bar/src-baz")
+    (fs/create-dirs "dest-dir/dest-bar/dest-baz")
+    (spit "src-dir/src-bar/src-baz/src-file.txt" "src-file")
+    (spit "dest-dir/dest-bar/dest-baz/dest-file.txt" "dest-file")
+    (fs/create-sym-link "link-src-dir" "src-dir")
+    (fs/create-sym-link "link-dest-dir" "dest-dir")
+
+    (is (= (fs/real-path "link-src-dir") (fs/copy-tree "link-src-dir" "link-dest-dir")))
+    (is (fs/exists? "dest-dir/dest-bar/dest-baz/dest-file.txt")
+        "existing dest-file.txt still exists")
+    (is (fs/exists? "dest-dir/src-bar/src-baz/src-file.txt")
+        "src-file.txt was copied to existing dest-dir"))
+
+  (deftest sl-copy-tree-follow-src-link-new-dest-test
+    (fs/create-dirs "src-dir/bar/baz")
+    (spit "src-dir/bar/baz/somefile.txt" "bippity boo")
+    (fs/create-sym-link "link-src-dir" "src-dir")
+
+    (is (= (fs/real-path "link-src-dir") (fs/copy-tree "link-src-dir" "new-dest-dir")))
+    (is (fs/exists? "new-dest-dir/bar/baz/somefile.txt")
+        "src-file.txt was copied to new dest dir"))
+
+  ;;
   ;; move
   ;; 
   (deftest sl-move-bad-link-to-bad-link-test
@@ -561,7 +602,7 @@
     (is (= false (fs/exists? "good-link1" {:nofollow-links true})))
     (is (= true (fs/directory? "good-link2"))) ;; via link follow
     (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
-  
+
   (deftest sl-move-good-link-under-dir-test
     (fs/create-dir "dir1")
     (fs/create-dir "dir2")
@@ -599,7 +640,7 @@
     (fs/create-dir "dir1")
     (fs/create-sym-link "good-link1" "dir1")
 
-    (fs/move "good-link1" "good-link2" )
+    (fs/move "good-link1" "good-link2")
     (is (= false (fs/exists? "good-link1" {:nofollow-links true})))
     (is (= true (fs/exists? "good-link2" {:nofollow-links true})))
     (is (= true (fs/sym-link? "good-link2")))

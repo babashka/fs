@@ -564,18 +564,19 @@
   "Copies entire file tree from `src` to `dest`. Creates `dest` if needed
   using [[create-dirs]], passing it the `:posix-file-permissions`
   option. Supports same options as [[copy]].
-  Returns `dest` as `Path`"
+
+  Returns `src` as `Path`"
   ([src dest] (copy-tree src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
                      :nofollow-links]
               :as opts}]
    ;; cf. Python
-   (when-not (directory? src)
+   (when-not (directory? src opts)
      (throw (IllegalArgumentException. (str "Not a directory: " src))))
    ;; cf. Python
-   (when (and (exists? dest)
-              (not (directory? dest)))
+   (when (and (exists? dest opts)
+              (not (directory? dest opts)))
      (throw (IllegalArgumentException. (str "Not a directory: " dest))))
    ;; cf. Python
    (let [csrc (canonicalize src)
