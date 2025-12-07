@@ -157,6 +157,15 @@
       (is (= (slurp (fs/file tmp-dir "hard-link.txt"))
              (slurp (fs/file tmp-dir "dudette.txt")))))))
 
+(deftest directory?-test
+  (let [tmp-dir (temp-dir)
+        tmp-file (fs/path tmp-dir "tmp.txt")]
+    (spit (fs/file tmp-file) "foo")
+    (is (= true (fs/directory? tmp-dir)))
+    (is (= false (fs/directory? tmp-file)))
+    (is (= false (fs/directory? "idontexist")))
+    (is (= false (fs/directory? (fs/path tmp-dir "idontexist"))))))
+
 (deftest regular-file?-test
   (let [tmp-dir  (temp-dir)
         tmp-file (fs/path tmp-dir "tmp.txt")]

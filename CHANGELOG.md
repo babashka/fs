@@ -9,6 +9,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 - [#154](https://github.com/babashka/fs/issues/154) reflect in directory check and docs that `move` never follows symbolic links ([@lread](https://github.com/lread))
 - [#181](https://github.com/babashka/fs/issues/181) `delete-tree` now deletes broken symbolic link `root` ([@lread](https://github.com/lread))
 - [#188](https://github.com/babashka/fs/issues/188) `copy-tree` now throws if `src` or `dest` is a symbolic link when not following links ([@lread](https://github.com/lread))
+- [#193](https://github.com/babashka/fs/issues/193) `create-dirs` now recognizes sym-linked dirs on JDK 11 ([@lread](https://github.com/lread)) 
 
 ## 0.5.30 (2025-11-25)
 

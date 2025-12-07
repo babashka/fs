@@ -503,6 +503,8 @@
   "Creates dir using [Files/createDirectory](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectory(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
   Does not create parents.
 
+  Returns created directory as `Path`.
+
   Options:
   * `:posix-file-permissions` permission for unix-like systems"
   ([path]
@@ -520,7 +522,10 @@
   * `:posix-file-permissions` permission for unix-like systems"
   ([path] (create-dirs path nil))
   ([path {:keys [:posix-file-permissions]}]
-   (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))
+   (let [p (as-path path)]
+     (if (directory? p) ;; compensate for JDK11 which does not follow symlinks in its createDirectories
+       p
+       (Files/createDirectories (as-path path) (posix->attrs posix-file-permissions))))))
 
 (defn set-posix-file-permissions
   "Sets `posix-file-permissions` on `f`. Accepts a string like `\"rwx------\"` or a set of `PosixFilePermission`."

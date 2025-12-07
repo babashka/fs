@@ -510,6 +510,50 @@
 
 (when-not (fs/windows?)
   ;;
+  ;; create-dirs
+  ;;
+  (deftest sl-create-dirs-test
+    (fs/create-dirs "dir1/dir2/dir3")
+    (fs/create-sym-link "link-dir1" "dir1")
+    (fs/create-sym-link "dir1/link-dir2" "dir2")
+    (spit "dir1/file1.txt" "file1")
+    (spit "dir1/dir2/file2.txt" "file2")
+    (fs/create-sym-link "dir1/link-file1.txt" "file1.txt")
+    (fs/create-sym-link "dir1/dir2/link-file2.txt" "file2.txt")
+    (let [before (fsnapshot)]
+      ;; no-ops, dirs exist
+      (doseq [p ["link-dir1"
+                 "dir1/link-dir2"
+                 "link-dir1/link-dir2"
+                 "link-dir1/dir2"]]
+        (is (= (fs/path p) (fs/create-dirs p))
+            (format "creating existing path %s does not throw" p)))
+
+      ;; failures
+      (doseq [p ["link-dir1/file1.txt"
+                 "link-dir1/link-dir2/file2.txt"
+                 "link-dir1/link-file1.txt"
+                 "link-dir1/link-dir2/link-file2.txt"]]
+        (is (thrown? java.nio.file.FileAlreadyExistsException (fs/create-dirs p))
+            (format "create over existinf file %s throws" p)))
+
+      (is (match? before (fsnapshot))
+          "no changes expected for no-ops and throws"))
+
+    ;; creates dirs with symlinks in parent path
+    (doseq [[create-path                 expected-new-path]
+            [["link-dir1/new1"           "dir1/new1"]
+             ["dir1/link-dir2/new2"      "dir1/dir2/new2"]
+             ["link-dir1/link-dir2/new3" "dir1/dir2/new3"]
+             ["link-dir1/dir2/new4"      "dir1/dir2/new4"]]]
+      (is (= (fs/path create-path) (fs/create-dirs create-path))
+          "creates new dir when parent path has sym-links to dirs")
+      (is (= true (fs/exists? expected-new-path))
+          (format "new %s item exists" expected-new-path))
+      (is (= true (fs/directory? expected-new-path {:nofollow-links true}))
+          (format "new %s is directory" expected-new-path))))
+
+  ;;
   ;; delete-tree
   ;; 
   (deftest sl-delete-tree-good-sym-link-root-test
