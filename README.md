@@ -109,10 +109,34 @@ These functions will follow symbolic links unless you pass in `{:nofollow-links 
 Some babashka.fs functions accept the `:follow-links` option.
 These function will _not_ follow symbolic links unless you pass in `{:follow-links true}`.
 
-## Test
+## Test & Dev
 
-``` clojure
+To run all tests
+```
 $ bb test-all
+```
+
+### Default Tests
+To run default tests only:
+```
+bb test
+```
+To fire up a REPL when working on these tests, run `bb dev`.
+
+### Scratch CWD Tests
+We setup a separate task for tests that need/prefer to be run from a scratch current working directory.
+To run these tests only:
+```
+bb test-cwd
+```
+The scratch current working directory is `target/test-cwd`.
+To fire up a REPL for these tests, run `bb dev-cwd`.
+Note that the `.nrepl-port` file will be generated under `target/test-cwd/`, so you'll have to type the REPL port in manually when connecting.
+
+### API Docs
+This project generates API docs with quickdoc, to regenerate `API.md`:
+```
+shell quickdoc
 ```
 
 ## License
