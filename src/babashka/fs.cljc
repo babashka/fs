@@ -568,9 +568,7 @@
 (defn copy-tree
   "Copies entire file tree from `src` to `dest`. Creates `dest` if needed
   using [[create-dirs]], passing it the `:posix-file-permissions`
-  option. Supports same options as [[copy]].
-
-  Returns `src` as `Path`"
+  option. Supports same options as [[copy]]."
   ([src dest] (copy-tree src dest nil))
   ([src dest {:keys [:replace-existing
                      :copy-attributes
