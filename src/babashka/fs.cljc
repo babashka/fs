@@ -209,7 +209,7 @@
   On Windows, returns Windows specific roots, ex:
   (replace forward slash with backslash):
   * `C:/` for `C:/foo/bar`
-  * `C:`  for `C:foo/bar` 
+  * `C:`  for `C:foo/bar`
   * `//server/share` for `//server/share/foo/bar`
 
   On Linux and macOS, returns the leading `/` for anything that looks like an absolute path."
@@ -229,7 +229,7 @@
 
   Options:
   * [`:follow-links`](/README.md#follow-links)
-  * `:max-depth` maximum directory depth to walk, defaults is unlimited 
+  * `:max-depth` maximum directory depth to walk, defaults is unlimited
   * Override default visitor functions via:
     * `:pre-visit-dir` args `[dir attrs]`
     * `:post-visit-dir` args `[dir ex]`
