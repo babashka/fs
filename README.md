@@ -107,7 +107,7 @@ These functions will follow symbolic links unless you pass in `{:nofollow-links 
 <!-- note: linked from docstring -->
 ### :follow-links
 Some babashka.fs functions accept the `:follow-links` option.
-These function will _not_ follow symbolic links unless you pass in `{:follow-links true}`.
+These functions will _not_ follow symbolic links unless you pass in `{:follow-links true}`.
 
 ## Test & Dev
 
