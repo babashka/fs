@@ -227,6 +227,7 @@
         content (slurp "f1.ext")
         gzip (fs/gzip "f1.ext")]
     (is (thrown? java.nio.file.FileAlreadyExistsException (fs/gunzip gzip "")))
+    (Thread/sleep 50)
     (fs/gunzip gzip "" {:replace-existing true})
     (is (not= last-modified (fs/last-modified-time "f1.ext")))
     (is (= content (slurp "f1.ext")))))
