@@ -5,7 +5,7 @@
    [babashka.fs :as fs]
    [babashka.test-report]
    [clojure.string :as str]
-   [clojure.test :refer [deftest is use-fixtures]]
+   [clojure.test :refer [deftest is testing use-fixtures]]
    [matcher-combinators.test]))
 
 (use-fixtures :each
@@ -698,3 +698,17 @@
     (fs/create-sym-link "good-link2" "dir2")
 
     (is (thrown-with-msg? java.nio.file.FileAlreadyExistsException #"good-link2" (fs/move "good-link1" "good-link2")))))
+
+;; misc -- will merge into fs-test as part of https://github.com/babashka/fs/issues/158
+
+(deftest gzip-arg-types-test
+  (spit "foo.txt" "foo")
+  (doseq [arg-type [:str :file :path]]
+    (testing (str "args type: " (name arg-type))
+      (let [arg-fn (arg-type {:str identity :file fs/file :path fs/path})]
+        (is (= (str (fs/path "./foo.txt.gz"))
+               (fs/gzip (arg-fn "foo.txt"))))
+        (is (= (str (fs/path "out-dir" "foo.txt.gz"))
+               (fs/gzip (arg-fn "foo.txt") {:dir (arg-fn "out-dir")})))
+        (is (= (str (fs/path "out-dir" "bar.txt.gz"))
+               (fs/gzip (arg-fn "foo.txt") {:dir (arg-fn "out-dir") :out-file "bar.txt.gz"})))))))

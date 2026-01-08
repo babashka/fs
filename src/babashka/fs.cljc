@@ -1291,7 +1291,7 @@
                                  (str out-file))
          new-path (.resolve output-path dest-filename)]
      (create-dirs (parent new-path))
-     (with-open [source-input-stream (io/input-stream source-file)
+     (with-open [source-input-stream (io/input-stream (file source-file))
                  gzos                (GZIPOutputStream.
                                       (FileOutputStream. (file new-path)))]
        (io/copy source-input-stream
