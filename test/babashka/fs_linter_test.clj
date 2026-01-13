@@ -18,7 +18,7 @@
 (use-fixtures :once
   (fn init-cache [f]
     ;; this seems to init clj-kondo/.cache enough for our tests
-    (clj-kondo/run! {:lint ["src"]})
+    (clj-kondo/run! {:lint ["../../src"]})
     (f)))
 
 (deftest with-temp-dir-no-args-found-by-kondo-test
