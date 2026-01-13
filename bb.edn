@@ -49,41 +49,22 @@
               (fs/create-dirs test-cwd)
               (println "Running" desc "from:" test-cwd)
               (apply clojure
-                     {:dir test-cwd}
+                     {:dir test-cwd
+                      :extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
                      "-Scp" cp
                      "-M" (into main-opts args)))))
 
   test
-  {:doc "Run default tests, optionally specify clj-version (ex :clj-1.10, :clj-11, :clj-12 (default) or :clj-all)"
+  {:doc "Run tests, optionally specify: clj-version as first arg (ex :clj-1.10, :clj-1.11, :clj-1.12 (default) or :clj-all) and/or cognitect test-runner cli args"
    :task (let [[aliases args] (parse-clj-version)]
            (doseq [alias aliases]
              (do
                (println (format "-[Running test for %s]-" alias))
-               (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
-                      (format "-M%s:test-runner:test" alias)
-                      args))))}
-
-  test-cwd
-  {:doc "Run current working directory tests (from scratch cwd), optional specify clj-version (see test)"
-   :task (let [[aliases args] (parse-clj-version)]
-           (doseq [alias aliases]
-             (do
-               (println (format "-[Running test-cwd for %s]-" alias))
-               (from-scratch-cwd "tests" [alias :test-runner :test :test-cwd] args))))}
-
-  test-all
-  {:doc "Run all tests, optionally specify clj-version (see test)"
-   :depends [test test-cwd]}
+               (from-scratch-cwd "tests" [alias :test-runner] args))))}
   
   dev
-  {:doc "Launch an nREPL for default tests"
-   :task (apply clojure {:extra-env {(if (fs/windows?) "Path" "PATH") (str "on-path" fs/path-separator (System/getenv "PATH"))}}
-                "-M:test-runner:test:repl-runner"
-                *command-line-args*)}
-
-  dev-cwd
-  {:doc "Launch an nREPL for cwd tests (from scratch cwd)"
-   :task (from-scratch-cwd "repl" [:test-runner :test :test-cwd :repl-runner] *command-line-args*)}
+  {:doc "Launch an nREPL server"
+   :task (from-scratch-cwd "repl" [:test-runner :repl-runner] *command-line-args*)}
 
   quickdoc
   {:doc "Invoke quickdoc"
