@@ -1,14 +1,25 @@
 (ns babashka.fs-test
   (:require
    [babashka.fs :as fs]
+   [babashka.fs-test-util :as util]
    [babashka.test-report]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.test :refer [deftest is testing]])
+   [clojure.test :refer [deftest is testing use-fixtures]])
   (:import [java.io FileNotFoundException]))
 
 (set! *warn-on-reflection* true)
+
+(use-fixtures :each
+  (fn [f]
+    (util/clean-cwd)
+    ;; tests are currently use source tree as test scenario, copy what we need
+    (doseq [f [".gitignore" "project.clj" "LICENSE" "README.md"]]
+      (fs/copy (fs/file "../.." f) f))
+    (doseq [f ["src" "test" "test-resources"]]
+      (fs/copy-tree (fs/file "../.." f) f))
+    (f)))
 
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
@@ -537,7 +548,8 @@
 
 (deftest read-all-lines-test
   (let [ls (fs/read-all-lines "README.md")]
-    (is (= ls (line-seq (io/reader (fs/file "README.md"))))))
+    (is (= ls (with-open [rdr (io/reader (fs/file "README.md"))]
+                (doall (line-seq rdr))))))
   (let [ls (fs/read-all-lines "test-resources/iso-8859.txt" {:charset "iso-8859-1"})]
     (is (= ["áéíóú" "España"] ls))))
 

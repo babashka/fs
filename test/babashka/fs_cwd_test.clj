@@ -3,6 +3,7 @@
    Invoked via bb cwd-test."
   (:require
    [babashka.fs :as fs]
+   [babashka.fs-test-util :as util]
    [babashka.test-report]
    [clojure.string :as str]
    [clojure.test :refer [deftest is testing use-fixtures]]
@@ -10,10 +11,7 @@
 
 (use-fixtures :each
   (fn [f]
-    (when-not (str/ends-with? (System/getProperty "user.dir") (str "target" fs/file-separator "test-cwd"))
-      (throw (ex-info "tests mutate cwd, must run tests via: bb test-cwd" {})))
-    (doseq [f (fs/list-dir ".")]
-      (fs/delete-tree f))
+    (util/clean-cwd)
     (fs/create-dirs "da1/da2/da3/da4")
     (spit "f1.ext" "f1.ext")
     (spit "da1/da2/da3/da4/f2.ext" "f2.ext")
