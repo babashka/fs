@@ -548,7 +548,8 @@
 
 (deftest read-all-lines-test
   (let [ls (fs/read-all-lines "README.md")]
-    (is (= ls (line-seq (io/reader (fs/file "README.md"))))))
+    (is (= ls (with-open [rdr (io/reader (fs/file "README.md"))]
+                (doall (line-seq rdr))))))
   (let [ls (fs/read-all-lines "test-resources/iso-8859.txt" {:charset "iso-8859-1"})]
     (is (= ["áéíóú" "España"] ls))))
 
