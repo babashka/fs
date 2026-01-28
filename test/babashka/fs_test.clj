@@ -6,7 +6,9 @@
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.test :refer [deftest is testing use-fixtures]])
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [matcher-combinators.test]
+   [matcher-combinators.matchers :as m])
   (:import [java.io FileNotFoundException]))
 
 (set! *warn-on-reflection* true)
@@ -34,22 +36,56 @@
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
 
+(defn- files [& files]
+  (doseq [f files]
+    (if (str/ends-with? f "/")
+      (fs/create-dirs f)
+      (let [d (fs/parent f)]
+        (when d (fs/create-dirs d))
+        (spit f f)))))
+
 (deftest walk-test
-  (let [dir-counter (volatile! 0)
-        file-counter (volatile! 0)]
-    (fs/walk-file-tree "." {:post-visit-dir (fn [_ _] (vswap! dir-counter inc) :continue)
-                            :visit-file (fn [_ _] (vswap! file-counter inc) :continue)
-                            :max-depth 2})
-    (is (pos? @dir-counter))
-    (is (pos? @file-counter)))
+  (util/clean-cwd)
+  (files "f0.ext"
+         "da1/f1.ext"
+         "da1/da2/f2.ext"
+         "da1/da2/da3/f3.ext"
+         "da1/da2/da3/da4/")
+  (testing "full depth"
+    (let [walked-dirs (volatile! [])
+          walked-files (volatile! [])]
+      (fs/walk-file-tree "." {:post-visit-dir (fn [d _] (vswap! walked-dirs conj d) :continue)
+                              :visit-file (fn [f _] (vswap! walked-files conj f) :continue)})
+      (is (match? (m/in-any-order
+                    ["." "./da1" "./da1/da2" "./da1/da2/da3" "./da1/da2/da3/da4"])
+                  (map fs/unixify @walked-dirs)))
+      (is (match? (m/in-any-order ["./f0.ext"
+                                   "./da1/f1.ext"
+                                   "./da1/da2/f2.ext"
+                                   "./da1/da2/da3/f3.ext"])
+                  (map fs/unixify @walked-files)))))
+  (testing "max-depth 2"
+    (let [walked-dirs (volatile! [])
+          walked-files (volatile! [])]
+      (fs/walk-file-tree "." {:post-visit-dir (fn [d _] (vswap! walked-dirs conj d) :continue)
+                              :visit-file (fn [f _] (vswap! walked-files conj f) :continue)
+                              :max-depth 2})
+      (is (match? (m/in-any-order
+                   ["." "./da1"])
+                  (map fs/unixify @walked-dirs)))
+      (is (match? (m/in-any-order ["./f0.ext"
+                                   "./da1/f1.ext"
+                                   "./da1/da2" ;; notice that non-descended dirs are matched as files
+                                   ])
+                  (map fs/unixify @walked-files)))))
   (testing "max-depth 0"
-    (let [dir-counter (volatile! 0)
-          file-counter (volatile! 0)]
-      (fs/walk-file-tree "." {:post-visit-dir (fn [_ _] (vswap! dir-counter inc) :continue)
-                              :visit-file (fn [_ _] (vswap! file-counter inc) :continue)
+    (let [walked-dirs (volatile! [])
+          walked-files (volatile! [])]
+      (fs/walk-file-tree "." {:post-visit-dir (fn [d _] (vswap! walked-dirs conj d) :continue)
+                              :visit-file (fn [f _] (vswap! walked-files conj f) :continue)
                               :max-depth 0})
-      (is (zero? @dir-counter))
-      (is (= 1 @file-counter))))
+      (is (match? [] (map fs/unixify @walked-dirs)))
+      (is (match? ["."] (map fs/unixify @walked-files)))))
   (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] :terminate)}))
   (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] java.nio.file.FileVisitResult/TERMINATE)}))
   (is (thrown-with-msg?
