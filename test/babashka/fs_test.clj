@@ -37,6 +37,7 @@
       (fs/delete-on-exit)))
 
 (defn- files [& files]
+  (util/clean-cwd)
   (doseq [f files]
     (if (str/ends-with? f "/")
       (fs/create-dirs f)
@@ -45,7 +46,6 @@
         (spit f f)))))
 
 (deftest walk-test
-  (util/clean-cwd)
   (files "f0.ext"
          "da1/f1.ext"
          "da1/da2/f2.ext"
@@ -93,49 +93,66 @@
        (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _])}))))
 
 (deftest match-test
-  (let [readme-match (fs/match "." "regex:README.md")]
-    (is (= '("README.md") (map str readme-match)))
-    (is (every? #(instance? java.nio.file.Path %) readme-match)))
-  (is (set/subset? #{"project.clj"
-                     "test/babashka/fs_test.clj"
-                     "src/babashka/fs.cljc"}
-                   (set (map normalize
-                             (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
+  (files "README.md" "project.clj"
+         "dira1/foo.txt"
+         "dira1/dirb1/README.md"
+         "dira1/dirb1/source.clj"
+         "dira1/dirb1/dirc1/"
+         "dira2/dirb1/test.cljc")
+  (testing "match single"
+    (let [readme-match (fs/match "." "regex:.*README.md")]
+      (is (match? ["README.md"] (map str readme-match)))
+      (is (every? #(instance? java.nio.file.Path %) readme-match))))
+  (testing "match multiple with same filename recursive"
+    (let [readme-match (fs/match "." "regex:.*README.md" {:recursive true})]
+      (is (match? (m/in-any-order ["README.md" "dira1/dirb1/README.md"]) (map fs/unixify readme-match)))
+      (is (every? #(instance? java.nio.file.Path %) readme-match))))
+  (testing "match multiple recursive by extension"
+    (is (match? (m/in-any-order ["project.clj"
+                                 "dira1/dirb1/source.clj"
+                                 "dira2/dirb1/test.cljc"])
+                (map fs/unixify
+                     (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
   (testing "match also matches directories and doesn't return the root directory"
-    (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
-                     (set (map normalize
-                               (fs/match "test-resources/foo" "regex:.*" {:recursive true})))))
-    (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
-                     (set (map normalize
-                               (fs/match "test-resources" "regex:foo.*" {:recursive true}))))))
+    (is (match? (m/in-any-order
+                 ["dira1/dirb1/dirc1"
+                  "dira1/dirb1/README.md"
+                  "dira1/dirb1/source.clj"])
+                (map fs/unixify
+                     (fs/match "dira1/dirb1" "regex:.*" {:recursive true}))))
+    (is (match? (m/in-any-order
+                 ["dira1/dirb1"
+                  "dira1/dirb1/dirc1"
+                  "dira1/dirb1/README.md"
+                  "dira1/dirb1/source.clj"])
+                (map fs/unixify
+                     (fs/match "dira1" "regex:dirb1.*" {:recursive true})))))
   (when-not windows?
     (testing "symlink as root path"
-      (let [tmp-dir1 (temp-dir)
-            _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
-            tmp-dir2 (temp-dir)
-            sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)
+      (let [sym-link (fs/create-sym-link "sym-link" "dira1")
             target (fs/read-link sym-link)]
-        (is (= (str target) (str tmp-dir1)))
-        (is (empty? (fs/match sym-link "regex:.*")))
-        (is (= 1 (count (fs/match sym-link "regex:.*" {:follow-links true}))))
-        (is (= 1 (count (fs/match (fs/real-path sym-link) "regex:.*")))))))
-  (testing "match with specific depth"
-    (let [tmp-dir1 (temp-dir)
-          nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
-          _ (fs/create-dirs nested-dir)
-          _ (spit (fs/file nested-dir "dude.txt") "contents")]
-      (is (= 1 (count (if windows?
-                        (fs/match tmp-dir1 "regex:foo\\\\bar\\\\baz\\\\.*" {:recursive true})
-                        (fs/match tmp-dir1 "regex:foo/bar/baz/.*" {:recursive true})))))))
-  (when-not windows?
-    (testing "match on root with special chars"
-      (let [dir (fs/create-dirs (fs/path "test-resources" "foo*{[]}"))
-            txt-file (fs/file dir "test.txt")]
-        (fs/delete-on-exit dir)
-        (fs/delete-on-exit txt-file)
-        (spit txt-file "hello"))
-      (is (= "test.txt" (fs/file-name (first (fs/match "test-resources/foo*{[]}" "glob:*.txt")))))
-      (is (= "test.txt" (fs/file-name (first (fs/match "test-resources/foo*{[]}" "regex:.*\\.txt"))))))))
+        (is (= (str target) "dira1"))
+        (is (match? [] (fs/match sym-link "regex:.*")))
+        (is (match? ["sym-link/foo.txt"]
+                    (map fs/unixify (fs/match sym-link "regex:.*" {:follow-links true}))))
+        (is (match? ["dira1/foo.txt"]
+                    (map fs/unixify (fs/match (fs/read-link sym-link) "regex:.*"))))))))
+
+(deftest match-at-specific-depth-test
+  (files "foo/bar/baz/dude.txt")
+  (is (match? ["foo/bar/baz/dude.txt"]
+              (map fs/unixify
+                   (if windows?
+                     (fs/match "." "regex:foo\\\\bar\\\\baz\\\\.*" {:recursive true})
+                     (fs/match "." "regex:foo/bar/baz/.*" {:recursive true}))))))
+
+(when-not windows?
+  (deftest match-on-root-with-special-chars-test
+    (files "some-dir/foo*{[]}/test.txt")
+    (is (match? ["some-dir/foo*{[]}/test.txt"]
+                (map str (fs/match "some-dir/foo*{[]}" "glob:*.txt"))))
+    (is (match? ["some-dir/foo*{[]}/test.txt"]
+                (map str (fs/match "some-dir/foo*{[]}" "regex:.*\\.txt"))))))
 
 (deftest glob-test
   (let [readme-match (fs/glob "." "README.md")]
