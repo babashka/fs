@@ -155,55 +155,89 @@
                 (map str (fs/match "some-dir/foo*{[]}" "regex:.*\\.txt"))))))
 
 (deftest glob-test
-  (let [readme-match (fs/glob "." "README.md")]
-    (is (= '("README.md") (map str readme-match)))
-    (is (every? #(instance? java.nio.file.Path %) readme-match)))
-  (is (set/subset? #{"project.clj"
-                     "test/babashka/fs_test.clj"
-                     "src/babashka/fs.cljc"}
-                   (set (map normalize
-                             (fs/glob "." "**.{clj,cljc}")))))
-  (testing "glob also matches directories and doesn't return the root directory"
-    (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
-                     (set (map normalize
-                               (fs/glob "test-resources/foo" "**")))))
-    (is (set/subset? #{"test-resources/foo/1" "test-resources/foo/foo"}
-                     (set (map normalize
-                               (fs/glob "test-resources" "foo/**"))))))
+  (files "README.md" "project.clj" ".gitignore"
+         "dira1/foo.txt"
+         "dira1/dirb1/README.md"
+         "dira1/dirb1/source.clj"
+         "dira1/dirb1/dirc1/"
+         "dira2/dirb1/test.cljc")
+  (testing "glob single"
+    (let [readme-match (fs/glob "." "README.md")]
+      (is (match? ["README.md"] (map str readme-match)))
+      (is (every? #(instance? java.nio.file.Path %) readme-match))))
+  (testing "glob ** multiple with same filename auto-recursive"
+    (let [readme-match (fs/glob "." "**README.md")]
+      (is (match? (m/in-any-order ["README.md" "dira1/dirb1/README.md"]) (map fs/unixify readme-match)))
+      (is (every? #(instance? java.nio.file.Path %) readme-match))))
+  (testing "glob ** but disable recursion"
+    (let [readme-match (fs/glob "." "**README.md" {:recursive false})]
+      (is (match? (m/in-any-order ["README.md"]) (map fs/unixify readme-match)))
+      (is (every? #(instance? java.nio.file.Path %) readme-match))))
+  (testing "glob recursive by extension"
+    (is (match? (m/in-any-order
+                 ["project.clj"
+                  "dira1/dirb1/source.clj"
+                  "dira2/dirb1/test.cljc"])
+                (map fs/unixify
+                     (fs/glob "." "**.{clj,cljc}")))))
+  (testing "glob also matches directories and doesn't return the specified root directory"
+    (is (match? (m/in-any-order
+                 ["dira1/dirb1/dirc1"
+                  "dira1/dirb1/README.md"
+                  "dira1/dirb1/source.clj"])
+                (map fs/unixify
+                     (fs/glob "dira1/dirb1" "**"))))
+    (is (match? (m/in-any-order
+                 ["dira1/dirb1"
+                  "dira1/dirb1/dirc1"
+                  "dira1/dirb1/README.md"
+                  "dira1/dirb1/source.clj"])
+                (map fs/unixify
+                     (fs/glob "dira1" "dirb1**")))))
   (when-not windows?
     (testing "symlink as root path"
-      (let [tmp-dir1 (temp-dir)
-            _ (spit (fs/file tmp-dir1 "dude.txt") "contents")
-            tmp-dir2 (temp-dir)
-            sym-link (fs/create-sym-link (fs/file tmp-dir2 "sym-link") tmp-dir1)]
-        (is (empty? (fs/glob sym-link "**")))
-        (is (= 1 (count (fs/glob sym-link "**" {:follow-links true}))))
-        (is (= 1 (count (fs/glob (fs/real-path sym-link) "**"))))))
-    (testing ":hidden option should be disabled by default"
-      (is (empty? (map normalize (fs/glob "." "*git*"))))
-      (testing "should be enabled (when not provided) when pattern starts with a dot"
-        (is (= '(".gitignore") (map normalize (fs/glob "." ".gitig*")))))))
-  (testing "glob with specific depth"
-    (let [tmp-dir1 (temp-dir)
-          nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
-          _ (fs/create-dirs nested-dir)
-          _ (spit (fs/file nested-dir "dude.txt") "contents")]
-      (is (= 1 (count (if windows?
-                        (fs/glob tmp-dir1 "foo\\\\bar\\\\baz\\\\*")
-                        (fs/glob tmp-dir1 "foo/bar/baz/*")))))))
-  (testing "windows globbing now can be similar to unix"
-    (when windows?
-      (let [tmp-dir1 (temp-dir)
-            nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
-            _ (fs/create-dirs nested-dir)
-            _ (spit (fs/file nested-dir "dude.clj") "contents")
-            _ (spit (fs/file nested-dir "dude2.clj") "contents")]
-        (is (= 2 (count (fs/glob tmp-dir1 "foo/bar/baz/*.clj")))))))
-  (testing "return also directories"
-    (let [tmp-dir1 (temp-dir)
-          nested-dir (fs/file tmp-dir1 "foo")
-          _ (fs/create-dirs nested-dir)]
-      (is (= 1 (count (map fs/directory? (fs/glob tmp-dir1 "*" {:max-depth 1}))))))))
+      (let [sym-link (fs/create-sym-link "sym-link" "dira1")]
+        (is (match? [] (fs/glob sym-link "*")))
+        (is (match? ["sym-link/foo.txt"]
+                    (map fs/unixify
+                         (fs/glob sym-link "*" {:follow-links true}))))
+        (is (match? ["dira1/foo.txt"]
+                    (map fs/unixify
+                         (fs/glob (fs/read-link sym-link) "*"))))))
+    (testing "hidden files"
+      (testing "are not matched by default"
+        (is (match? [] (map fs/unixify
+                            (fs/glob "." "*git*")))))
+      (testing "matched when :hidden option specified"
+        (is (match? [".gitignore"]
+                    (map fs/unixify
+                         (fs/glob "." "*git*" {:hidden true})))))
+      (testing "automatically matched when pattern starts with a dot"
+        (is (match? [".gitignore"]
+                    (map fs/unixify
+                         (fs/glob "." ".gitig*"))))))))
+
+(deftest glob-with-specific-depth-test
+  (files "foo/bar/baz/dude.txt")
+  (is (match? ["foo/bar/baz/dude.txt"]
+              (map fs/unixify
+                   (if windows?
+                     (fs/glob "." "foo\\\\bar\\\\baz\\\\*")
+                     (fs/glob "." "foo/bar/baz/*"))))))
+
+(deftest glob-windows-friendly-test
+  (files "foo/bar/baz/dude.clj"
+         "foo/bar/baz/dude2.clj")
+  (is (match? (m/in-any-order
+               ["foo/bar/baz/dude.clj"
+                "foo/bar/baz/dude2.clj"])
+              (map fs/unixify
+                   (fs/glob "." "foo/bar/baz/*.clj")))))
+
+(deftest glob-returns-directories-test
+  (files "foo/")
+  (is (match? ["foo"] (map fs/unixify
+                           (fs/glob "." "*" {:max-depth 1})))))
 
 (deftest create-dir-test
   (is (fs/create-dir (fs/path (temp-dir) "foo"))))
