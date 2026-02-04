@@ -240,42 +240,41 @@
                            (fs/glob "." "*" {:max-depth 1})))))
 
 (deftest create-dir-test
-  (is (fs/create-dir (fs/path (temp-dir) "foo"))))
+  (files)
+  (is (fs/create-dir "foo"))
+  (is (match? ["foo"] (map fs/unixify
+                           (fs/glob "." "**"))))
+  (is (fs/directory? "foo")))
 
 (deftest create-link-test
   (when-not windows?
-    (let [tmp-dir (temp-dir)
-          _       (spit (fs/file tmp-dir "dudette.txt") "some content")
-          link    (fs/create-link (fs/file tmp-dir "hard-link.txt") (fs/file tmp-dir "dudette.txt"))]
+    (files "dudette.txt")
+    (let [link (fs/create-link (fs/file "." "hard-link.txt") (fs/file "dudette.txt"))]
       (is (.exists (fs/file link)))
       (is (= 2 (fs/get-attribute (fs/file link) "unix:nlink")))
-      (is (.exists (fs/file tmp-dir "dudette.txt")))
-      (is (fs/same-file? (fs/file tmp-dir "dudette.txt")
-                         (fs/file tmp-dir "hard-link.txt")))
-      (is (= (slurp (fs/file tmp-dir "hard-link.txt"))
-             (slurp (fs/file tmp-dir "dudette.txt")))))))
+      (is (.exists (fs/file "dudette.txt")))
+      (is (fs/same-file? (fs/file "dudette.txt")
+                         (fs/file "hard-link.txt")))
+      (is (= (slurp (fs/file "hard-link.txt"))
+             (slurp (fs/file "dudette.txt")))))))
 
 (deftest directory?-test
-  (let [tmp-dir (temp-dir)
-        tmp-file (fs/path tmp-dir "tmp.txt")]
-    (spit (fs/file tmp-file) "foo")
-    (is (= true (fs/directory? tmp-dir)))
-    (is (= false (fs/directory? tmp-file)))
-    (is (= false (fs/directory? "idontexist")))
-    (is (= false (fs/directory? (fs/path tmp-dir "idontexist"))))))
+  (files "dir/file.txt")
+  (is (= true (fs/directory? "dir")))
+  (is (= false (fs/directory? "dir/file.txt")))
+  (is (= false (fs/directory? "idontexist")))
+  (is (= false (fs/directory? (fs/path "dir" "idontexist")))))
 
 (deftest regular-file?-test
-  (let [tmp-dir  (temp-dir)
-        tmp-file (fs/path tmp-dir "tmp.txt")]
-    (spit (fs/file tmp-file) "")
-    (is (not (fs/regular-file? tmp-dir)))
-    (is (fs/regular-file? tmp-file))))
+  (files "dir/file.txt")
+  (is (= false (fs/regular-file? "dir")))
+  (is (= true (fs/regular-file? "dir/file.txt")))
+  (is (= false (fs/regular-file? "idontexist")))
+  (is (= false (fs/regular-file? (fs/path "dir" "idontexist")))))
 
 (deftest parent-test
-  (let [tmp-dir (temp-dir)]
-    (is (-> (fs/create-dir (fs/path tmp-dir "foo"))
-            fs/parent
-            (= tmp-dir)))))
+  (is (= (fs/path "dir") (fs/parent "dir/foo")))
+  (is (= nil (fs/parent "foo"))))
 
 (deftest root-test
   (doseq [[path                      expected   expected-windows]
@@ -294,21 +293,20 @@
           (str "macOS/linux: " path)))))
 
 (deftest file-name-test
-  (let [tmp-dir (fs/path (temp-dir) "foo")]
-    (fs/create-dir tmp-dir)
-    (is (= "foo" (fs/file-name tmp-dir)))
-    (is (= "foo" (fs/file-name (fs/file tmp-dir))))
-    (is (= "foo" (fs/file-name (fs/path tmp-dir))))))
+  (let [f "some-dir/foo.ext"]
+    (is (= "foo.ext" (fs/file-name f)))
+    (is (= "foo.ext" (fs/file-name (fs/file f))))
+    (is (= "foo.ext" (fs/file-name (fs/path f))))))
 
 (deftest path-test
   (let [p (fs/path "foo" "bar" (io/file "baz"))]
     (is (instance? java.nio.file.Path p))
-    (is (= "foo/bar/baz" (normalize p)))))
+    (is (= "foo/bar/baz" (fs/unixify p)))))
 
 (deftest file-test
   (let [f (fs/file "foo" "bar" (fs/path "baz"))]
     (is (instance? java.io.File f))
-    (is (= "foo/bar/baz" (normalize f)))))
+    (is (= "foo/bar/baz" (fs/unixify f)))))
 
 (deftest copy-test
   (let [tmp-dir-1 (temp-dir)
