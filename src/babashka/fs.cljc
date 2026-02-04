@@ -334,22 +334,26 @@
   (java.util.regex.Pattern/quote s))
 
 (defn match
-  "Given a file `root` and match `pattern`, returns matches as vector of
-  paths. Pattern interpretation is done using the rules described in
+  "Returns a vector of paths matching `pattern` (on path and filename) relative to `root` dir.
+  Pattern interpretation is done using the rules described in
   [FileSystem#getPathMatcher](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String))
 
   Options:
 
   * `:hidden` - match hidden paths - note: on Windows paths starting with
   a dot are not hidden, unless their hidden attribute is set. Defaults to
-  false, i.e. skip hidden files and folders.
+  `false`, i.e. skip hidden files and folders.
   * [`:follow-links`](/README.md#follow-links) - follow symlinks. Defaults to false.
-  * `:recursive` - match recursively. Defaults to false.
+  * `:recursive`
+    * `true`, `pattern` is matched against all descendant files and directories under `root`
+    * `false` (default), `pattern` is matched only against immediate children under `root`
   * `:max-depth` - max depth to descend into directory structure, when
-  matching recursively. Defaults to Integer/MAX_VALUE.
+  matching recursively. Defaults to `Integer/MAX_VALUE`.
 
-  Examples:
-  `(fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})`"
+  Examples: 
+  - `(fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})`
+
+  See also: [[glob]]" 
   ([root pattern] (match root pattern nil))
   ([root pattern {:keys [hidden follow-links max-depth recursive]}]
    (let [[prefix pattern] (str/split pattern #":")
@@ -405,26 +409,31 @@
          results)))))
 
 (defn glob
-  "Given a file `root` and glob `pattern`, returns matches as vector of
-  paths. Patterns containing `**` or `/` will cause a recursive walk over
-  path, unless overriden with :recursive. Similarly: :hidden will be enabled (when not set)
+  "Returns a vector of paths matching glob `pattern` (on path and filename) relative to `root` dir.
+  Patterns containing `**` or `/` will cause a recursive walk under
+  `root`, unless overriden with `:recursive false`. Similarly, `:hidden` will be automaticaly enabled 
   when `pattern` starts with a dot.
   Glob interpretation is done using the rules described in
   [FileSystem#getPathMatcher](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String))
 
   Options:
 
-  * `:hidden` - match hidden paths. Implied when `pattern` starts with a dot;
-  otherwise, default to false. Note: on Windows files starting with a dot are
+  * `:hidden` - match hidden paths. Implied `true` when `pattern` starts with a dot;
+  otherwise, defaults to `false`. Note: on Windows files starting with a dot are
   not hidden, unless their hidden attribute is set.
-  * [`:follow-links`](/README.md#follow-links) - follow symlinks. Defaults to false.
-  * `:recursive` - force recursive search. Implied when `pattern` contains
-  `**` or `/`; otherwise, defaults to false.
+  * [`:follow-links`](/README.md#follow-links) - follow symlinks. Defaults to `false`.
+  * `:recursive` - Implied `true` when `pattern` contains `**` or `/`; otherwise, defaults to `false`.
+    * `true` - `pattern` is matched against all descendant files and directories under `root`
+    * `false` - `pattern` is matched only against immediate children under `root`
   * `:max-depth` - max depth to descend into directory structure, when
-  recursing. Defaults to Integer/MAX_VALUE.
+  recursing. Defaults to `Integer/MAX_VALUE`.
 
   Examples:
-  `(fs/glob \".\" \"**.clj\")`"
+  - `(fs/glob \".\" \"**.clj\")` - finds `.clj` files and dirs under `.` dir and its subdirs
+  - `(fs/glob \".\" \"**.clj\" {:recursive false})` - finds `.clj` files and dirs immediately under `.` dir only
+  - `(fs/glob \".\" \"*.clj\" {:recursive true})` - finds `.clj` files and dirs immediately under `.` only (`pattern` lacks directory wildcards)
+
+  See also: [[match]]"
   ([root pattern] (glob root pattern nil))
   ([root pattern opts]
    (let [recursive (:recursive opts
