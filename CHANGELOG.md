@@ -11,7 +11,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 - [#188](https://github.com/babashka/fs/issues/188) `copy-tree` now throws if `src` or `dest` is a symbolic link when not following links ([@lread](https://github.com/lread))
 - [#193](https://github.com/babashka/fs/issues/193) `create-dirs` now recognizes sym-linked dirs on JDK 11 ([@lread](https://github.com/lread)) 
 - [#201](https://github.com/babashka/fs/issues/201) `gzip` now accepts `source-file` `Path` ([@lread](https://github.com/lread))
-
+- [#207](https://github.com/babashka/fs/issues/207) review and update `glob` and `match` docstrings ([@lread](https://github.com/lread))
 
 ## 0.5.30 (2025-11-25)
 
