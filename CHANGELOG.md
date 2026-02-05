@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## 0.5.31 (2026-01-05)
 
 - [#212](https://github.com/babashka/fs/issues/212): Introduce `:keep true` option in `with-temp-dir`.
 - [#154](https://github.com/babashka/fs/issues/154) reflect in directory check and docs that `move` never follows symbolic links ([@lread](https://github.com/lread))
