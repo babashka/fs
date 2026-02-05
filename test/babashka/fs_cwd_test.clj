@@ -26,26 +26,6 @@
       #"sunos" :solaris
       :unknown)))
 
-(defn- path->str
-  "Converts x to string unless x is nil"
-  [x]
-  (when-not (nil? x)
-    (if (fs/windows?)
-      ;; don't use fs/unixify as it also always converts to absolute path
-      (cond->> (str/escape (str x) {\\ "/"})
-        (fs/absolute? x) (str "/"))
-      (str x))))
-
-(defn- fsnapshot []
-  (->> (#'fs/path-seq ".")
-       (map (fn [p]
-              {:path (fs/unixify (path->str p))
-               :content (when (fs/regular-file? p)
-                          (slurp (fs/file p)))
-               :attr (dissoc (fs/read-attributes p "*") :lastAccessTime :fileKey)}))
-       (sort-by :path)
-       (into [])))
-
 (defn jdk-major []
   (let [version (-> (System/getProperty "java.version")
                     (str/split #"\."))]
@@ -61,7 +41,7 @@
   (is (= false (fs/absolute? ""))))
 
 (deftest es-absolutize-test
-  (is (= (path->str (System/getProperty "user.dir")) (path->str (fs/absolutize "")))))
+  (is (= (util/path->str (System/getProperty "user.dir")) (util/path->str (fs/absolutize "")))))
 
 (deftest es-canonicalize-test
   ;; There is windows bug in jdk24: https://bugs.openjdk.org/browse/JDK-8355342
@@ -69,30 +49,30 @@
   ;; This is slated to be fixed in jdk26, at the time of this writing, I don't see
   ;; backports planned.
   ;; This test will fail if running from a mapped drive on windows.
-  (if (and (fs/windows?) (>= (jdk-major) 24) (str/starts-with? (path->str (fs/canonicalize "")) "//"))
+  (if (and (fs/windows?) (>= (jdk-major) 24) (str/starts-with? (util/path->str (fs/canonicalize "")) "//"))
     (throw (ex-info "due to bug JDK-8355342 in jdk24, please run this test on windows from an unmapped drive" {}))
-    (is (= (path->str (System/getProperty "user.dir")) (path->str (fs/canonicalize ""))))))
+    (is (= (util/path->str (System/getProperty "user.dir")) (util/path->str (fs/canonicalize ""))))))
 
 (deftest es-components-test
-  (is (= [""] (mapv path->str (fs/components "")))))
+  (is (= [""] (mapv util/path->str (fs/components "")))))
 
 (deftest es-copy-test
   ;; returns the target 
   ;; as per javadoc: ...if the source and target are the same file... completes without copying the file
-  (is (= "" (path->str (fs/copy "" ""))))
+  (is (= "" (util/path->str (fs/copy "" ""))))
   ;; as per javadoc: ...if the source and target are the same file... completes without copying the file
-  (is (= "f1.ext" (path->str (fs/copy "f1.ext" ""))))
+  (is (= "f1.ext" (util/path->str (fs/copy "f1.ext" ""))))
   (is (thrown? java.nio.file.FileAlreadyExistsException (fs/copy "" "f1.ext")))
   (let [res (fs/copy "" "f1.ext" {:replace-existing true})]
-    (is (= "f1.ext" (path->str res)))
+    (is (= "f1.ext" (util/path->str res)))
     (is (= true (fs/directory? res)))))
 
 (deftest es-copy-tree-test
   ;; returns the starting file
   ;; effectively copying self to self through tree so no-op
-  (let [before (fsnapshot)]
+  (let [before (util/fsnapshot)]
     (is (= (fs/absolutize "") (fs/copy-tree "" "")))
-    (is (match? before (fsnapshot)))))
+    (is (match? before (util/fsnapshot)))))
 
 (deftest es-dest-copy-tree-test
   ;; returns the starting file
@@ -113,7 +93,7 @@
 
 (deftest es-create-dirs-test
   ;; dir already exists, no-op
-  (is (= "" (path->str (fs/create-dirs "")))))
+  (is (= "" (util/path->str (fs/create-dirs "")))))
 
 (deftest es-create-file-test
   ;; NOTE:
@@ -151,13 +131,13 @@
 
 (deftest es-create-temp-dir-test
   (let [temp-dir (fs/create-temp-dir {:dir "" :prefix ""})]
-    (is (re-matches #".+" (path->str temp-dir)))
+    (is (re-matches #".+" (util/path->str temp-dir)))
     (is (= true (fs/exists? (fs/file-name temp-dir))))
     (is (= true (fs/directory? temp-dir)))))
 
 (deftest es-create-temp-file-test
   (let [temp-file (fs/create-temp-file {:dir "" :prefix ""})]
-    (is (re-matches #".+" (path->str temp-file)))
+    (is (re-matches #".+" (util/path->str temp-file)))
     (is (= true (fs/exists? (fs/file-name temp-file))))
     (is (= true (fs/regular-file? temp-file)))))
 
@@ -166,16 +146,16 @@
     (is (= dir-creation-time (fs/creation-time "")))))
 
 (deftest es-delete-test
-  (let [before (fsnapshot)]
+  (let [before (util/fsnapshot)]
     ;; can't delete non-empty dir
     (is (thrown? java.nio.file.FileSystemException (fs/delete "")))
-    (is (match? before (fsnapshot)))))
+    (is (match? before (util/fsnapshot)))))
 
 (deftest es-delete-if-exists-test
-  (let [before (fsnapshot)]
+  (let [before (util/fsnapshot)]
     ;; can't delete non-empty dir
     (is (thrown? java.nio.file.FileSystemException (fs/delete-if-exists "")))
-    (is (match? before (fsnapshot)))))
+    (is (match? before (util/fsnapshot)))))
 
 (deftest es-delete-on-exit-test
   ;; tested elsewhere, here we just check that it does not throw
@@ -203,13 +183,13 @@
   (is (= true (fs/exists? ""))))
 
 (deftest es-expand-home-test
-  (is (= "" (path->str (fs/expand-home "")))))
+  (is (= "" (util/path->str (fs/expand-home "")))))
 
 (deftest es-extension-test
   (is (nil? (fs/extension ""))))
 
 (deftest es-file-test
-  (is (= "" (path->str (fs/file "")))))
+  (is (= "" (util/path->str (fs/file "")))))
 
 (deftest es-file-name-test
   (is (= "" (fs/file-name ""))))
@@ -218,7 +198,7 @@
   (is (= true (fs/get-attribute "" "basic:isDirectory"))))
 
 (deftest es-glob-test
-  (is (= ["da1/da2/da3/da4/f2.ext"] (mapv path->str (fs/glob "" "**/f2.ext")))))
+  (is (= ["da1/da2/da3/da4/f2.ext"] (mapv util/path->str (fs/glob "" "**/f2.ext")))))
 
 (deftest es-gunzip-test
   (let [last-modified (fs/last-modified-time "f1.ext")
@@ -244,13 +224,13 @@
     (is (= dir-last-modified-time (fs/last-modified-time "")))))
 
 (deftest es-list-dir-test
-  (is (= ["da1" "f1.ext"] (sort (mapv path->str (fs/list-dir ""))))))
+  (is (= ["da1" "f1.ext"] (sort (mapv util/path->str (fs/list-dir ""))))))
 
 (deftest es-list-dirs-test
-  (is (= ["da1" "f1.ext"] (sort (mapv path->str (fs/list-dirs [""] "*"))))))
+  (is (= ["da1" "f1.ext"] (sort (mapv util/path->str (fs/list-dirs [""] "*"))))))
 
 (deftest es-match-test
-  (is (= ["da1/da2/da3/da4/f2.ext" "f1.ext"] (sort (mapv path->str (fs/match "" "regex:.*\\.ext" {:recursive true}))))))
+  (is (= ["da1/da2/da3/da4/f2.ext" "f1.ext"] (sort (mapv util/path->str (fs/match "" "regex:.*\\.ext" {:recursive true}))))))
 
 (deftest es-modified-since
   (let [later (java.time.Instant/parse "2025-11-09T10:15:30.00Z")
@@ -266,29 +246,29 @@
     (fs/set-last-modified-time "" later)
     (fs/set-last-modified-time "f1.ext" later)
     (fs/set-last-modified-time "da1/da2/da3/da4/f2.ext" earlier)
-    (is (= ["f1.ext"] (mapv path->str (fs/modified-since "da1/da2/da3/da4/f2.ext" ""))))))
+    (is (= ["f1.ext"] (mapv util/path->str (fs/modified-since "da1/da2/da3/da4/f2.ext" ""))))))
 
 (deftest es-move-test
   ;; returns target
   ;; as per javadoc should be no-op
-  (let [before (fsnapshot)]
-    (is (= "" (path->str (fs/move "" ""))))
-    (is (match? before (fsnapshot)))))
+  (let [before (util/fsnapshot)]
+    (is (= "" (util/path->str (fs/move "" ""))))
+    (is (match? before (util/fsnapshot)))))
 
 (deftest es-src-move-test
-  (let [before (fsnapshot)
+  (let [before (util/fsnapshot)
         target (fs/create-temp-dir)]
     ;; Device or resource busy
     (is (thrown? java.nio.file.FileSystemException (fs/move "" (fs/file target "new-thing"))))
-    (is (match? before (fsnapshot)))))
+    (is (match? before (util/fsnapshot)))))
 
 (deftest es-dest-move-test
-  (is (= "da3" (path->str (fs/move "da1/da2/da3" ""))))
+  (is (= "da3" (util/path->str (fs/move "da1/da2/da3" ""))))
   (is (= true (fs/exists? "da3/da4/f2.ext")))
   (is (= false (fs/exists? "da1/da2/da3"))))
 
 (deftest es-normalize-test
-  (is (= "" (path->str (fs/normalize "")))))
+  (is (= "" (util/path->str (fs/normalize "")))))
 
 (deftest es-owner-test
   (is (= (fs/owner "") (fs/owner "f1.ext"))))
@@ -298,7 +278,7 @@
   (is (nil? (fs/parent ""))))
 
 (deftest es-path-test
-  (is (= "" (path->str (fs/path "")))))
+  (is (= "" (util/path->str (fs/path "")))))
 
 (deftest es-read-all-bytes-test
   (is (thrown? java.io.IOException (fs/read-all-bytes ""))))
@@ -320,7 +300,7 @@
   (is (= true (fs/readable? ""))))
 
 (deftest es-real-path-test
-  (is (= (path->str (System/getProperty "user.dir")) (path->str (fs/real-path "")))))
+  (is (= (util/path->str (System/getProperty "user.dir")) (util/path->str (fs/real-path "")))))
 
 (deftest es-regular-file?-test
   (is (= false (fs/regular-file? ""))))
@@ -329,7 +309,7 @@
   (is (= true (fs/relative? ""))))
 
 (deftest es-relativize-test
-  (is (= "" (path->str (fs/relativize "" "")))))
+  (is (= "" (util/path->str (fs/relativize "" "")))))
 
 (deftest es-same-file?-test
   (is (= true (fs/same-file? "" "")))
@@ -390,7 +370,7 @@
   (is (= ["" nil] (fs/split-ext ""))))
 
 (deftest es-split-paths-test
-  (is (= [""] (mapv path->str (fs/split-paths "")))))
+  (is (= [""] (mapv util/path->str (fs/split-paths "")))))
 
 (deftest es-starts-with?-test
   (is (= true (fs/starts-with? "" ""))))
@@ -402,7 +382,7 @@
   (is (= "" (fs/unixify ""))))
 
 (deftest es-zip-unzip-test
-  (let [before (fsnapshot)
+  (let [before (util/fsnapshot)
         ;; zip to temp-dir instead of cwd, so we don't zip our zip
         dest-zip (fs/file (fs/temp-dir) "foo.zip")]
     (fs/zip dest-zip "" {:root ""})
@@ -411,7 +391,7 @@
     (is (match? (mapv #(update % :attr dissoc :creationTime :lastModifiedTime :lastAccessTime)
                       before)
                 (mapv #(update % :attr dissoc :creationTime :lastModifiedTime :lastAccessTime)
-                      (fsnapshot))))))
+                      (util/fsnapshot))))))
 
 (deftest es-update-file-test
   ;; makes sense, "" is the cwd, not a regular file
@@ -422,7 +402,7 @@
     (fs/walk-file-tree "" {:visit-file (fn [f _attrs]
                                          (swap! files conj f)
                                          :continue)})
-    (is (= ["da1/da2/da3/da4/f2.ext" "f1.ext"] (sort (mapv path->str @files))))))
+    (is (= ["da1/da2/da3/da4/f2.ext" "f1.ext"] (sort (mapv util/path->str @files))))))
 
 (deftest es-which-test
   (is (nil? (fs/which ""))))
@@ -463,7 +443,7 @@
 (deftest copy-tree-fails-on-parent-to-child-test
   (fs/create-dirs "foo/bar/baz")
   (spit "foo/bar/baz/somefile.txt" "bippity boo")
-  (let [before (fsnapshot)]
+  (let [before (util/fsnapshot)]
     (is (= (fs/absolutize "foo") (fs/copy-tree "foo" "foo"))
         "copy to self is allowed and a no-op")
     (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo/new-dir"
@@ -472,7 +452,7 @@
     (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo/bar"
                           (fs/copy-tree "foo" "foo/bar"))
         "copy to existing dir under self throws")
-    (is (= before (fsnapshot))
+    (is (= before (util/fsnapshot))
         "files/dirs are unchanged")
     (fs/copy-tree "foo" "foobar")
     (is (fs/exists? "foobar/bar/baz/somefile.txt"))))
@@ -519,7 +499,7 @@
     (spit "dir1/dir2/file2.txt" "file2")
     (fs/create-sym-link "dir1/link-file1.txt" "file1.txt")
     (fs/create-sym-link "dir1/dir2/link-file2.txt" "file2.txt")
-    (let [before (fsnapshot)]
+    (let [before (util/fsnapshot)]
       ;; no-ops, dirs exist
       (doseq [p ["link-dir1"
                  "dir1/link-dir2"
@@ -536,7 +516,7 @@
         (is (thrown? java.nio.file.FileAlreadyExistsException (fs/create-dirs p))
             (format "create over existinf file %s throws" p)))
 
-      (is (match? before (fsnapshot))
+      (is (match? before (util/fsnapshot))
           "no changes expected for no-ops and throws"))
 
     ;; creates dirs with symlinks in parent path
