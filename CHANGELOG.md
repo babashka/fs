@@ -6,6 +6,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
+- [#212](https://github.com/babashka/fs/issues/212): Introduce `:keep true` option in `with-temp-dir`.
 - [#154](https://github.com/babashka/fs/issues/154) reflect in directory check and docs that `move` never follows symbolic links ([@lread](https://github.com/lread))
 - [#181](https://github.com/babashka/fs/issues/181) `delete-tree` now deletes broken symbolic link `root` ([@lread](https://github.com/lread))
 - [#188](https://github.com/babashka/fs/issues/188) `copy-tree` now throws if `src` or `dest` is a symbolic link when not following links ([@lread](https://github.com/lread))

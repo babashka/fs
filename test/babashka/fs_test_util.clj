@@ -1,6 +1,6 @@
 (ns babashka.fs-test-util
-  (:require [clojure.string :as str]
-            [babashka.fs :as fs]))
+  (:require [babashka.fs :as fs]
+            [clojure.string :as str]))
 
 (defn clean-cwd []
   (when-not (str/ends-with? (System/getProperty "user.dir") (str "target" fs/file-separator "test-cwd"))
