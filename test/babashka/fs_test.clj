@@ -387,7 +387,7 @@
                ["src-dir"
                 "src-dir/foo"
                 "src-dir/foo/bar"
-                 ;; out new entries
+                 ;; our new entries
                 "dest-dir"
                 "dest-dir/foo"
                 "dest-dir/foo/bar"])
