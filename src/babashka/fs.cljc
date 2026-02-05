@@ -766,8 +766,8 @@
 (defn delete-tree
   "Deletes a file tree `root` using [[walk-file-tree]]. Similar to `rm -rf`. Does not follow symlinks.
    `force` ensures read-only directories/files are deleted. Similar to `chmod -R +wx` + `rm -rf`"
-  ;; See delete-permission-assumptions-test
-  ;; Implementation with the force flag is based on those assumptions
+  ;; See: delete-permissions-* tests
+  ;; Implementation with the force flag is based on assumptions in those tests
   ([root] (delete-tree root nil))
   ([root {:keys [force]}]
    (when (exists? root {:nofollow-links true})
