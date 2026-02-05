@@ -6,8 +6,8 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest is testing use-fixtures]]
-   [matcher-combinators.test]
-   [matcher-combinators.matchers :as m])
+   [matcher-combinators.matchers :as m]
+   [matcher-combinators.test])
   (:import [java.io FileNotFoundException]))
 
 (set! *warn-on-reflection* true)
@@ -884,7 +884,12 @@
         (is (fs/exists? (fs/path dir "xx"))))
       (testing "deletes its directory and contents on exit from the scope"
         (is (not (fs/exists? (fs/path @capture-dir "xx"))))
-        (is (not (fs/exists? @capture-dir)))))))
+        (is (not (fs/exists? @capture-dir))))
+      (fs/with-temp-dir [dir {:keep true}]
+        (vreset! capture-dir dir))
+      (testing "does NOT delete directory with :keep true"
+        (is (fs/exists? (fs/path @capture-dir)))
+        (fs/delete-tree @capture-dir {:force true})))))
 
 (deftest with-temp-dir-read-only-test
   (let [capture-dir (volatile! nil)]
@@ -1087,4 +1092,3 @@
         zip-path (fs/path path-in-zip "core.clj")]
     (is zip-path)
     (is (= "/bencode/core.clj" (str zip-path)))))
-

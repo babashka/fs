@@ -1311,10 +1311,10 @@
 
 (defmacro with-temp-dir
   "Evaluates body with binding-name bound to the result of `(create-temp-dir
-  options)`, then cleans up. See [[create-temp-dir]]
-  for valid `options`.
+  options)`. See [[create-temp-dir]] for valid `options`.
 
-  The directory will be removed with [[delete-tree]] on exit from the scope.
+  The directory will be removed with [[delete-tree]] on exit from the scope,
+  unless the option `:keep true` is used.
 
   Example:
 
@@ -1331,11 +1331,13 @@
                [[binding-name options] & body]]}
   [[binding-name options & more] & body]
   {:pre [(empty? more) (symbol? binding-name)]}
-  `(let [~binding-name (create-temp-dir ~options)]
+  `(let [opts# ~options
+         ~binding-name (create-temp-dir opts#)]
      (try
        ~@body
        (finally
-         (delete-tree ~binding-name {:force true})))))
+         (when-not (:keep opts#)
+           (delete-tree ~binding-name {:force true}))))))
 
 (def ^:private cached-home-dir
   (delay (path (System/getProperty "user.home"))))
