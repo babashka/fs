@@ -4,7 +4,6 @@
    [babashka.fs-test-util :as util]
    [babashka.test-report]
    [clojure.java.io :as io]
-   [clojure.set :as set]
    [clojure.string :as str]
    [clojure.test :refer [deftest is testing use-fixtures]]
    [matcher-combinators.test]
@@ -308,77 +307,122 @@
     (is (instance? java.io.File f))
     (is (= "foo/bar/baz" (fs/unixify f)))))
 
-(deftest copy-test
-  (let [tmp-dir-1 (temp-dir)
-        src-file (fs/create-file (fs/path tmp-dir-1 "tmp-file"))
-        dest-dir (temp-dir)
-        dest-file (fs/path dest-dir "tmp-file")]
-    (fs/copy src-file dest-file)
-    (is (fs/exists? dest-file))
-    (fs/delete dest-file)
-    (is (not (fs/exists? dest-file)))
-    (testing "copying into dir"
-      (fs/copy src-file dest-dir)
-      (is (fs/exists? dest-file)))
-    (testing "copying input-stream"
-      (fs/delete dest-file)
-      (fs/copy (io/input-stream (fs/file src-file)) dest-file)
-      (is (fs/exists? dest-file))
-      (is (= (slurp (fs/file src-file)) (slurp (fs/file dest-file)))))))
+(deftest copy-to-file-test
+  (files "file" "dest-dir/")
+  (fs/copy "file" "dest-dir/file")
+  (is (match? (m/in-any-order
+               ["file" "dest-dir" "dest-dir/file"])
+              (map fs/unixify (fs/glob "." "**")))))
+
+(deftest copy-into-dir-test
+  (files "file" "dest-dir/")
+  (fs/copy "file" "dest-dir")
+  (is (match? (m/in-any-order
+               ["file" "dest-dir" "dest-dir/file"])
+              (map fs/unixify (fs/glob "." "**")))))
+
+(deftest copy-input-stream-test
+  (files "file" "dest-dir/")
+  (with-open [is (io/input-stream (fs/file "file"))]
+    (fs/copy is "dest-dir/file"))
+  (is (match? (m/in-any-order
+               ["file" "dest-dir" "dest-dir/file"])
+              (map fs/unixify (fs/glob "." "**")))))
 
 (deftest copy-tree-test
-  (let [tmp-dir (temp-dir)]
-    (fs/delete tmp-dir)
-    (fs/copy-tree "." tmp-dir)
-    (let [cur-dir-count (count (fs/glob "." "**" {:hidden true}))
-          tmp-dir-count (count (fs/glob tmp-dir "**" {:hidden true}))]
-      (is (pos? cur-dir-count))
-      (is (= cur-dir-count tmp-dir-count)))))
+  (files "src-dir/foo.txt"
+         "src-dir/.foo"
+         "src-dir/a/a.txt"
+         "src-dir/a/b/b.txt"
+         "src-dir/a/b/c")
+  (fs/copy-tree "src-dir" "dest-dir")
+  (is (match? (m/in-any-order
+               ["dest-dir/foo.txt"
+                "dest-dir/.foo"
+                "dest-dir/a"
+                "dest-dir/a/a.txt"
+                "dest-dir/a/b"
+                "dest-dir/a/b/b.txt"
+                "dest-dir/a/b/c"])
+              (map fs/unixify (fs/glob "dest-dir" "**" {:hidden true})))))
 
-(deftest copy-tree-on-file-test
-  ;; cf. python3 -c 'import shutil; shutil.copytree("foo/bar1", "foo2")'
-  (let [tmp-dir (temp-dir)]
+(deftest copy-tree-from-file-throws-test
+  (files "src-dir/dir/file.txt" "dest-dir/")
+  (let [before (util/fsnapshot)]
+    ;; cf. python3 -c 'import shutil; shutil.copytree("foo/bar1", "foo2")'
     (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
-                          (fs/copy-tree (fs/file "test-resources" "foo" "1") (fs/file tmp-dir))))
-    (spit (fs/file tmp-dir "1") "")
-    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
-                          (fs/copy-tree (fs/file "test-resources" "foo") (fs/file tmp-dir "1"))))
-    (fs/delete-tree tmp-dir)))
+                          (fs/copy-tree "src-dir/dir/file.txt" "dest-dir")))
+    (is (match? before (util/fsnapshot)))))
 
-(deftest copy-tree-create-nested-dest-test
+(deftest copy-tree-to-file-throws-test
+  (files "src-dir/dir/file.txt" "dest-dir/file.txt")
+  (let [before (util/fsnapshot)]
+    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
+                          (fs/copy-tree "src-dir/dir" "dest-dir/file.txt")))
+    (is (match? before (util/fsnapshot)))))
+
+(deftest copy-tree-creates-missing-dest-dirs-test
+  (files "src-dir/foo/file.txt"
+         "dest-dir/")
   ;; https://github.com/babashka/fs/issues/42
   ;; foo2 doesn't exist
-  (fs/with-temp-dir [tmp {}]
-    (fs/copy-tree "test-resources/foo" (fs/file tmp "foo2" "foo"))
-    (is (fs/exists? (fs/file tmp"foo2" "foo" "1"))
-        "The nested destination directory is not created when it doesn't exist")))
+  (fs/copy-tree "src-dir/foo" "dest-dir/foo2/foo")
+  (is (match? (m/in-any-order
+               ["src-dir"
+                "src-dir/foo"
+                "src-dir/foo/file.txt"
+                "dest-dir"
+                 ;; our new entries
+                "dest-dir/foo2"
+                "dest-dir/foo2/foo"
+                "dest-dir/foo2/foo/file.txt"])
+              (map fs/unixify (fs/glob "." "**")))))
 
 (deftest copy-tree-nested-ro-dir-test
-  (fs/with-temp-dir [tmp {}]
-    ;; https://github.com/babashka/fs/issues/122
-    (fs/create-dirs (fs/path tmp "src" "foo" "bar"))
-    (.setReadOnly (fs/file tmp "src" "foo"))
-    (fs/copy-tree (fs/path tmp "src") (fs/path tmp "dst"))
-    (is (fs/exists? (fs/path tmp "dst" "foo" "bar")))
-    (when (not windows?)
-      ;; you can always write to directories on Windows, even if they are read-only
-      ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
-      (is (not (fs/writable? (fs/path tmp "dst" "foo")))))))
+  (files "src-dir/foo/bar/")
+  ;; https://github.com/babashka/fs/issues/122
+  (.setReadOnly (fs/file "src-dir" "foo"))
+  (fs/copy-tree  "src-dir" "dest-dir")
+  (is (match? (m/in-any-order
+               ["src-dir"
+                "src-dir/foo"
+                "src-dir/foo/bar"
+                 ;; our new entries
+                "dest-dir"
+                "dest-dir/foo"
+                "dest-dir/foo/bar"])
+              (map fs/unixify (fs/glob "." "**"))))
+  (when (not windows?)
+    ;; you can always write to directories on Windows, even if they are read-only
+    ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
+    (is (not (fs/writable? "dest-dir/foo")))))
 
 (deftest components-test
-  (let [paths (map normalize (fs/components (fs/path (temp-dir) "foo")))]
-    (is (= "foo" (last paths)))
-    (is (> (count paths) 1))))
+  (is (match? ["foo" "bar" "baz" "bop.txt"]
+              (map str (fs/components "foo/bar/baz/bop.txt")))))
 
 (deftest list-dir-test
-  (let [paths (map str (fs/list-dir (fs/real-path ".")))]
-    (is (> (count paths) 1)))
-  (let [paths (map str (fs/list-dir (fs/real-path ".") (fn accept [x] (fs/directory? x))))]
-    (is (> (count paths) 1)))
-  (let [paths (map str (fs/list-dir (fs/real-path ".") (fn accept [_] false)))]
-    (is (zero? (count paths))))
-  (let [paths (map str (fs/list-dir (fs/real-path ".") "*.clj"))]
-    (is (pos? (count paths)))))
+  (files "file.txt"
+         "source1.clj"
+         "source2.clj"
+         "dir1/"
+         "dir2/foo.txt")
+  (is (match? (m/in-any-order
+               ["./file.txt"
+                "./source1.clj"
+                "./source2.clj"
+                "./dir1"
+                "./dir2"])
+              (map fs/unixify (fs/list-dir "."))))
+  (is (match? (m/in-any-order
+               ["./dir1"
+                "./dir2"])
+              (map fs/unixify (fs/list-dir "." (fn accept [x] (fs/directory? x))))))
+  (is (match? [] (fs/list-dir "." (fn accept [_] false))))
+  (is (match? (m/in-any-order
+               ["./source1.clj"
+                "./source2.clj"])
+              (map fs/unixify (fs/list-dir "." "*.clj")))))
 
 (deftest delete-permission-assumptions-test
   (let [tmp-dir (temp-dir)
