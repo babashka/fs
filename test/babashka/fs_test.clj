@@ -424,88 +424,102 @@
                 "./source2.clj"])
               (map fs/unixify (fs/list-dir "." "*.clj")))))
 
-(deftest delete-permission-assumptions-test
-  (let [tmp-dir (temp-dir)
-        dir (fs/path tmp-dir "my-dir")
-        file (fs/path tmp-dir "my-dir" "my-file")
-        _ (fs/create-dir dir)]
-    (when (not windows?)
-      (testing "On Unix, read-only files can be deleted"
-        (fs/create-file file)
-        (fs/set-posix-file-permissions file "r--r--r--")
-        (is (nil? (fs/delete file))))
-      (testing "On Unix, files in a read-only directory cannot be deleted"
-        (fs/create-file file)
-        (fs/set-posix-file-permissions dir "r--------")
-        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
-        (fs/set-posix-file-permissions dir "--x------")
-        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
-        (fs/set-posix-file-permissions dir "r-x------")
-        (is (thrown? java.nio.file.AccessDeniedException (fs/delete file)))
-        (fs/set-posix-file-permissions dir "rwx------")
-        (is (nil? (fs/delete file)))))
-    (when windows?
-      (testing "On Windows, .setWritable is idempotent"
-        (fs/create-file file)
-        (.setWritable (fs/file file) true)
-        (.setWritable (fs/file file) true)
-        (is (nil? (fs/delete file))))
-      (testing "On Windows, read-only files can't be deleted"
-        (fs/create-file file)
-        (.setWritable (fs/file file) false)
-        (is (thrown? Exception (fs/delete file)))
-        (.setWritable (fs/file file) true)
-        (is (nil? (fs/delete file))))
-      (testing "On Windows, files in a read-only directory can be deleted"
-        (fs/create-file file)
-        (.setWritable (fs/file dir) false)
-        (is (nil? (fs/delete file)))))))
+(when (not windows?)
+  (deftest delete-permissions-unix-ro-file-test
+    (files "my-file")
+    (fs/set-posix-file-permissions "my-file" "r--r--r--")
+    (is (nil? (fs/delete "my-file")))))
+
+(when (not windows?)
+  (deftest delete-permissions-unix-file-in-ro-dirs-throws-test
+    (files "my-dir/my-file")
+    (doseq [permissions ["r--------"
+                         "--x------"
+                         "r-x------"]]
+      (fs/set-posix-file-permissions "my-dir" permissions)
+      (is (thrown? java.nio.file.AccessDeniedException (fs/delete "my-dir/my-file"))
+          (str "throws when dir has ro permissions: " permissions)))
+    ;; and finally let's test if we can delete when permissions allow
+    (fs/set-posix-file-permissions "my-dir" "rwx------")
+    (is (nil? (fs/delete "my-dir/my-file"))
+        "deletes when dir has write permissions")))
+
+(when windows?
+  (deftest delete-permissions-windows-idempotently-writable-file-test
+    (files "my-file")
+    ;; on windows, .setWritable is idempotent
+    (.setWritable (fs/file "my-file") true)
+    (.setWritable (fs/file "my-file") true)
+    (is (nil? (fs/delete "my-file")))))
+
+(when windows?
+  (deftest delete-permissions-windows-ro-file-throws-test
+    (files "my-file")
+    (.setWritable (fs/file "my-file") false)
+    (is (thrown? Exception (fs/delete "my-file")))
+    (.setWritable (fs/file "my-file") true)
+    (is (nil? (fs/delete "my-file")))))
+
+(when windows?
+  (deftest delete-permissions-windows-file-in-ro-dir-test
+    (files "my-dir/my-file")
+    (.setWritable (fs/file "my-dir") false)
+    (is (nil? (fs/delete "my-dir/my-file")))))
 
 (deftest delete-tree-test
-  (let [tmp-dir1 (temp-dir)
-        nested-dir (fs/file tmp-dir1 "foo" "bar" "baz")
-        tmp-file (fs/file nested-dir "tmp-file")
-        _ (fs/create-dirs nested-dir)]
-    (is (fs/exists? nested-dir))
-    (fs/create-file (fs/file nested-dir "tmp-file"))
-    (is (fs/exists? tmp-file))
-    (fs/delete-tree nested-dir)
-    (is (not (fs/exists? nested-dir)))
-    (testing "No exception when tree doesn't exist"
-      (is (do (fs/delete-tree nested-dir)
-              true))))
-  (when-not windows?
-    (testing "delete-tree does not follow symlinks"
-      (let [tmp-dir1 (temp-dir)
-            tmp-dir2 (temp-dir)
-            tmp-file (fs/path tmp-dir2 "foo")
-            _ (fs/create-file tmp-file)
-            link-path (fs/path tmp-dir1 "link-to-tmp-dir2")
-            link (fs/create-sym-link link-path tmp-dir2)]
-        (is (fs/exists? tmp-file))
-        (fs/delete-tree tmp-dir1)
-        (is (not (fs/exists? link)))
-        (is (fs/exists? tmp-file))
-        (is (fs/exists? tmp-dir2))
-        (is (not (fs/exists? tmp-dir1)))))
+  (files "foo/bar/baz/file.txt")
+  (fs/delete-tree "foo")
+  (is (match? [] (fs/glob "." "**"))))
 
-    (testing "delete-tree force deletes read-only directories and files"
-      (let [tmp-dir (temp-dir)
-            dir (fs/path tmp-dir "my-dir")
-            file (fs/path tmp-dir "my-dir" "my-file")
-            _ (fs/create-dir dir)
-            _ (fs/create-file file)]
-        (if windows?
-          (do
-            (.setWritable (fs/file file) false)
-            (.setWritable (fs/file dir) false))
-          (do
-            (fs/set-posix-file-permissions file "r--r--r--")
-            (fs/set-posix-file-permissions dir "r--r--r--")))
-        (is (fs/exists? dir))
-        (fs/delete-tree tmp-dir {:force true})
-        (is (not (fs/exists? tmp-dir)))
-        (is (not (fs/exists? dir)))))))
+(deftest delete-tree-nested-test
+  (files "foo/bar/baz/file.txt")
+  (fs/delete-tree "foo/bar/baz")
+  (is (match? (m/in-any-order
+               ["foo"
+                "foo/bar"])
+              (map fs/unixify (fs/glob "." "**")))))
+
+(deftest delete-tree-ok-if-dir-missing-test
+  (files)
+  (is (do (fs/delete-tree "foo")
+          true))
+  (is (do (fs/delete-tree "foo/bar/baz")
+          true)))
+
+(when (not windows?)
+  (deftest delete-tree-does-not-follow-symlink-test
+    (files "dir1/"
+           "dir2/foo")
+    (fs/create-sym-link "dir1/link-to-dir2" "../dir2")
+    (is (= true (fs/same-file? "dir1/link-to-dir2" "dir2")) "precondition: link")
+    (is (match? (m/in-any-order
+                 ["dir1"
+                  "dir1/link-to-dir2"
+                  "dir2"
+                  "dir2/foo"])
+                (map fs/unixify (fs/glob "." "**"))) "precondition: files")
+    (fs/delete-tree "dir1")
+    (is (match? (m/in-any-order
+                 ["dir2"
+                  "dir2/foo"])
+                (map fs/unixify (fs/glob "." "**"))))))
+
+(deftest delete-tree-force-deletes-ro-dirs-and-files-test
+  (files "dir1/file1.txt"
+         "dir1/subdir/file2.txt")
+  (if windows?
+    (do
+      (.setWritable (fs/file "dir1/file1.txt") false)
+      (.setWritable (fs/file "dir1/subdir/file2.txt") false)
+      (.setWritable (fs/file "dir1/subdir") false)
+      (.setWritable (fs/file "dir1") false))
+    (do
+      (fs/set-posix-file-permissions "dir1/file1.txt" "r--r--r--")
+      (fs/set-posix-file-permissions "dir1/subdir/file2.txt" "r--r--r--")
+      (fs/set-posix-file-permissions "dir1/subdir" "r--r--r--")
+      (fs/set-posix-file-permissions "dir1" "r--r--r--")))
+  (fs/delete-tree "dir1" {:force true})
+  (is (match? [] (fs/glob "." "**"))))
 
 (deftest move-test
   (let [src-dir (fs/create-temp-dir)
