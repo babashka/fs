@@ -17,15 +17,6 @@
     (spit "da1/da2/da3/da4/f2.ext" "f2.ext")
     (f)))
 
-(defn- os []
-  (let [os-name (str/lower-case (System/getProperty "os.name"))]
-    (condp re-find os-name
-      #"win" :win
-      #"mac" :mac
-      #"(nix|nux|aix)" :unix
-      #"sunos" :solaris
-      :unknown)))
-
 (defn jdk-major []
   (let [version (-> (System/getProperty "java.version")
                     (str/split #"\."))]
@@ -114,10 +105,10 @@
     ;; on macOS throws java.nio.file.FileAlreadyExistsException
     ;; on linux throws java.nio.file.NoSuchFileException
     (is (thrown? java.nio.file.FileSystemException (fs/create-sym-link "" "")))
-    (when (= :linux (os))
+    (when (= :linux (util/os))
       ;; linux bug? inconsistent: if "" is cwd, should be equivalent to (fs/create-sym-link "symlink1" ".") but throws:
       (is (thrown? java.nio.file.NoSuchFileException (fs/create-sym-link "symlink1" ""))))
-    (when (= :mac (os))
+    (when (= :mac (util/os))
       (fs/create-sym-link "symlink1" "")
       ;; link is created
       (is (fs/sym-link? "symlink1"))
@@ -330,17 +321,16 @@
   (let [old-create-time (fs/creation-time "")
         new-create-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:01.00Z"))
         new-modify-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:10.00Z"))]
-    (fs/set-creation-time "" new-create-time) ;; this is a no-op on linux
+    (fs/set-creation-time "" new-create-time) 
     (fs/set-last-modified-time "" new-modify-time)
     (cond
       ;; quite a storied history here
-      ;; sometimes the correct creation time is returned
-      (or (= :win (os))
-          (and (= :mac (os)) (> (jdk-major) 17)))
+      ;; sometimes the correct new creation time is returned
+      (or (= :win (util/os))
+          (and (= :mac (util/os)) (> (jdk-major) 17)))
       (is (= new-create-time (fs/creation-time "")) "returns correct new creation time")
-      ;; other times the modified time is returned in place of creation time
-      (or (= :mac os)
-          (and (= :unix (os)) (< (jdk-major) 17)))
+      ;; other times the new modified time is returned in place of creation time
+      (and (= :unix (util/os)) (< (jdk-major) 17))
       (is (= new-modify-time (fs/creation-time "")) "returns new modified time")
       ;; other times old creation time is returned 
       :else

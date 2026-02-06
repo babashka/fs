@@ -26,11 +26,6 @@
                   (str/lower-case)
                   (str/starts-with? "windows")))
 
-(defn normalize [p]
-  (if windows?
-    (str/replace p "\\" "/")
-    (str p)))
-
 (defn temp-dir []
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
@@ -521,31 +516,34 @@
   (fs/delete-tree "dir1" {:force true})
   (is (match? [] (fs/glob "." "**"))))
 
-(deftest move-test
-  (let [src-dir (fs/create-temp-dir)
-        dest-dir (fs/create-temp-dir)
-        f (fs/file src-dir "foo.txt")
-        _ (spit f "foo")
-        f2 (fs/file dest-dir "foo.txt")]
-    (fs/move f f2)
-    (is (not (fs/exists? f)))
-    (is (fs/exists? f2))
-    (is (= "foo" (str/trim (slurp f2))))
-    (fs/delete f2)
-    (is (not (fs/exists? f2)))
-    (testing "moving into dir"
-      (spit f "foo")
-      (is (fs/exists? f))
-      (fs/move f dest-dir)
-      (is (not (fs/exists? f)))
-      (is (fs/exists? f2))
-      (is (= "foo" (str/trim (slurp f2)))))))
+(deftest move-to-file-test
+  (files "src-dir/foo.txt"
+         "dest-dir/")
+  (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
+    (fs/move "src-dir/foo.txt" "dest-dir/foo.txt")
+    (is (match? (m/in-any-order
+                  ["src-dir"
+                   "dest-dir"
+                   "dest-dir/foo.txt"])
+                (map fs/unixify (fs/glob "." "**") ))
+    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt")))))))
+
+(deftest move-to-dir-test
+  (files "src-dir/foo.txt"
+         "dest-dir/")
+  (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
+    (fs/move "src-dir/foo.txt" "dest-dir")
+    (is (match? (m/in-any-order
+                  ["src-dir"
+                   "dest-dir"
+                   "dest-dir/foo.txt"])
+                (map fs/unixify (fs/glob "." "**") ))
+    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt")))))))
 
 (deftest set-attribute-test
-  (let [dir (fs/create-temp-dir)
-        tmp-file (fs/create-file (fs/path dir "tmp-file"))]
-    (is (= 100 (-> (fs/set-attribute tmp-file "basic:lastModifiedTime" (fs/millis->file-time 100))
-                   (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis)))))
+  (files "afile")
+  (is (= 100 (-> (fs/set-attribute "afile" "basic:lastModifiedTime" (fs/millis->file-time 100))
+                 (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis))))
 
 (deftest list-dirs-and-which-test
   (let [java-executable (if windows?
@@ -641,29 +639,68 @@
   (is (boolean? (fs/readable? (fs/path "."))))
   (is (boolean? (fs/writable? (fs/path ".")))))
 
+(deftest readable?-test
+  (files "dir" "file.txt")
+  (is (= true (fs/readable? "dir")))
+  (is (= true (fs/readable? "file.txt")))
+
+  (.setReadable (fs/file "dir") false)
+  (.setReadable (fs/file "file.txt") false)
+
+  (if windows?
+    ;; cannot set a dir to non-readable on Windows
+    (is (= true (fs/readable? "dir")))
+    (is (= false (fs/readable? "dir"))))
+
+  (if windows?
+    ;; cannot set a file to non-readable on Windows
+    (is (= true (fs/readable? "file.txt")))
+    (is (= false (fs/readable? "file.txt")))))
+
+(deftest writable?-test
+  (files "dir" "file.txt")
+  (is (= true (fs/writable? "dir")))
+  (is (= true (fs/writable? "file.txt")))
+
+  (.setWritable (fs/file "dir") false)
+  (.setWritable (fs/file "file.txt") false)
+
+  (is (= false (fs/writable? "dir")))
+  (is (= false (fs/writable? "file.txt"))))
+
 (deftest normalize-test
-  (is (not (str/includes? (fs/normalize (fs/absolutize ".")) "."))))
+  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "foo/bar/baz"))))
+  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "./foo/./bing/./boop/.././../bar/./baz/.")))))
 
 (deftest temp-dir-test
   (let [tmp-dir-in-temp-dir (fs/create-temp-dir {:path (fs/temp-dir)})]
     (is (fs/starts-with? tmp-dir-in-temp-dir (fs/temp-dir)))))
 
 (deftest ends-with?-test
-  (is (fs/ends-with? (fs/temp-dir) (last (fs/temp-dir)))))
+  (is (= true (fs/ends-with? "one/two/three" "three")))
+  (is (= true (fs/ends-with? "one/two/three" "two/three")))
+  (is (= true (fs/ends-with? "one/two/three" "one/two/three")))
+  (is (= false (fs/ends-with? "one/two/three" "one/three"))))
 
-(deftest posix-test
-  (when-not windows?
-    (is (str/includes? (-> (fs/posix-file-permissions ".")
-                           (fs/posix->str))
-                       "rwx"))
-    (is (= (fs/posix-file-permissions ".")
-           (-> (fs/posix-file-permissions ".")
+(when-not windows?
+  (deftest posix-test
+    (let [requested-permissions "rwxrwxrwx"
+          expected-permissions (util/umasked requested-permissions util/umask)]
+      (fs/create-file "file1" {:posix-file-permissions requested-permissions})
+      (is (= (str expected-permissions) (-> (fs/posix-file-permissions "file1")
+                                      fs/posix->str))
+          (str "file created with umask " util/umask)))
+    (is (= (fs/posix-file-permissions "file1")
+           (-> (fs/posix-file-permissions "file1")
                (fs/posix->str)
                (fs/str->posix))))
-    (is (= "rwx------"
-           (-> (fs/create-temp-dir {:posix-file-permissions "rwx------"})
-               (fs/posix-file-permissions)
-               (fs/posix->str))))))
+    (let [requested-permissions "rwx------"
+          expected-permissions (util/umasked requested-permissions util/umask)]
+      (is (= expected-permissions
+             (-> (fs/create-temp-dir {:posix-file-permissions requested-permissions})
+                 (fs/posix-file-permissions)
+                 (fs/posix->str)))
+          (str "temp-dir created with umask: " util/umask)))))
 
 (deftest delete-if-exists-test
   (let [tmp-file (fs/create-file (fs/path (temp-dir) "dude"))]
