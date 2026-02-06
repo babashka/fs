@@ -77,13 +77,10 @@ The underlying JDK file APIs (and, by extension, babashka.fs) typically consider
 ### creation-time
 Depending on which OS and JDK version you are running, `creation-time` might return unexpected results.
 As of this writing, our testing has revealed: 
+
 - Windows - returns creation time as expected
-- macOS 
-  - after Java 17 returns creation time as expected
-  - otherwise returns modified time
-- Linux 
-  - before Java 17 returns modified time
-  - otherwise returns creation time
+- macOS - returns creation time as expected
+- Linux - returns modified time before JDK 17, otherwise returns creation time as expected
 
 See [JDK-8316304](https://bugs.openjdk.org/browse/JDK-8316304).
 
@@ -93,7 +90,7 @@ Depending on which OS and JDK version you are running, `set-creation-time` might
 As of this writing, our testing has revealed:
 - Windows - sets creation time as expected
 - macOS
-  - after Java 17 sets creation time as expected
+  - after Java 17 sets creation time as expected, otherwise seems to have no effect
   - otherwise has no effect
 - Linux - seems to have no effect
 
