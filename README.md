@@ -105,7 +105,7 @@ You can explicitly set permissions on existing files and directories:
 (-> (fs/posix-file-permissions "adir") (fs/posix->str))
 ;; => "rwxrwxr-x"
 
-;; but you can explicitly override permissions on existing dirs
+;; but you can explicitly override permissions on existing file & dirs like so:
 (fs/set-posix-file-permissions "adir" "rwxrwxrwx")
 (-> (fs/posix-file-permissions "adir") (fs/posix->str))
 ;; => "rwxrwxrwx"
