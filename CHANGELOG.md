@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Unreleased
+
+- [#215](https://github.com/babashka/fs/issues/215): document effect of `umask` on created files and directories ([@lread](https://github.com/lread))
+
 ## 0.5.31 (2026-01-05)
 
 - [#212](https://github.com/babashka/fs/issues/212): Introduce `:keep true` option in `with-temp-dir`.

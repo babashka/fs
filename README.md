@@ -73,6 +73,47 @@ If you uncover some interesting nuance, please let us know.
 ### Empty String Paths
 The underlying JDK file APIs (and, by extension, babashka.fs) typically consider an empty-string path `""` to be the current working directory. This means that `(fs/list-dir "")` is functionally equivalent to `(fs/list-dir ".")`.
 
+<!-- note: linked from doctrings -->
+### umask
+On Linux and macOS you can often optionally specify `:posix-file-permissions`.
+For newly created files and directories, these permissions are affected by your configured `umask`.
+
+For example, let's say your `umask` masks out the others-write permission:
+
+```shell
+$ umask -S
+u=rwx,g=rwx,o=rx
+```
+
+Notice that others-write, even though specified on creation, is masked out by umask:
+
+```clojure
+(fs/create-file "afile" {:posix-file-permissions "rwxrwxrwx"})
+
+;; umask affected resulting permissions of new files
+(-> (fs/posix-file-permissions "afile") (fs/posix->str))
+;; => "rwxrwxr-x"
+```
+
+This applies only to newly created files and directories.
+You can explicitly set permissions on existing files and directories:
+
+```clojure
+(fs/create-dir "adir" {:posix-file-permissions "rwxrwxrwx"})
+
+;; umask affected resulting permissions of new dirs
+(-> (fs/posix-file-permissions "adir") (fs/posix->str))
+;; => "rwxrwxr-x"
+
+;; but you can explicitly override permissions on existing dirs
+(fs/set-posix-file-permissions "adir" "rwxrwxrwx")
+(-> (fs/posix-file-permissions "adir") (fs/posix->str))
+;; => "rwxrwxrwx"
+```
+
+This is the underlying behaviour the JDK file APIs, see [Setting Initial Permissions in JavaDocs](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFileAttributeView.html). 
+Babashka fs, as a light wrapper, reflects this behaviour.
+
 <!-- note: linked from docstring -->
 ### creation-time
 Depending on which OS and JDK version you are running, `creation-time` might return unexpected results.

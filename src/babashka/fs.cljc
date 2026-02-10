@@ -515,7 +515,7 @@
   Returns created directory as `Path`.
 
   Options:
-  * `:posix-file-permissions` permission for unix-like systems"
+  * `:posix-file-permissions` permission for unix-like systems, affected by [umask](/README.md#umask)"
   ([path]
    (create-dir path nil))
   ([path {:keys [:posix-file-permissions]}]
@@ -528,7 +528,7 @@
   Doesn't throw an exception if the dirs exist already. Similar to `mkdir -p`
 
   Options:
-  * `:posix-file-permissions` permission for unix-like systems"
+  * `:posix-file-permissions` permission for unix-like systems, affected by [umask](/README.md#umask)"
   ([path] (create-dirs path nil))
   ([path {:keys [:posix-file-permissions]}]
    (let [p (as-path path)]
@@ -649,6 +649,7 @@
   * `:posix-file-permissions`: The new directory will be created with these
   permissions, given as a String as described in [[str->posix]]. If not
   specified, uses the file system default permissions for new directories.
+  Affected by [umask](/README.md#umask).
   * :warning: `:path` **[DEPRECATED]** Previous name for `:dir`, kept
   for backwards compatibility. If both `:path` and `:dir` are given (don't do
   that!), `:dir` is used.
@@ -690,6 +691,7 @@
   * `:posix-file-permissions`: The new file will be created with these
   permissions, given as a String as described in [[str->posix]]. If not
   specified, uses the file system default permissions for new files.
+  Affected by [umask](/README.md#umask).
   * :warning: `:path` **[DEPRECATED]** Previous name for `:dir`, kept
   for backwards compatibility. If both `:path` and `:dir` are given (don't do
   that!), `:dir` is used.
