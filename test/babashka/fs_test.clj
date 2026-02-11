@@ -30,14 +30,17 @@
   (-> (fs/create-temp-dir)
       (fs/delete-on-exit)))
 
-(defn- files [& files]
-  (util/clean-cwd)
+(defn- files* [& files]
   (doseq [f files]
     (if (str/ends-with? f "/")
       (fs/create-dirs f)
       (let [d (fs/parent f)]
         (when d (fs/create-dirs d))
         (spit f f)))))
+
+(defn- files [& files]
+  (util/clean-cwd)
+  (apply files* files))
 
 (deftest walk-test
   (files "f0.ext"
@@ -764,23 +767,44 @@
     (is (= ["áéíóú" "España"] ls))))
 
 (deftest get-attribute-test
-  (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
-    (is lmt)
-    (is (= lmt (fs/last-modified-time ".")))))
+  (files "file")
+  (let [lmt (java.nio.file.attribute.FileTime/from
+             (java.time.Instant/parse "2026-02-11T23:24:25.26Z"))]
+    (fs/set-last-modified-time "file" lmt)
+    (is (= lmt (fs/get-attribute "file" "basic:lastModifiedTime")))
+    (is (= lmt (fs/last-modified-time "file")))))
 
 (deftest file-time-test
   (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
     (is (instance? java.time.Instant (fs/file-time->instant lmt)))
-    (is (= lmt (fs/instant->file-time (fs/file-time->instant lmt)))))
-  (let [tmpdir (temp-dir)
-        _ (fs/set-last-modified-time tmpdir 0)]
-    (is (= 0 (-> (fs/last-modified-time tmpdir)
-                 (fs/file-time->millis)))))
-  (let [tmpdir (temp-dir)
-        _ (fs/set-creation-time tmpdir 0)]
-    ;; macOS doesn't allow you to alter the creation time
-    (is (is (number? (-> (fs/creation-time tmpdir)
-                         (fs/file-time->millis)))))))
+    (is (= lmt (fs/instant->file-time (fs/file-time->instant lmt))))))
+
+(deftest set-last-modified-time-test
+  (files "dir/")
+  (fs/set-last-modified-time "dir" 0)
+  (is (= 0 (-> (fs/last-modified-time "dir")
+               (fs/file-time->millis)))))
+
+(deftest set-creation-time-test
+  (files "dir/")
+  (let [modify-time (fs/last-modified-time "dir")
+        old-create-time (fs/creation-time "dir")
+        os (util/os)
+        jdk-major (util/jdk-major)
+        new-create-time (fs/millis->file-time 0)]
+    (fs/set-creation-time "dir" new-create-time)
+    (cond
+      ;; quite a storied history here
+      ;; sometimes the correct creation time is returned
+      (or (= :win os)
+          (and (= :mac os) (> jdk-major 17)))
+      (is (= new-create-time (fs/creation-time "dir")) "returns correct new creation time")
+      ;; other times the modified time is returned in place of creation time
+      (and (= :unix os) (< jdk-major 17))
+      (is (= modify-time (fs/creation-time "dir")) "returns new modified time")
+      ;; other times old creation time is returned 
+      :else
+      (is (= old-create-time (fs/creation-time "dir")) "returns original creation time"))))
 
 (deftest split-ext-test
   (testing "strings"
@@ -813,41 +837,41 @@
   (is (= "bin/something" (fs/strip-ext "bin/something")))
   (is (= "test-resources/dir.dot/no-ext" (fs/strip-ext "test-resources/dir.dot/no-ext"))))
 
-(deftest modified-since-test
-  (testing "with sleep"
-    (let [td0 (fs/create-temp-dir)
-          anchor (fs/file td0 "f0")
-          _ (spit anchor "content")
-          _ (Thread/sleep 50)
-          td1 (fs/create-temp-dir)
-          f1 (fs/file td1 "f1")
-          _ (spit f1 "content")
-          f2 (fs/file td1 "f2")
-          _ (spit f2 "content")]
-      (is (= #{f1} (into #{} (map fs/file (fs/modified-since anchor f1)))))
-      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since anchor td1)))))
-      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
-      (fs/set-last-modified-time anchor (fs/last-modified-time f1))
-      (is (not (seq (fs/modified-since anchor f1))))))
-  (testing "without sleep"
-    (let [td0 (fs/create-temp-dir)
-          anchor (fs/file td0 "f0")
-          now (java.time.Instant/now)
-          _ (spit anchor "content")
-          _ (fs/set-last-modified-time anchor now)
-          later (.plusNanos (java.time.Instant/now) 10000)
-          td1 (fs/create-temp-dir)
-          f1 (fs/file td1 "f1")
-          _ (spit f1 "content")
-          _ (fs/set-last-modified-time f1 later)
-          f2 (fs/file td1 "f2")
-          _ (spit f2 "content")
-          _ (fs/set-last-modified-time f2 later)]
-      (is (= #{f1} (into #{} (map fs/file (fs/modified-since anchor f1)))))
-      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since anchor td1)))))
-      (is (= #{f1 f2} (into #{} (map fs/file (fs/modified-since td0 td1)))))
-      (fs/set-last-modified-time anchor (fs/last-modified-time f1))
-      (is (not (seq (fs/modified-since anchor f1)))))))
+(deftest modified-since-with-sleep-test
+  (files "dir1/anchor")
+  (Thread/sleep 50)
+  (files* "dir2/f1"
+          "dir2/f2")
+  (is (match? ["dir2/f1"]
+              (map fs/unixify (fs/modified-since "dir1/anchor" "dir2/f1"))))
+  (is (match? (m/in-any-order ["dir2/f1"
+                               "dir2/f2"])
+              (map fs/unixify (fs/modified-since "dir1/anchor" "dir2"))))
+  (is (match? (m/in-any-order ["dir2/f1"
+                               "dir2/f2"])
+              (map fs/unixify (fs/modified-since "dir1" "dir2"))))
+  (fs/set-last-modified-time "dir1/anchor" (fs/last-modified-time "dir2/f1"))
+  (is (match? [] (fs/modified-since "dir1/anchor" "dir2/f1"))))
+
+(deftest modified-since-no-sleep-test
+  (files "dir1/anchor"
+         "dir2/f1"
+         "dir2/f2")
+  (let [now (java.time.Instant/now)
+        _ (fs/set-last-modified-time "dir1/anchor" now)
+        later (.plusNanos (java.time.Instant/now) 10000)
+        _ (fs/set-last-modified-time "dir2/f1" later)
+        _ (fs/set-last-modified-time "dir2/f2" later)]
+    (is (match? ["dir2/f1"]
+                (map fs/unixify (fs/modified-since "dir1/anchor" "dir2/f1"))))
+    (is (match? (m/in-any-order ["dir2/f1"
+                                 "dir2/f2"])
+                (map fs/unixify (fs/modified-since "dir1/anchor" "dir2"))))
+    (is (match? (m/in-any-order ["dir2/f1"
+                                 "dir2/f2"])
+                (map fs/unixify (fs/modified-since "dir1" "dir2"))))
+    (fs/set-last-modified-time "dir1/anchor" (fs/last-modified-time "dir2/f1"))
+    (is (match? [] (fs/modified-since "dir1/anchor" "dir2/f1")))))
 
 (deftest zip-unzip-test
   (let [td (fs/create-temp-dir)

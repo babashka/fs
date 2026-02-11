@@ -17,13 +17,6 @@
     (spit "da1/da2/da3/da4/f2.ext" "f2.ext")
     (f)))
 
-(defn jdk-major []
-  (let [version (-> (System/getProperty "java.version")
-                    (str/split #"\."))]
-    (if (= "1" (first version))
-      (Long/valueOf (second version))
-      (Long/valueOf (first version)))))
-
 ;;
 ;; es- empty-string tests
 ;; Not all of these require an isolated scratch cwd, but they are grouped here for convenience
@@ -40,7 +33,7 @@
   ;; This is slated to be fixed in jdk26, at the time of this writing, I don't see
   ;; backports planned.
   ;; This test will fail if running from a mapped drive on windows.
-  (if (and (fs/windows?) (>= (jdk-major) 24) (str/starts-with? (util/path->str (fs/canonicalize "")) "//"))
+  (if (and (fs/windows?) (>= (util/jdk-major) 24) (str/starts-with? (util/path->str (fs/canonicalize "")) "//"))
     (throw (ex-info "due to bug JDK-8355342 in jdk24, please run this test on windows from an unmapped drive" {}))
     (is (= (util/path->str (System/getProperty "user.dir")) (util/path->str (fs/canonicalize ""))))))
 
@@ -206,7 +199,7 @@
   (is (thrown? java.io.FileNotFoundException (fs/gzip ""))))
 
 (deftest es-hidden-test
-  (if (and (not (fs/windows?)) (< (jdk-major) 17))
+  (if (and (not (fs/windows?)) (< (util/jdk-major) 17))
     (is (thrown? java.lang.ArrayIndexOutOfBoundsException (fs/hidden? "")))
     (is (= false (fs/hidden? "")))))
 
@@ -327,10 +320,10 @@
       ;; quite a storied history here
       ;; sometimes the correct new creation time is returned
       (or (= :win (util/os))
-          (and (= :mac (util/os)) (> (jdk-major) 17)))
+          (and (= :mac (util/os)) (> (util/jdk-major) 17)))
       (is (= new-create-time (fs/creation-time "")) "returns correct new creation time")
       ;; other times the new modified time is returned in place of creation time
-      (and (= :unix (util/os)) (< (jdk-major) 17))
+      (and (= :unix (util/os)) (< (util/jdk-major) 17))
       (is (= new-modify-time (fs/creation-time "")) "returns new modified time")
       ;; other times old creation time is returned 
       :else
