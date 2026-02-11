@@ -687,7 +687,7 @@
     (let [requested-permissions "rwxrwxrwx"
           expected-permissions (util/umasked requested-permissions util/umask)]
       (fs/create-file "file1" {:posix-file-permissions requested-permissions})
-      (is (= (str expected-permissions) (-> (fs/posix-file-permissions "file1")
+      (is (= expected-permissions (-> (fs/posix-file-permissions "file1")
                                       fs/posix->str))
           (str "file created with umask " util/umask)))
     (is (= (fs/posix-file-permissions "file1")
@@ -703,34 +703,64 @@
           (str "temp-dir created with umask: " util/umask)))))
 
 (deftest delete-if-exists-test
-  (let [tmp-file (fs/create-file (fs/path (temp-dir) "dude"))]
-    (is (true? (fs/delete-if-exists tmp-file)))
-    (is (false? (fs/delete-if-exists tmp-file)))))
+  (files "dude")
+  (is (= true (fs/delete-if-exists "dude")))
+  (is (= false (fs/delete-if-exists "dude"))))
 
 (deftest size-test
-  (is (pos? (fs/size (fs/temp-dir)))))
+  (files "dir/")
+  (spit "file" "hello")
+  (is (= 5 (fs/size "file")))
+  (is (not (neg? (fs/size "dir")))
+      "size of dirs is unspecified by underlying API"))
 
 (deftest set-posix-test
   (when-not windows?
-    (let [tmp-file (fs/create-file (fs/path (temp-dir) "foo"))]
-      (is (fs/set-posix-file-permissions tmp-file
-                                         "rwx------"))
-      (is (= "rwx------"
-             (fs/posix->str (fs/posix-file-permissions tmp-file)))))))
+    (let [requested-permissions "rwxrwxrwx"
+          expected-permissions (util/umasked requested-permissions util/umask)]
+      ;; a created file is affected by umask
+      (fs/create-file "foo" {:posix-file-permissions expected-permissions})
+      (is (= expected-permissions (-> (fs/posix-file-permissions "foo")
+                                      fs/posix->str))))
+    ;; an existing file is not affected by umask
+    (doseq [permissions ["rwxrwxrwx" "rwx------"]]
+      (fs/set-posix-file-permissions "foo" permissions)
+      (is (= permissions (-> (fs/posix-file-permissions "foo")
+                             fs/posix->str))
+          (str "existing file permissions set to " permissions)))))
 
-(deftest same-file?
-  (fs/same-file? (fs/path ".") (fs/real-path ".")))
+(deftest same-file?-test
+  (files "file1" "dir1/")
+  (fs/copy "file1" "dir1")
+  (fs/create-sym-link "link-file" "file1")
+  (fs/create-sym-link "link-dir" "dir1")
+  (is (= false (fs/same-file? "file1" "dir1/file1"))
+      "a copy of a file is not the same file")
+  (is (= true (fs/same-file? "file1" "file1"))
+      "a file is the same as itself")
+  (is (= true (fs/same-file? "link-file" "file1"))
+      "a link to a file is the same as its target")
+  (is (= true (fs/same-file? "link-dir" "dir1"))
+      "a link to a dir is the same as its target")
+  (is (= true (fs/same-file? "./dir1/../dir1/./file1" (fs/absolutize "dir1/file1")))
+      "a file is the same as itself regardless of path"))
 
 (deftest read-all-bytes-test
+  (spit "README.md" "some\ncontent\nhere")
   (let [bs (fs/read-all-bytes "README.md")]
     (is (bytes? bs))
     (is (= (fs/size "README.md") (count bs)))))
 
 (deftest read-all-lines-test
-  (let [ls (fs/read-all-lines "README.md")]
-    (is (= ls (with-open [rdr (io/reader (fs/file "README.md"))]
-                (doall (line-seq rdr))))))
-  (let [ls (fs/read-all-lines "test-resources/iso-8859.txt" {:charset "iso-8859-1"})]
+  (spit "README.md" "some\ncontent\nhere")
+  (let [ls (with-open [rdr (io/reader (fs/file "README.md"))]
+             (doall (line-seq rdr)))]
+    (is (= ls (fs/read-all-lines "README.md")))))
+
+(deftest read-all-lines-8859-test
+  (spit "iso-8859.txt" "áéíóú\nEspaña" :encoding "ISO-8859-1")
+  (is (thrown? java.io.IOException (fs/read-all-lines "iso-8859.txt")))
+  (let [ls (fs/read-all-lines "iso-8859.txt" {:charset "iso-8859-1"})]
     (is (= ["áéíóú" "España"] ls))))
 
 (deftest get-attribute-test
