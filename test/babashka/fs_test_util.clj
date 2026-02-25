@@ -35,6 +35,13 @@
       #"sunos" :solaris
       :unknown)))
 
+(defn jdk-major []
+  (let [version (-> (System/getProperty "java.version")
+                    (str/split #"\."))]
+    (if (= "1" (first version))
+      (Long/valueOf (second version))
+      (Long/valueOf (first version)))))
+
 (defn- umask->rwx [umask]
   (reduce (fn [acc n]
             (str acc (let [n (Long/parseLong (str n))]
