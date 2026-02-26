@@ -8,7 +8,9 @@
    [clojure.test :refer [deftest is testing use-fixtures]]
    [matcher-combinators.matchers :as m]
    [matcher-combinators.test])
-  (:import [java.io FileNotFoundException]))
+  (:import
+   [java.io FileNotFoundException]
+   [java.nio.file FileAlreadyExistsException]))
 
 (set! *warn-on-reflection* true)
 
@@ -26,10 +28,6 @@
                   (str/lower-case)
                   (str/starts-with? "windows")))
 
-(defn temp-dir []
-  (-> (fs/create-temp-dir)
-      (fs/delete-on-exit)))
-
 (defn- files* [& files]
   (doseq [f files]
     (if (str/ends-with? f "/")
@@ -41,6 +39,36 @@
 (defn- files [& files]
   (util/clean-cwd)
   (apply files* files))
+
+(defn- list-tree
+  "Return sorted contents of `root-dir` collapsing dirs.
+  For example this [file1.txt dir1 dir1/dir2 dir1/dir2/dir3 dir1/dir2/dir3/file2.txt dir4]
+  Becomes [dir1/dir2/dir3/file2.txt dir4/ file1.txt]"
+  [root-dir]
+  (->> (fs/glob root-dir "**" {:hidden true})
+       (map fs/unixify)
+       (map #(if (fs/directory? %)
+               (str % "/")
+               %))
+       sort
+       reverse
+       (reduce (fn [acc n]
+                 (if (and (seq acc) (fs/starts-with? (last acc) n))
+                   acc
+                   (conj acc n)))
+               [])
+       sort))
+
+(defn- create-zip-file
+  "Create zip `filename` with `zip-entries` preserving order of `zip-entries`."
+  [^String filename zip-entries]
+  (with-open [zos (java.util.zip.ZipOutputStream. (java.io.FileOutputStream. filename))]
+    (doseq [[^String name ^String content] zip-entries]
+      (.putNextEntry zos (java.util.zip.ZipEntry. name))
+      (when content
+        (let [bytes (.getBytes content)]
+          (.write zos bytes 0 (count bytes))))
+      (.closeEntry zos))))
 
 (deftest walk-test
   (files "f0.ext"
@@ -873,89 +901,113 @@
     (fs/set-last-modified-time "dir1/anchor" (fs/last-modified-time "dir2/f1"))
     (is (match? [] (fs/modified-since "dir1/anchor" "dir2/f1")))))
 
-(deftest zip-unzip-test
-  (let [td (fs/create-temp-dir)
-        td-out (fs/path td "out")
-        zip-file (fs/path td "foo.zip")
-        _ (fs/zip zip-file "README.md")]
-    (fs/unzip zip-file td-out)
-    (is (fs/exists? (fs/path td-out "README.md")))
-    (is (= (slurp "README.md") (slurp (fs/file td-out "README.md"))))
-    (is (thrown? java.nio.file.FileAlreadyExistsException (fs/unzip zip-file td-out)))
-    (testing "no exception when replacing existing"
-      (is (do (fs/unzip zip-file td-out {:replace-existing true})
-              true))))
-  (testing "Entry within directory can become before directory"
-    (let [td (fs/create-temp-dir)
-          td-out (fs/path td "out")
-          zip-file (fs/path "test-resources" "bencode-1.1.0.jar")]
-      (fs/unzip zip-file td-out)
-      (is (fs/exists? (fs/file td-out "bencode" "core.clj")))))
-  (testing "Zip directory"
-    (let [td (fs/create-temp-dir)
-          td-out (fs/path td "out")
-          zip-file (fs/path td "foo.zip")]
-      (fs/zip zip-file "src")
-      (fs/unzip zip-file td-out)
-      (is (fs/exists? (fs/file td-out "src")))))
-  (testing "Zip directory and file"
-    ;; NOTE: currently the API works more like unix zip than tools.build zip:
-    ;;  zip /tmp/out2.zip src README.md
-    (let [td (fs/create-temp-dir)
-          td-out (fs/path td "out")
-          zip-file (fs/path td "foo.zip")]
-      (fs/zip zip-file ["src" "README.md"])
-      (fs/unzip zip-file td-out)
-      (is (fs/exists? (fs/file td-out "src")))
-      (is (fs/exists? (fs/file td-out "README.md")))))
-  (testing "Elide parent dir"
-    (let [td (fs/create-temp-dir)
-          td-out (fs/path td "out")
-          zip-file (fs/path td "foo.zip")]
-      (fs/zip zip-file "src" {:root "src"})
-      (fs/unzip zip-file td-out)
-      (is (not (fs/exists? (fs/file td-out "src"))))
-      (is (fs/exists? (fs/file td-out "babashka")))
-      (is (fs/directory? (fs/file td-out "babashka")))
-      (is (fs/exists? (fs/file td-out "babashka" "fs.cljc")))
-      (is (not (fs/directory? (fs/file td-out "babashka" "fs.cljc"))))))
-  (testing "Use extract-fn with :name key"
-    (let [td (fs/create-temp-dir)
-          td-out (fs/path td "out")
-          zip-file (fs/path td "foo.zip")]
-      (fs/zip zip-file ["src" "README.md"])
-      (fs/unzip zip-file td-out {:extract-fn #(str/ends-with? (:name %) ".cljc")})
-      ;; only files that have names ending in .cljc should present
-      (is (fs/exists? (fs/file td-out "src" "babashka" "fs.cljc")))
-      (is (not (fs/exists? (fs/file td-out "README.md"))))
-      ;; directories are not subject to extract-fn
-      (is (fs/exists? (fs/file td-out "src" "babashka")))
-      (is (fs/directory? (fs/file td-out "src" "babashka")))))
-  (testing "Use extract-fn and :entry key"
-    (let [td (fs/create-temp-dir)
-          td-out1 (fs/path td "out1")
-          td-out2 (fs/path td "out2")
-          zip-file (fs/path td "foo.zip")
-          times (atom #{})
-          readme-time (atom nil)]
-      (fs/zip zip-file ["LICENSE" "README.md"])
-      ;; find out times for files by extracting to out1
-      (fs/unzip zip-file td-out1
+(deftest zip-unzip-file-test
+  (files "README.md")
+  (fs/zip "foo.zip" "README.md")
+  (fs/unzip "foo.zip" "out-dir")
+  (is (match? ["README.md"
+               "foo.zip"
+               "out-dir/README.md"]
+              (list-tree ".")))
+  (is (= (slurp "README.md") (slurp "out-dir/README.md")))
+  (is (thrown? FileAlreadyExistsException (fs/unzip "foo.zip" "out-dir")))
+  (spit "out-dir/README.md" "content to be replaced")
+  (testing "no exception when replacing-existing option specified"
+    (is (do (fs/unzip "foo.zip" "out-dir" {:replace-existing true})
+            true)))
+  (testing (= (slurp "README.md") (slurp "out-dir/README.md"))))
+
+(deftest zip-unzip-zip-file-entry-order-test
+  (doseq [[desc zip-entries] [["file before directories"
+                               [["foo/bar/baz/boop.txt" "boop content"]
+                                ["foo/"]
+                                ["foo/bar/"]
+                                ["foo/bar/baz/"]]]
+                              ["directories before file"
+                               [["foo/"]
+                                ["foo/bar/"]
+                                ["foo/bar/baz/"]
+                                ["foo/bar/baz/boop.txt" "boop content"]]]
+                              ["directories in odd order before file"
+                               [["foo/bar/baz/"]
+                                ["foo/bar/"]
+                                ["foo/"]
+                                ["foo/bar/baz/boop.txt" "boop content"]]]
+                              ["no directory entries specified"
+                               [["foo/bar/baz/boop.txt" "boop content"]]]]]
+    (util/clean-cwd)
+    (create-zip-file "foo.zip" zip-entries)
+    (fs/unzip "foo.zip" ".")
+    (is (match? ["foo.zip"
+                 "foo/bar/baz/boop.txt"]
+                (list-tree ".")) desc)))
+
+(deftest zip-unzip-dir-test
+  (files "src/dira/dirb/dirc/c1.txt"
+         "src/dira/a1.txt")
+  (fs/zip "foo.zip" "src")
+  (fs/unzip "foo.zip" "out-dir")
+  (is (match? ["out-dir/src/dira/a1.txt"
+               "out-dir/src/dira/dirb/dirc/c1.txt"]
+              (list-tree "out-dir"))))
+
+(deftest zip-unzip-dir-and-file-test
+  ;; NOTE: currently the API works more like unix zip than tools.build zip:
+  ;;  zip out-dir/foo.zip src README.md
+  (files "README.md"
+         "src/foo/bar/baz.txt")
+  (fs/zip "foo.zip" ["src" "README.md"])
+  (fs/unzip "foo.zip" "out-dir")
+  (is (match? ["out-dir/README.md"
+               "out-dir/src/foo/bar/baz.txt"]
+              (list-tree "out-dir"))))
+
+(deftest zip-unzip-elide-root-parent-dir-test
+  (files "src/foo/bar/baz.txt"
+         "src/foo/bar/boop.txt")
+  (fs/zip "foo.zip" "src" {:root "src"})
+  (fs/unzip "foo.zip" "out-dir")
+  (is (match? (m/in-any-order ["out-dir/foo/bar/baz.txt"
+                               "out-dir/foo/bar/boop.txt"])
+              (list-tree "out-dir"))))
+
+(deftest zip-unzip-extract-fn-name-key-test
+  (files "README.md"
+         "src/foo/bar/baz.clj"
+         "src/foo/bar/boop.cljc"
+         "src/foo/bar/bap.cljc/")
+  (fs/zip "foo.zip" ["src" "README.md"])
+  (fs/unzip "foo.zip" "out-dir" {:extract-fn #(str/ends-with? (:name %) ".clj")})
+  ;; only files that have names ending in .cljc should present
+  ;; directories are not subject to extract-fn
+  (is (match? ["out-dir/src/foo/bar/bap.cljc/"
+               "out-dir/src/foo/bar/baz.clj"]
+              (list-tree "out-dir"))))
+
+(deftest zip-unzip-extract-fn-entry-key-test
+  (files "LICENSE" "README.md")
+  (let [readme-time (.toEpochMilli (java.time.Instant/parse "2026-02-25T23:24:25Z"))
+        license-time (- readme-time 1000)]
+    (fs/set-last-modified-time "README.md" readme-time)
+    (fs/set-last-modified-time "LICENSE" license-time)
+    (let [zip-entry-times (atom {})]
+      (fs/zip "foo.zip" ["LICENSE" "README.md"])
+      ;; record zip entry times while extracting to out-dir1
+      (fs/unzip "foo.zip" "out-dir1"
                 {:extract-fn #(let [time (.getTime ^java.util.zip.ZipEntry (:entry %))]
-                                (swap! times conj time)
-                                (when (= "README.md" (:name %))
-                                  (reset! readme-time time))
+                                (swap! zip-entry-times assoc (:name %) time)
                                 true)})
-      ;; extract files to out2 that have the same time as README.md
-      (fs/unzip zip-file td-out2
-                {:extract-fn #(= (.getTime ^java.util.zip.ZipEntry (:entry %)) @readme-time)})
-      ;; README.md should be extracted for sure
-      (is (fs/exists? (fs/file td-out2 "README.md")))
-      ;; LICENSE sometimes has the same time as README.md
-      (let [fs-path (fs/file td-out2 "LICENSE")]
-        (if (= 1 (count @times))
-          (is (fs/exists? fs-path))
-          (is (not (fs/exists? fs-path))))))))
+      (is (match? {"README.md" readme-time
+                   "LICENSE" license-time}
+                  @zip-entry-times) "zip entry times match source file times")
+      (is (match? ["out-dir1/LICENSE"
+                   "out-dir1/README.md"]
+                  (list-tree "out-dir1")))
+      ;; extract files to out-dir2 that have the same time as README.md
+      (fs/unzip "foo.zip" "out-dir2"
+                {:extract-fn #(= (.getTime ^java.util.zip.ZipEntry (:entry %)) readme-time)})
+      (is (match? ["out-dir2/README.md"]
+                  (list-tree "out-dir2"))))))
 
 (deftest gzip-gunzip-test
   (let [td (fs/create-temp-dir)
@@ -1190,10 +1242,14 @@
           file-in-dir (fs/create-temp-file {:dir dir})]
       (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
 
-(deftest issue-135-test
-  (let [uri (java.net.URI/create (str "jar:file:" (-> (fs/cwd) fs/path .toUri .getPath) "/test-resources/bencode-1.1.0.jar"))
-        fs (java.nio.file.FileSystems/newFileSystem uri ^java.util.Map (identity {}))
-        path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bencode" (into-array String []))
-        zip-path (fs/path path-in-zip "core.clj")]
-    (is zip-path)
-    (is (= "/bencode/core.clj" (str zip-path)))))
+(deftest filesystem-path-resolves-test
+  ;; see issue 135
+  ;; we open a zip file system on a dummy jar to test
+  (files)
+  (create-zip-file "foo.jar" [["bar/"]])
+  (let [uri (java.net.URI/create (str "jar:file:" (-> (fs/cwd) fs/path .toUri .getPath) "foo.jar"))]
+    (with-open [fs (java.nio.file.FileSystems/newFileSystem uri ^java.util.Map (identity {}))] 
+      (let [path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bar" (into-array String []))
+            zip-path (fs/path path-in-zip "baz.clj")]
+        (is zip-path)
+        (is (= "/bar/baz.clj" (str zip-path)))))))
