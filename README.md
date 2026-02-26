@@ -70,6 +70,9 @@ For convenience, the above use case is also supported using the `which` function
 Behaviour can vary on different file systems and OSes.
 If you uncover some interesting nuance, please let us know. 
 
+### Windows & Links
+You may have to enable the ability to create soft & hard links on Windows.
+
 ### Empty String Paths
 The underlying JDK file APIs (and, by extension, babashka.fs) typically consider an empty-string path `""` to be the current working directory. This means that `(fs/list-dir "")` is functionally equivalent to `(fs/list-dir ".")`.
 

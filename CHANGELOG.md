@@ -7,6 +7,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#215](https://github.com/babashka/fs/issues/215): document effect of `umask` on created files and directories ([@lread](https://github.com/lread))
+- [#182](https://github.com/babashka/fs/issues/182): enable soft & hard link tests on Windows ([@lread](https://github.com/lread))
 
 ## 0.5.31 (2026-01-05)
 
