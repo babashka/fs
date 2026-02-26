@@ -16,28 +16,19 @@
 (use-fixtures :each
   (fn [f]
     (util/clean-cwd)
-    ;; tests are currently use source tree as test scenario, copy what we need
-    (doseq [f [".gitignore" "project.clj" "LICENSE" "README.md"]]
-      (fs/copy (fs/file "../.." f) f))
-    (doseq [f ["src" "test" "test-resources"]]
-      (fs/copy-tree (fs/file "../.." f) f))
     (f)))
 
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
                   (str/starts-with? "windows")))
 
-(defn- files* [& files]
+(defn- files [& files]
   (doseq [f files]
     (if (str/ends-with? f "/")
       (fs/create-dirs f)
       (let [d (fs/parent f)]
         (when d (fs/create-dirs d))
         (spit f f)))))
-
-(defn- files [& files]
-  (util/clean-cwd)
-  (apply files* files))
 
 (defn- normalized
   "Return sorted file `entries` as strings with dirs annotated with distinguishing trailing /.
@@ -277,7 +268,6 @@
                          (fs/glob "." "*" {:max-depth 1})))))
 
 (deftest create-dir-test
-  (files)
   (is (fs/create-dir "foo"))
   (is (match? ["foo/"] (normalized
                          (fs/glob "." "**"))))
@@ -497,7 +487,6 @@
               (list-tree "."))))
 
 (deftest delete-tree-ok-if-dir-missing-test
-  (files)
   (is (do (fs/delete-tree "foo")
           true))
   (is (do (fs/delete-tree "foo/bar/baz")
@@ -850,8 +839,8 @@
 (deftest modified-since-with-sleep-test
   (files "dir1/anchor")
   (Thread/sleep 50)
-  (files* "dir2/f1"
-          "dir2/f2")
+  (files "dir2/f1"
+         "dir2/f2")
   (is (match? ["dir2/f1"]
               (normalized (fs/modified-since "dir1/anchor" "dir2/f1"))))
   (is (match? ["dir2/f1"
@@ -991,25 +980,24 @@
       (is (match? ["out-dir2/README.md"]
                   (list-tree "out-dir2"))))))
 
-(deftest gzip-gunzip-test
-  (let [td (fs/create-temp-dir)
-        td-out (fs/path td "out")
-        gz-file (fs/path td-out "README.md.gz")]
-    (is (= (str gz-file)
-           (fs/gzip "README.md" {:dir td-out})))
-    (is (fs/gunzip gz-file td-out))
-    (is (fs/exists? (fs/path td-out "README.md")))
-    (is (= (slurp "README.md") (slurp (fs/file td-out "README.md"))))
-    (is (thrown? java.nio.file.FileAlreadyExistsException (fs/gunzip gz-file td-out)))
-    (testing "no exception when replacing existing"
-      (is (do (fs/gunzip gz-file td-out {:replace-existing true})
-              true)))
-    (testing "accepts out-file for specifying a custom gzip filename"
-      (let [out-file "doc.md.gz"]
-        (is (= (str (fs/path td-out out-file))
-               (fs/gzip "README.md" {:dir      td-out
-                                     :out-file out-file})))
-        (is (fs/exists? (fs/path td-out out-file)))))))
+(deftest gzip-unzip-test
+  (spit "README.md" "some\ncontent\nhere\n")
+  (is (= "out/README.md.gz" (fs/unixify (fs/gzip "README.md" {:dir "out"}))))
+  (fs/gunzip "out/README.md.gz")
+  (is (fs/exists? "out/README.md"))
+  (is (= (slurp "README.md") (slurp "out/README.md")))
+  (is (thrown? java.nio.file.FileAlreadyExistsException
+               (fs/gunzip "out/README.md.gz")))
+  (spit "out/README.md" "some\nother\ncontent\n")
+  (testing "no exception when replacing existing"
+    ;; TODO: "." will change to "out" when #202 is addressed
+    (is (do (fs/gunzip "out/README.md.gz" "." {:replace-existing true})
+            true)))
+  (is (= (slurp "README.md") (slurp "out/README.md")))
+  (testing "accepts out-file for specifying a custom gzip filename"
+    (is (= "out/doc.md.gz"
+           (fs/unixify (fs/gzip "README.md" {:dir "out"
+                                             :out-file "doc.md.gz"}))))))
 
 (deftest with-temp-dir-test
   (let [capture-dir (volatile! nil)]
@@ -1047,8 +1035,8 @@
             (fs/set-posix-file-permissions dir "r--r--r--")))))
     (testing "deletes its directory and contents (read-only) on exit from the scope"
       (is (not (fs/exists? (fs/path @capture-dir "my-dir" "my-file"))))
-      (is (not (fs/exists? (fs/path @capture-dir "my-dir")))
-        (is (not (fs/exists? @capture-dir)))))))
+      (is (not (fs/exists? (fs/path @capture-dir "my-dir"))))
+      (is (not (fs/exists? @capture-dir))))))
 
 (deftest home-test
   (let [user-home (fs/path (System/getProperty "user.home"))
@@ -1093,7 +1081,7 @@
            (fs/expand-home (fs/path "~raymond" "."))))
     (is (= (fs/path (fs/home) "file")
            (fs/expand-home "~/file"))))
-  (testing "without nothing to expand"
+  (testing "with nothing to expand"
     (doseq [input [["a" "b" "c"]
                    [""]
                    ["."]
@@ -1122,58 +1110,50 @@
     (is (false? (fs/exists? "c:/123:456")))))
 
 (deftest write-bytes-test
-  (let [f (-> (fs/path (fs/temp-dir) (str (gensym)))
-              fs/delete-on-exit)]
-    (fs/write-bytes f (.getBytes (String. "foo")))
-    (is (= "foo" (String. (fs/read-all-bytes f))))
-    ;; again, truncation behavior:
-    (fs/write-bytes f (.getBytes (String. "foo")))
-    (is (= "foo" (String. (fs/read-all-bytes f))))
-    (fs/write-bytes f (.getBytes (String. "bar")) {:append true})
-    (is (= "foobar" (String. (fs/read-all-bytes f))))))
+  (fs/write-bytes "file.bin" (.getBytes (String. "foo")))
+  (is (= "foo" (String. (fs/read-all-bytes "file.bin"))))
+  (fs/write-bytes "file.bin" (.getBytes (String. "bar")))
+  (is (= "bar" (String. (fs/read-all-bytes "file.bin")))
+      "existing file overwritten")
+  (fs/write-bytes "file.bin" (.getBytes (String. "baz")) {:append true})
+  (is (= "barbaz" (String. (fs/read-all-bytes "file.bin")))
+      "existing file appended to"))
 
 (deftest write-lines-test
-  (let [f (-> (fs/path (fs/temp-dir) (str (gensym)))
-              fs/delete-on-exit)]
-    (fs/write-lines f (repeat 3 "foo"))
-    (is (= (repeat 3 "foo") (fs/read-all-lines f)))
-    ;; again, truncation behavior:
-    (fs/write-lines f (repeat 3 "foo"))
-    (is (= (repeat 3 "foo") (fs/read-all-lines f)))
-    (fs/write-lines f (repeat 3 "foo") {:append true})
-    (is (= (repeat 6 "foo") (fs/read-all-lines f)))))
+  (fs/write-lines "file.txt" (repeat 3 "foo"))
+  (is (= (repeat 3 "foo") (fs/read-all-lines "file.txt")))
+  (fs/write-lines "file.txt" (repeat 3 "bar"))
+  (is (= (repeat 3 "bar") (fs/read-all-lines "file.txt"))
+      "existing file overwritten")
+  (fs/write-lines "file.txt" (repeat 3 "baz") {:append true})
+  (is (= (into (vec (repeat 3 "bar")) (repeat 3 "baz"))
+         (fs/read-all-lines "file.txt"))
+      "existing file appended to"))
 
 (deftest test-update-file
-  (let [file (doto (fs/file (fs/temp-dir) (str (gensym)))
-               (fs/delete-on-exit))]
-    (testing "Throws if file doesn't exist"
-      (is (thrown? FileNotFoundException (= "foooo" (fs/update-file file str "foooo")))))
-
+  (testing "Throws if file doesn't exist"
+    (is (thrown? FileNotFoundException (= "foooo" (fs/update-file "nope.txt" str "foooo")))))
+  (let [file "file1.txt"]
     (spit file "foo")
     (is (= "foobar" (fs/update-file file #(str % "bar"))))
     (is (= "foobar" (slurp file)))
     (is (= "foobarbazbatcat" (fs/update-file file str "baz" "bat" "cat")))
     (is (= "foobarbazbatcat" (slurp file)))
-
     (let [new-val (fs/update-file file str (rand))]
       (is (= new-val (slurp file)))))
-
-  (let [file (-> (fs/file (fs/temp-dir) (str (gensym)))
-                 fs/delete-on-exit)]
+  (let [file "file2.txt"]
     (spit file ", ")
     (is (= "foo, bar, baz" (fs/update-file file str/join ["foo" "bar" "baz"]))))
-
-  (let [path (-> (fs/file (fs/temp-dir) (str (gensym)))
-                 fs/delete-on-exit
-                 fs/path)]
-    (spit (fs/file path) "foo")
-    (is (= "foobar" (fs/update-file path str "bar")))))
+  (let [file "file3.txt"]
+    (spit file "foo")
+    (is (= "foobar" (fs/update-file (fs/path file) str "bar")))))
 
 (deftest unixify-test
-  (when windows?
-    (is (str/includes? (fs/unixify (fs/absolutize "README.md")) "/"))
-    (is (not (str/includes? (fs/unixify "README.md") "/")))
-    (is (not (str/includes? (fs/unixify (fs/absolutize "README.md")) fs/file-separator)))))
+  (is (= "README.md" (fs/unixify "README.md")))
+  (let [file "C:\\Users\\Billy\\proj\\foobar\\README.md"]
+    (if windows?
+      (is (= "C:/Users/Billy/proj/foobar/README.md" (fs/unixify file)))
+      (is (= file (fs/unixify file))))))
 
 (deftest xdg-*-home-test
   (let [default-path (fs/path (fs/home) ".config")]
@@ -1218,19 +1198,15 @@
            (fs/xdg-state-home "clj-kondo")))))
 
 (deftest file-owner-test
-  (testing "works for files as well"
-    (let [dir (doto (fs/create-temp-dir)
-                fs/delete-on-exit)
-          file-in-dir (fs/create-temp-file {:dir dir})]
-      (is (= (str (fs/owner dir)) (str (fs/owner file-in-dir)))))))
+  (files "dir/file")
+  (is (= (str (fs/owner "dir")) (str (fs/owner "dir/file")))))
 
 (deftest filesystem-path-resolves-test
   ;; see issue 135
   ;; we open a zip file system on a dummy jar to test
-  (files)
   (create-zip-file "foo.jar" [["bar/"]])
   (let [uri (java.net.URI/create (str "jar:file:" (-> (fs/cwd) fs/path .toUri .getPath) "foo.jar"))]
-    (with-open [fs (java.nio.file.FileSystems/newFileSystem uri ^java.util.Map (identity {}))] 
+    (with-open [fs (java.nio.file.FileSystems/newFileSystem uri ^java.util.Map (identity {}))]
       (let [path-in-zip (.getPath ^java.nio.file.FileSystem fs "/bar" (into-array String []))
             zip-path (fs/path path-in-zip "baz.clj")]
         (is zip-path)
