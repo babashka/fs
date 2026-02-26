@@ -6,7 +6,6 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest is testing use-fixtures]]
-   [matcher-combinators.matchers :as m]
    [matcher-combinators.test])
   (:import
    [java.io FileNotFoundException]
@@ -40,24 +39,38 @@
   (util/clean-cwd)
   (apply files* files))
 
-(defn- list-tree
-  "Return sorted contents of `root-dir` collapsing dirs.
+(defn- normalized
+  "Return sorted file `entries` as strings with dirs annotated with distinguishing trailing /.
   For example this [file1.txt dir1 dir1/dir2 dir1/dir2/dir3 dir1/dir2/dir3/file2.txt dir4]
-  Becomes [dir1/dir2/dir3/file2.txt dir4/ file1.txt]"
+  Becomes [file1.txt dir1/ dir1/dir2/ dir1/dir2/dir3/ dir1/dir2/dir3/file2.txt dir4/]
+
+  If `:collapse true` also collapses dirs like so:
+  [dir1/dir2/dir3/file2.txt dir4/ file1.txt]"
+  ([entries]
+   (normalized entries {}))
+  ([entries {:keys [collapse]}]
+   (let [sorted (->> entries
+                     (map fs/unixify)
+                     (map #(if (fs/directory? %)
+                             (str % "/")
+                             %))
+                     sort)]
+     (if-not collapse
+       sorted
+       (->> sorted
+            reverse
+            (reduce (fn [acc n]
+                      (if (and (seq acc) (fs/starts-with? (last acc) n))
+                        acc
+                        (conj acc n)))
+                    [])
+            sort)))))
+
+(defn- list-tree
+  "Return [[normalized]] collapsed file entries under `root-dir`"
   [root-dir]
-  (->> (fs/glob root-dir "**" {:hidden true})
-       (map fs/unixify)
-       (map #(if (fs/directory? %)
-               (str % "/")
-               %))
-       sort
-       reverse
-       (reduce (fn [acc n]
-                 (if (and (seq acc) (fs/starts-with? (last acc) n))
-                   acc
-                   (conj acc n)))
-               [])
-       sort))
+  (-> (fs/glob root-dir "**" {:hidden true})
+      (normalized {:collapse true})))
 
 (defn- create-zip-file
   "Create zip `filename` with `zip-entries` preserving order of `zip-entries`."
@@ -81,36 +94,37 @@
           walked-files (volatile! [])]
       (fs/walk-file-tree "." {:post-visit-dir (fn [d _] (vswap! walked-dirs conj d) :continue)
                               :visit-file (fn [f _] (vswap! walked-files conj f) :continue)})
-      (is (match? (m/in-any-order
-                    ["." "./da1" "./da1/da2" "./da1/da2/da3" "./da1/da2/da3/da4"])
-                  (map fs/unixify @walked-dirs)))
-      (is (match? (m/in-any-order ["./f0.ext"
-                                   "./da1/f1.ext"
-                                   "./da1/da2/f2.ext"
-                                   "./da1/da2/da3/f3.ext"])
-                  (map fs/unixify @walked-files)))))
+      (is (match? ["./"
+                   "./da1/"
+                   "./da1/da2/"
+                   "./da1/da2/da3/"
+                   "./da1/da2/da3/da4/"]
+                  (normalized @walked-dirs)))
+      (is (match? ["./da1/da2/da3/f3.ext"
+                   "./da1/da2/f2.ext"
+                   "./da1/f1.ext"
+                   "./f0.ext"]
+                  (normalized @walked-files)))))
   (testing "max-depth 2"
     (let [walked-dirs (volatile! [])
           walked-files (volatile! [])]
       (fs/walk-file-tree "." {:post-visit-dir (fn [d _] (vswap! walked-dirs conj d) :continue)
                               :visit-file (fn [f _] (vswap! walked-files conj f) :continue)
                               :max-depth 2})
-      (is (match? (m/in-any-order
-                   ["." "./da1"])
-                  (map fs/unixify @walked-dirs)))
-      (is (match? (m/in-any-order ["./f0.ext"
-                                   "./da1/f1.ext"
-                                   "./da1/da2" ;; notice that non-descended dirs are matched as files
-                                   ])
-                  (map fs/unixify @walked-files)))))
+      (is (match? ["./" "./da1/"]
+                  (normalized @walked-dirs)))
+      (is (match? ["./da1/da2/" ;; notice that non-descended dirs are matched as files
+                   "./da1/f1.ext"
+                   "./f0.ext"]
+                  (normalized @walked-files)))))
   (testing "max-depth 0"
     (let [walked-dirs (volatile! [])
           walked-files (volatile! [])]
       (fs/walk-file-tree "." {:post-visit-dir (fn [d _] (vswap! walked-dirs conj d) :continue)
                               :visit-file (fn [f _] (vswap! walked-files conj f) :continue)
                               :max-depth 0})
-      (is (match? [] (map fs/unixify @walked-dirs)))
-      (is (match? ["."] (map fs/unixify @walked-files)))))
+      (is (match? [] (normalized @walked-dirs)))
+      (is (match? ["./"] (normalized @walked-files)))))
   (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] :terminate)}))
   (is (fs/walk-file-tree "." {:pre-visit-dir (fn [_ _] java.nio.file.FileVisitResult/TERMINATE)}))
   (is (thrown-with-msg?
@@ -130,28 +144,28 @@
       (is (every? #(instance? java.nio.file.Path %) readme-match))))
   (testing "match multiple with same filename recursive"
     (let [readme-match (fs/match "." "regex:.*README.md" {:recursive true})]
-      (is (match? (m/in-any-order ["README.md" "dira1/dirb1/README.md"]) (map fs/unixify readme-match)))
+      (is (match? ["README.md"
+                   "dira1/dirb1/README.md"]
+                  (normalized readme-match)))
       (is (every? #(instance? java.nio.file.Path %) readme-match))))
   (testing "match multiple recursive by extension"
-    (is (match? (m/in-any-order ["project.clj"
-                                 "dira1/dirb1/source.clj"
-                                 "dira2/dirb1/test.cljc"])
-                (map fs/unixify
-                     (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
+    (is (match? ["dira1/dirb1/source.clj"
+                 "dira2/dirb1/test.cljc"
+                 "project.clj"]
+                (normalized
+                  (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
   (testing "match also matches directories and doesn't return the root directory"
-    (is (match? (m/in-any-order
-                 ["dira1/dirb1/dirc1"
-                  "dira1/dirb1/README.md"
-                  "dira1/dirb1/source.clj"])
-                (map fs/unixify
-                     (fs/match "dira1/dirb1" "regex:.*" {:recursive true}))))
-    (is (match? (m/in-any-order
-                 ["dira1/dirb1"
-                  "dira1/dirb1/dirc1"
-                  "dira1/dirb1/README.md"
-                  "dira1/dirb1/source.clj"])
-                (map fs/unixify
-                     (fs/match "dira1" "regex:dirb1.*" {:recursive true})))))
+    (is (match? ["dira1/dirb1/README.md"
+                 "dira1/dirb1/dirc1/"
+                 "dira1/dirb1/source.clj"]
+                (normalized
+                  (fs/match "dira1/dirb1" "regex:.*" {:recursive true}))))
+    (is (match? ["dira1/dirb1/"
+                 "dira1/dirb1/README.md"
+                 "dira1/dirb1/dirc1/"
+                 "dira1/dirb1/source.clj"]
+                (normalized
+                  (fs/match "dira1" "regex:dirb1.*" {:recursive true})))))
   (when-not windows?
     (testing "symlink as root path"
       (let [sym-link (fs/create-sym-link "sym-link" "dira1")
@@ -159,25 +173,25 @@
         (is (= (str target) "dira1"))
         (is (match? [] (fs/match sym-link "regex:.*")))
         (is (match? ["sym-link/foo.txt"]
-                    (map fs/unixify (fs/match sym-link "regex:.*" {:follow-links true}))))
+                    (normalized (fs/match sym-link "regex:.*" {:follow-links true}))))
         (is (match? ["dira1/foo.txt"]
-                    (map fs/unixify (fs/match (fs/read-link sym-link) "regex:.*"))))))))
+                    (normalized (fs/match (fs/read-link sym-link) "regex:.*"))))))))
 
 (deftest match-at-specific-depth-test
   (files "foo/bar/baz/dude.txt")
   (is (match? ["foo/bar/baz/dude.txt"]
-              (map fs/unixify
-                   (if windows?
-                     (fs/match "." "regex:foo\\\\bar\\\\baz\\\\.*" {:recursive true})
-                     (fs/match "." "regex:foo/bar/baz/.*" {:recursive true}))))))
+              (normalized
+               (if windows?
+                 (fs/match "." "regex:foo\\\\bar\\\\baz\\\\.*" {:recursive true})
+                 (fs/match "." "regex:foo/bar/baz/.*" {:recursive true}))))))
 
 (when-not windows?
   (deftest match-on-root-with-special-chars-test
     (files "some-dir/foo*{[]}/test.txt")
     (is (match? ["some-dir/foo*{[]}/test.txt"]
-                (map str (fs/match "some-dir/foo*{[]}" "glob:*.txt"))))
+                (normalized (fs/match "some-dir/foo*{[]}" "glob:*.txt"))))
     (is (match? ["some-dir/foo*{[]}/test.txt"]
-                (map str (fs/match "some-dir/foo*{[]}" "regex:.*\\.txt"))))))
+                (normalized (fs/match "some-dir/foo*{[]}" "regex:.*\\.txt"))))))
 
 (deftest glob-test
   (files "README.md" "project.clj" ".gitignore"
@@ -192,83 +206,81 @@
       (is (every? #(instance? java.nio.file.Path %) readme-match))))
   (testing "glob ** multiple with same filename auto-recursive"
     (let [readme-match (fs/glob "." "**README.md")]
-      (is (match? (m/in-any-order ["README.md" "dira1/dirb1/README.md"]) (map fs/unixify readme-match)))
+      (is (match? ["README.md"
+                   "dira1/dirb1/README.md"]
+                  (normalized readme-match)))
       (is (every? #(instance? java.nio.file.Path %) readme-match))))
   (testing "glob ** but disable recursion"
     (let [readme-match (fs/glob "." "**README.md" {:recursive false})]
-      (is (match? (m/in-any-order ["README.md"]) (map fs/unixify readme-match)))
+      (is (match? ["README.md"] (normalized readme-match)))
       (is (every? #(instance? java.nio.file.Path %) readme-match))))
   (testing "glob recursive by extension"
-    (is (match? (m/in-any-order
-                 ["project.clj"
-                  "dira1/dirb1/source.clj"
-                  "dira2/dirb1/test.cljc"])
-                (map fs/unixify
-                     (fs/glob "." "**.{clj,cljc}")))))
+    (is (match? ["dira1/dirb1/source.clj"
+                 "dira2/dirb1/test.cljc"
+                 "project.clj"]
+                (normalized
+                  (fs/glob "." "**.{clj,cljc}")))))
   (testing "glob also matches directories and doesn't return the specified root directory"
-    (is (match? (m/in-any-order
-                 ["dira1/dirb1/dirc1"
-                  "dira1/dirb1/README.md"
-                  "dira1/dirb1/source.clj"])
-                (map fs/unixify
-                     (fs/glob "dira1/dirb1" "**"))))
-    (is (match? (m/in-any-order
-                 ["dira1/dirb1"
-                  "dira1/dirb1/dirc1"
-                  "dira1/dirb1/README.md"
-                  "dira1/dirb1/source.clj"])
-                (map fs/unixify
-                     (fs/glob "dira1" "dirb1**")))))
+    (is (match? ["dira1/dirb1/README.md"
+                 "dira1/dirb1/dirc1/"
+                 "dira1/dirb1/source.clj"]
+                (normalized
+                  (fs/glob "dira1/dirb1" "**"))))
+    (is (match? ["dira1/dirb1/"
+                 "dira1/dirb1/README.md"
+                 "dira1/dirb1/dirc1/"
+                 "dira1/dirb1/source.clj"]
+                (normalized
+                  (fs/glob "dira1" "dirb1**")))))
   (when-not windows?
     (testing "symlink as root path"
       (let [sym-link (fs/create-sym-link "sym-link" "dira1")]
         (is (match? [] (fs/glob sym-link "*")))
         (is (match? ["sym-link/foo.txt"]
-                    (map fs/unixify
-                         (fs/glob sym-link "*" {:follow-links true}))))
+                    (normalized
+                      (fs/glob sym-link "*" {:follow-links true}))))
         (is (match? ["dira1/foo.txt"]
-                    (map fs/unixify
-                         (fs/glob (fs/read-link sym-link) "*"))))))
+                    (normalized
+                      (fs/glob (fs/read-link sym-link) "*"))))))
     (testing "hidden files"
       (testing "are not matched by default"
-        (is (match? [] (map fs/unixify
-                            (fs/glob "." "*git*")))))
+        (is (match? [] (normalized
+                         (fs/glob "." "*git*")))))
       (testing "matched when :hidden option specified"
         (is (match? [".gitignore"]
-                    (map fs/unixify
-                         (fs/glob "." "*git*" {:hidden true})))))
+                    (normalized
+                      (fs/glob "." "*git*" {:hidden true})))))
       (testing "automatically matched when pattern starts with a dot"
         (is (match? [".gitignore"]
-                    (map fs/unixify
-                         (fs/glob "." ".gitig*"))))))))
+                    (normalized
+                      (fs/glob "." ".gitig*"))))))))
 
 (deftest glob-with-specific-depth-test
   (files "foo/bar/baz/dude.txt")
   (is (match? ["foo/bar/baz/dude.txt"]
-              (map fs/unixify
-                   (if windows?
-                     (fs/glob "." "foo\\\\bar\\\\baz\\\\*")
-                     (fs/glob "." "foo/bar/baz/*"))))))
+              (normalized
+               (if windows?
+                 (fs/glob "." "foo\\\\bar\\\\baz\\\\*")
+                 (fs/glob "." "foo/bar/baz/*"))))))
 
 (deftest glob-windows-friendly-test
   (files "foo/bar/baz/dude.clj"
          "foo/bar/baz/dude2.clj")
-  (is (match? (m/in-any-order
-               ["foo/bar/baz/dude.clj"
-                "foo/bar/baz/dude2.clj"])
-              (map fs/unixify
-                   (fs/glob "." "foo/bar/baz/*.clj")))))
+  (is (match? ["foo/bar/baz/dude.clj"
+               "foo/bar/baz/dude2.clj"]
+              (normalized
+                (fs/glob "." "foo/bar/baz/*.clj")))))
 
 (deftest glob-returns-directories-test
   (files "foo/")
-  (is (match? ["foo"] (map fs/unixify
-                           (fs/glob "." "*" {:max-depth 1})))))
+  (is (match? ["foo/"] (normalized
+                         (fs/glob "." "*" {:max-depth 1})))))
 
 (deftest create-dir-test
   (files)
   (is (fs/create-dir "foo"))
-  (is (match? ["foo"] (map fs/unixify
-                           (fs/glob "." "**"))))
+  (is (match? ["foo/"] (normalized
+                         (fs/glob "." "**"))))
   (is (fs/directory? "foo")))
 
 (deftest create-link-test
@@ -336,41 +348,38 @@
 (deftest copy-to-file-test
   (files "file" "dest-dir/")
   (fs/copy "file" "dest-dir/file")
-  (is (match? (m/in-any-order
-               ["file" "dest-dir" "dest-dir/file"])
-              (map fs/unixify (fs/glob "." "**")))))
+  (is (match? ["dest-dir/file"
+               "file"]
+              (list-tree "."))))
 
 (deftest copy-into-dir-test
   (files "file" "dest-dir/")
   (fs/copy "file" "dest-dir")
-  (is (match? (m/in-any-order
-               ["file" "dest-dir" "dest-dir/file"])
-              (map fs/unixify (fs/glob "." "**")))))
+  (is (match? ["dest-dir/file"
+               "file"]
+              (list-tree "."))))
 
 (deftest copy-input-stream-test
   (files "file" "dest-dir/")
   (with-open [is (io/input-stream (fs/file "file"))]
     (fs/copy is "dest-dir/file"))
-  (is (match? (m/in-any-order
-               ["file" "dest-dir" "dest-dir/file"])
-              (map fs/unixify (fs/glob "." "**")))))
+  (is (match? ["dest-dir/file"
+               "file"]
+              (list-tree "."))))
 
 (deftest copy-tree-test
-  (files "src-dir/foo.txt"
-         "src-dir/.foo"
+  (files "src-dir/.foo"
          "src-dir/a/a.txt"
          "src-dir/a/b/b.txt"
-         "src-dir/a/b/c")
+         "src-dir/a/b/c"
+         "src-dir/foo.txt")
   (fs/copy-tree "src-dir" "dest-dir")
-  (is (match? (m/in-any-order
-               ["dest-dir/foo.txt"
-                "dest-dir/.foo"
-                "dest-dir/a"
-                "dest-dir/a/a.txt"
-                "dest-dir/a/b"
-                "dest-dir/a/b/b.txt"
-                "dest-dir/a/b/c"])
-              (map fs/unixify (fs/glob "dest-dir" "**" {:hidden true})))))
+  (is (match? ["dest-dir/.foo"
+               "dest-dir/a/a.txt"
+               "dest-dir/a/b/b.txt"
+               "dest-dir/a/b/c"
+               "dest-dir/foo.txt"]
+              (list-tree "dest-dir"))))
 
 (deftest copy-tree-from-file-throws-test
   (files "src-dir/dir/file.txt" "dest-dir/")
@@ -393,31 +402,18 @@
   ;; https://github.com/babashka/fs/issues/42
   ;; foo2 doesn't exist
   (fs/copy-tree "src-dir/foo" "dest-dir/foo2/foo")
-  (is (match? (m/in-any-order
-               ["src-dir"
-                "src-dir/foo"
-                "src-dir/foo/file.txt"
-                "dest-dir"
-                 ;; our new entries
-                "dest-dir/foo2"
-                "dest-dir/foo2/foo"
-                "dest-dir/foo2/foo/file.txt"])
-              (map fs/unixify (fs/glob "." "**")))))
+  (is (match? ["dest-dir/foo2/foo/file.txt"
+               "src-dir/foo/file.txt"]
+              (list-tree "."))))
 
 (deftest copy-tree-nested-ro-dir-test
   (files "src-dir/foo/bar/")
   ;; https://github.com/babashka/fs/issues/122
   (.setReadOnly (fs/file "src-dir" "foo"))
   (fs/copy-tree  "src-dir" "dest-dir")
-  (is (match? (m/in-any-order
-               ["src-dir"
-                "src-dir/foo"
-                "src-dir/foo/bar"
-                 ;; our new entries
-                "dest-dir"
-                "dest-dir/foo"
-                "dest-dir/foo/bar"])
-              (map fs/unixify (fs/glob "." "**"))))
+  (is (match? ["dest-dir/foo/bar/"
+               "src-dir/foo/bar/"]
+              (list-tree ".")))
   (when (not windows?)
     ;; you can always write to directories on Windows, even if they are read-only
     ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
@@ -428,27 +424,24 @@
               (map str (fs/components "foo/bar/baz/bop.txt")))))
 
 (deftest list-dir-test
-  (files "file.txt"
+  (files "dir1/"
+         "dir2/foo.txt"
+         "file.txt"
          "source1.clj"
-         "source2.clj"
-         "dir1/"
-         "dir2/foo.txt")
-  (is (match? (m/in-any-order
-               ["./file.txt"
-                "./source1.clj"
-                "./source2.clj"
-                "./dir1"
-                "./dir2"])
-              (map fs/unixify (fs/list-dir "."))))
-  (is (match? (m/in-any-order
-               ["./dir1"
-                "./dir2"])
-              (map fs/unixify (fs/list-dir "." (fn accept [x] (fs/directory? x))))))
+         "source2.clj")
+  (is (match? ["./dir1/"
+               "./dir2/"
+               "./file.txt"
+               "./source1.clj"
+               "./source2.clj"]
+              (normalized (fs/list-dir "."))))
+  (is (match? ["./dir1/"
+               "./dir2/"]
+              (normalized (fs/list-dir "." (fn accept [x] (fs/directory? x))))))
   (is (match? [] (fs/list-dir "." (fn accept [_] false))))
-  (is (match? (m/in-any-order
-               ["./source1.clj"
-                "./source2.clj"])
-              (map fs/unixify (fs/list-dir "." "*.clj")))))
+  (is (match? ["./source1.clj"
+               "./source2.clj"]
+              (normalized (fs/list-dir "." "*.clj")))))
 
 (when (not windows?)
   (deftest delete-permissions-unix-ro-file-test
@@ -500,10 +493,8 @@
 (deftest delete-tree-nested-test
   (files "foo/bar/baz/file.txt")
   (fs/delete-tree "foo/bar/baz")
-  (is (match? (m/in-any-order
-               ["foo"
-                "foo/bar"])
-              (map fs/unixify (fs/glob "." "**")))))
+  (is (match? ["foo/bar/"]
+              (list-tree "."))))
 
 (deftest delete-tree-ok-if-dir-missing-test
   (files)
@@ -518,17 +509,12 @@
            "dir2/foo")
     (fs/create-sym-link "dir1/link-to-dir2" "../dir2")
     (is (= true (fs/same-file? "dir1/link-to-dir2" "dir2")) "precondition: link")
-    (is (match? (m/in-any-order
-                 ["dir1"
-                  "dir1/link-to-dir2"
-                  "dir2"
-                  "dir2/foo"])
-                (map fs/unixify (fs/glob "." "**"))) "precondition: files")
+    (is (match? ["dir1/link-to-dir2/"
+                 "dir2/foo"]
+                (list-tree ".")) "precondition: files")
     (fs/delete-tree "dir1")
-    (is (match? (m/in-any-order
-                 ["dir2"
-                  "dir2/foo"])
-                (map fs/unixify (fs/glob "." "**"))))))
+    (is (match? ["dir2/foo"]
+                (list-tree ".")))))
 
 (deftest delete-tree-force-deletes-ro-dirs-and-files-test
   (files "dir1/file1.txt"
@@ -552,24 +538,20 @@
          "dest-dir/")
   (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
     (fs/move "src-dir/foo.txt" "dest-dir/foo.txt")
-    (is (match? (m/in-any-order
-                  ["src-dir"
-                   "dest-dir"
-                   "dest-dir/foo.txt"])
-                (map fs/unixify (fs/glob "." "**") ))
-    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt")))))))
+    (is (match? ["dest-dir/foo.txt"
+                 "src-dir/"]
+                (list-tree ".")))
+    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt"))))))
 
 (deftest move-to-dir-test
   (files "src-dir/foo.txt"
          "dest-dir/")
   (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
     (fs/move "src-dir/foo.txt" "dest-dir")
-    (is (match? (m/in-any-order
-                  ["src-dir"
-                   "dest-dir"
-                   "dest-dir/foo.txt"])
-                (map fs/unixify (fs/glob "." "**") ))
-    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt")))))))
+    (is (match? ["dest-dir/foo.txt"
+                 "src-dir/"]
+                (list-tree ".")))
+    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt"))))))
 
 (deftest set-attribute-test
   (files "afile")
@@ -871,13 +853,13 @@
   (files* "dir2/f1"
           "dir2/f2")
   (is (match? ["dir2/f1"]
-              (map fs/unixify (fs/modified-since "dir1/anchor" "dir2/f1"))))
-  (is (match? (m/in-any-order ["dir2/f1"
-                               "dir2/f2"])
-              (map fs/unixify (fs/modified-since "dir1/anchor" "dir2"))))
-  (is (match? (m/in-any-order ["dir2/f1"
-                               "dir2/f2"])
-              (map fs/unixify (fs/modified-since "dir1" "dir2"))))
+              (normalized (fs/modified-since "dir1/anchor" "dir2/f1"))))
+  (is (match? ["dir2/f1"
+               "dir2/f2"]
+              (normalized (fs/modified-since "dir1/anchor" "dir2"))))
+  (is (match? ["dir2/f1"
+               "dir2/f2"]
+              (normalized (fs/modified-since "dir1" "dir2"))))
   (fs/set-last-modified-time "dir1/anchor" (fs/last-modified-time "dir2/f1"))
   (is (match? [] (fs/modified-since "dir1/anchor" "dir2/f1"))))
 
@@ -891,13 +873,13 @@
         _ (fs/set-last-modified-time "dir2/f1" later)
         _ (fs/set-last-modified-time "dir2/f2" later)]
     (is (match? ["dir2/f1"]
-                (map fs/unixify (fs/modified-since "dir1/anchor" "dir2/f1"))))
-    (is (match? (m/in-any-order ["dir2/f1"
-                                 "dir2/f2"])
-                (map fs/unixify (fs/modified-since "dir1/anchor" "dir2"))))
-    (is (match? (m/in-any-order ["dir2/f1"
-                                 "dir2/f2"])
-                (map fs/unixify (fs/modified-since "dir1" "dir2"))))
+                (normalized (fs/modified-since "dir1/anchor" "dir2/f1"))))
+    (is (match? ["dir2/f1"
+                 "dir2/f2"]
+                (normalized (fs/modified-since "dir1/anchor" "dir2"))))
+    (is (match? ["dir2/f1"
+                 "dir2/f2"]
+                (normalized (fs/modified-since "dir1" "dir2"))))
     (fs/set-last-modified-time "dir1/anchor" (fs/last-modified-time "dir2/f1"))
     (is (match? [] (fs/modified-since "dir1/anchor" "dir2/f1")))))
 
@@ -967,8 +949,8 @@
          "src/foo/bar/boop.txt")
   (fs/zip "foo.zip" "src" {:root "src"})
   (fs/unzip "foo.zip" "out-dir")
-  (is (match? (m/in-any-order ["out-dir/foo/bar/baz.txt"
-                               "out-dir/foo/bar/boop.txt"])
+  (is (match? ["out-dir/foo/bar/baz.txt"
+               "out-dir/foo/bar/boop.txt"]
               (list-tree "out-dir"))))
 
 (deftest zip-unzip-extract-fn-name-key-test
