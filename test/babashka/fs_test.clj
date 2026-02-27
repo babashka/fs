@@ -156,17 +156,16 @@
                  "dira1/dirb1/dirc1/"
                  "dira1/dirb1/source.clj"]
                 (normalized
-                  (fs/match "dira1" "regex:dirb1.*" {:recursive true})))))
-  (when-not windows?
-    (testing "symlink as root path"
-      (let [sym-link (fs/create-sym-link "sym-link" "dira1")
-            target (fs/read-link sym-link)]
-        (is (= (str target) "dira1"))
-        (is (match? [] (fs/match sym-link "regex:.*")))
-        (is (match? ["sym-link/foo.txt"]
-                    (normalized (fs/match sym-link "regex:.*" {:follow-links true}))))
-        (is (match? ["dira1/foo.txt"]
-                    (normalized (fs/match (fs/read-link sym-link) "regex:.*"))))))))
+                 (fs/match "dira1" "regex:dirb1.*" {:recursive true})))))
+  (testing "symlink as root path"
+    (let [sym-link (fs/create-sym-link "sym-link" "dira1")
+          target (fs/read-link sym-link)]
+      (is (= (str target) "dira1"))
+      (is (match? [] (fs/match sym-link "regex:.*")))
+      (is (match? ["sym-link/foo.txt"]
+                  (normalized (fs/match sym-link "regex:.*" {:follow-links true}))))
+      (is (match? ["dira1/foo.txt"]
+                  (normalized (fs/match (fs/read-link sym-link) "regex:.*")))))))
 
 (deftest match-at-specific-depth-test
   (files "foo/bar/baz/dude.txt")
@@ -223,16 +222,16 @@
                  "dira1/dirb1/source.clj"]
                 (normalized
                   (fs/glob "dira1" "dirb1**")))))
+  (testing "symlink as root path"
+    (let [sym-link (fs/create-sym-link "sym-link" "dira1")]
+      (is (match? [] (fs/glob sym-link "*")))
+      (is (match? ["sym-link/foo.txt"]
+                  (normalized
+                   (fs/glob sym-link "*" {:follow-links true}))))
+      (is (match? ["dira1/foo.txt"]
+                  (normalized
+                   (fs/glob (fs/read-link sym-link) "*"))))))
   (when-not windows?
-    (testing "symlink as root path"
-      (let [sym-link (fs/create-sym-link "sym-link" "dira1")]
-        (is (match? [] (fs/glob sym-link "*")))
-        (is (match? ["sym-link/foo.txt"]
-                    (normalized
-                      (fs/glob sym-link "*" {:follow-links true}))))
-        (is (match? ["dira1/foo.txt"]
-                    (normalized
-                      (fs/glob (fs/read-link sym-link) "*"))))))
     (testing "hidden files"
       (testing "are not matched by default"
         (is (match? [] (normalized
@@ -274,16 +273,19 @@
   (is (fs/directory? "foo")))
 
 (deftest create-link-test
-  (when-not windows?
-    (files "dudette.txt")
-    (let [link (fs/create-link (fs/file "." "hard-link.txt") (fs/file "dudette.txt"))]
-      (is (.exists (fs/file link)))
-      (is (= 2 (fs/get-attribute (fs/file link) "unix:nlink")))
-      (is (.exists (fs/file "dudette.txt")))
-      (is (fs/same-file? (fs/file "dudette.txt")
-                         (fs/file "hard-link.txt")))
-      (is (= (slurp (fs/file "hard-link.txt"))
-             (slurp (fs/file "dudette.txt")))))))
+  (files "dudette.txt")
+  (let [link (fs/create-link "hard-link.txt" "dudette.txt")]
+    (is (= "hard-link.txt" (str link)))
+    (is (match? ["dudette.txt"
+                 "hard-link.txt"]
+                (list-tree ".")))
+    (when (not windows?)
+      ;; an attribute check is not available on Windows
+      (is (= 2 (fs/get-attribute link "unix:nlink"))))
+    (is (= true (fs/same-file? "dudette.txt" "hard-link.txt")))
+    (is (= false (fs/sym-link? "hard-link.txt")))
+    (is (= (slurp "hard-link.txt")
+           (slurp "dudette.txt")))))
 
 (deftest directory?-test
   (files "dir/file.txt")
@@ -492,18 +494,17 @@
   (is (do (fs/delete-tree "foo/bar/baz")
           true)))
 
-(when (not windows?)
-  (deftest delete-tree-does-not-follow-symlink-test
-    (files "dir1/"
-           "dir2/foo")
-    (fs/create-sym-link "dir1/link-to-dir2" "../dir2")
-    (is (= true (fs/same-file? "dir1/link-to-dir2" "dir2")) "precondition: link")
-    (is (match? ["dir1/link-to-dir2/"
-                 "dir2/foo"]
-                (list-tree ".")) "precondition: files")
-    (fs/delete-tree "dir1")
-    (is (match? ["dir2/foo"]
-                (list-tree ".")))))
+(deftest delete-tree-does-not-follow-symlink-test
+  (files "dir1/"
+         "dir2/foo")
+  (fs/create-sym-link "dir1/link-to-dir2" "../dir2")
+  (is (= true (fs/same-file? "dir1/link-to-dir2" "dir2")) "precondition: link")
+  (is (match? ["dir1/link-to-dir2/"
+               "dir2/foo"]
+              (list-tree ".")) "precondition: files")
+  (fs/delete-tree "dir1")
+  (is (match? ["dir2/foo"]
+              (list-tree "."))))
 
 (deftest delete-tree-force-deletes-ro-dirs-and-files-test
   (files "dir1/file1.txt"
@@ -716,8 +717,8 @@
   (is (not (neg? (fs/size "dir")))
       "size of dirs is unspecified by underlying API"))
 
-(deftest set-posix-test
-  (when-not windows?
+(when-not windows?
+  (deftest set-posix-test
     (let [requested-permissions "rwxrwxrwx"
           expected-permissions (util/umasked requested-permissions util/umask)]
       ;; a created file is affected by umask
