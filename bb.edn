@@ -45,8 +45,9 @@
                           (str/join fs/path-separator))
                   run-alias (last aliases)
                   main-opts (-> "deps.edn" slurp edn/read-string :aliases run-alias :main-opts)]
-              (fs/delete-tree test-cwd)
               (fs/create-dirs test-cwd)
+              (doseq [f (fs/list-dir test-cwd)]
+                (fs/delete-tree f {:force true}))
               (println "Running" desc "from:" test-cwd)
               (apply clojure
                      {:dir test-cwd
