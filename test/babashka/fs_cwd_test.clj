@@ -663,7 +663,7 @@
   (doseq [arg-type [:str :file :path]]
     (testing (str "args type: " (name arg-type))
       (let [arg-fn (arg-type {:str identity :file fs/file :path fs/path})]
-        (is (= (str (fs/path "./foo.txt.gz"))
+        (is (= "foo.txt.gz"
                (fs/gzip (arg-fn "foo.txt"))))
         (is (= (str (fs/path "out-dir" "foo.txt.gz"))
                (fs/gzip (arg-fn "foo.txt") {:dir (arg-fn "out-dir")})))

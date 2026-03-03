@@ -35,16 +35,21 @@
   For example this [file1.txt dir1 dir1/dir2 dir1/dir2/dir3 dir1/dir2/dir3/file2.txt dir4]
   Becomes [file1.txt dir1/ dir1/dir2/ dir1/dir2/dir3/ dir1/dir2/dir3/file2.txt dir4/]
 
-  If `:collapse true` also collapses dirs like so:
-  [dir1/dir2/dir3/file2.txt dir4/ file1.txt]"
+  Optinally specify:
+  - `:collapse true` also collapses dirs like so: [dir1/dir2/dir3/file2.txt dir4/ file1.txt]
+  - `:relativize <some-dir>` to `fs/relativize` files to `<some-dir>`
+  - `:normalize true` to `fs/normalize` files."
   ([entries]
    (normalized entries {}))
-  ([entries {:keys [collapse]}]
-   (let [sorted (->> entries
+  ([entries {:keys [collapse relativize normalize]}]
+   (let [pre (cond->> entries
+               relativize (map #(fs/relativize (fs/absolutize relativize) (fs/absolutize %)))
+               normalize (map fs/normalize))
+         sorted (->> pre
                      (map fs/unixify)
                      (map #(if (fs/directory? %)
-                             (str % "/")
-                             %))
+                                  (str % "/")
+                                  %))
                      sort)]
      (if-not collapse
        sorted
@@ -61,7 +66,7 @@
   "Return [[normalized]] collapsed file entries under `root-dir`"
   [root-dir]
   (-> (fs/glob root-dir "**" {:hidden true})
-      (normalized {:collapse true})))
+      (normalized {:collapse true :normalize true})))
 
 (defn- create-zip-file
   "Create zip `filename` with `zip-entries` preserving order of `zip-entries`."
@@ -981,24 +986,106 @@
       (is (match? ["out-dir2/README.md"]
                   (list-tree "out-dir2"))))))
 
-(deftest gzip-unzip-test
-  (spit "README.md" "some\ncontent\nhere\n")
-  (is (= "out/README.md.gz" (fs/unixify (fs/gzip "README.md" {:dir "out"}))))
-  (fs/gunzip "out/README.md.gz")
-  (is (fs/exists? "out/README.md"))
-  (is (= (slurp "README.md") (slurp "out/README.md")))
-  (is (thrown? java.nio.file.FileAlreadyExistsException
-               (fs/gunzip "out/README.md.gz")))
-  (spit "out/README.md" "some\nother\ncontent\n")
-  (testing "no exception when replacing existing"
-    ;; TODO: "." will change to "out" when #202 is addressed
-    (is (do (fs/gunzip "out/README.md.gz" "." {:replace-existing true})
-            true)))
-  (is (= (slurp "README.md") (slurp "out/README.md")))
-  (testing "accepts out-file for specifying a custom gzip filename"
-    (is (= "out/doc.md.gz"
-           (fs/unixify (fs/gzip "README.md" {:dir "out"
-                                             :out-file "doc.md.gz"}))))))
+(deftest gzip-unzip-default-output-dir-test
+  (doseq [source-dir [""
+                      "."
+                      "out"
+                      "a/b/c"
+                      (fs/absolutize "out")
+                      (fs/absolutize "a/b/c")]]
+    (util/clean-cwd)
+    (testing (str "with default dir " (pr-str source-dir))
+      (let [input-file (str (fs/path source-dir "README.md"))
+            input-content "original\ncontent\nhere"
+            expected-gz-file (str input-file ".gz")]
+        (files input-file)
+        (spit input-file input-content)
+        (is (= expected-gz-file (fs/gzip input-file))
+            "gzip returns created gz in same dir as input file")
+        (is (match? (normalized
+                      [input-file
+                       expected-gz-file]
+                      {:relativize "."})
+                    (list-tree "."))
+            "both input file and output file exist")
+        (spit input-file "some\nnew\ncontent\n")
+        (is (thrown? java.nio.file.FileAlreadyExistsException
+                     (fs/gunzip expected-gz-file))
+            "throws on attempted overwrite")
+        ;; NOTE: we must specify the `dest` when specifying options, specify `nil` for default
+        (fs/gunzip expected-gz-file nil {:replace-existing true})
+        (is (match? (normalized
+                      [input-file
+                       expected-gz-file]
+                      {:relativize "."})
+                    (list-tree "."))
+            "both input file and output file exist after output file overwrite")
+        (is (= input-content (slurp input-file))
+            "gunzipped content matches gzipped content")))))
+
+(deftest gzip-unzip-specified-output-dir-test
+  (doseq [source-dir ["." "out" "foo/bar/baz" (fs/absolutize "out") (fs/absolutize "foo/bar/baz")]
+          out-dir ["." "out" "foo/bar/baz" (fs/absolutize "out") (fs/absolutize "foo/bar/baz")]]
+    (util/clean-cwd)
+    (testing (str "with source dir " (pr-str source-dir) " and output dir " (pr-str out-dir))
+      (let [input-file (str (fs/normalize (fs/path source-dir "README.md")))
+            input-content "original\ncontent\nhere"
+            expected-ungz-file (str (fs/normalize (fs/path out-dir "README.md")))
+            expected-gz-file (str (fs/path out-dir "README.md.gz"))]
+        (files input-file)
+        (spit input-file input-content)
+        (is (= expected-gz-file (fs/gzip input-file {:dir out-dir}))
+            "gzip returns created gz file in specified out dir")
+        (is (match? (normalized
+                     [input-file
+                      expected-gz-file]
+                     {:relativize "."})
+                    (list-tree "."))
+            "both input file and output file exist")
+        (if-not (= (fs/absolutize expected-ungz-file) (fs/absolutize input-file))
+          (do
+            (is (do (fs/gunzip expected-gz-file out-dir)
+                    true)
+                "does not throw")
+            (is (match? (normalized
+                         [input-file
+                          expected-gz-file
+                          expected-ungz-file]
+                         {:relativize "."})
+                        (list-tree "."))
+                "both input file and output files exist"))
+          (do
+            (is (thrown? java.nio.file.FileAlreadyExistsException
+                         (fs/gunzip expected-gz-file out-dir))
+                "throws on attempted overwrite")
+            (spit expected-ungz-file "some\nnew\ncontent\n")
+            (is (do (fs/gunzip expected-gz-file out-dir {:replace-existing true})
+                    true)
+                "does not throw on overwrite")
+            (is (match? (normalized
+                         [expected-gz-file
+                          expected-ungz-file]
+                         {:relativize "."})
+                        (list-tree "."))
+                "both input file and output file exist")))
+        (is (= (slurp expected-ungz-file) (slurp input-file))
+            "gunzipped content matches gzipped content")))))
+
+(deftest gzip-out-file-test
+  (doseq [[expected-gz source-file opts] [["boop"             "foo.txt"    {:out-file "boop"}]
+                                          ["foo.txt.gz"       "foo.txt"    {:out-file "foo.txt.gz"}]
+                                          ["a/b/c/foo.gz"     "a/b/c/foo"  {:out-file "foo.gz"}]
+                                          ["d/e/f/foo.gz"     "a/b/c/foo"  {:out-file "foo.gz" :dir "d/e/f"}]
+                                          ["a/b/c/y/z/foo.gz" "a/b/c/foo"  {:out-file "y/z/foo.gz"}]
+                                          ["out/y/z/foo.gz"   "a/b/c/foo"  {:out-file "y/z/foo.gz" :dir "out"}]]]
+    (testing (str "source-file: " source-file " opts: " opts)
+      (util/clean-cwd)
+      (files source-file)
+      (spit source-file "orig content")
+      (is (= expected-gz (fs/unixify (fs/gzip source-file opts))))
+      (fs/gunzip expected-gz "verify")
+      (is (= "orig content" (slurp (fs/file "verify" (-> expected-gz fs/file-name fs/strip-ext))))
+          "ungzipped matches original"))))
 
 (deftest with-temp-dir-test
   (let [capture-dir (volatile! nil)]
