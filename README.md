@@ -165,14 +165,11 @@ bb test --var babashka.fs-test/walk-test
 > [!NOTE]
 > To allow us to contrive isolated file system scenarios, tests are always run from the scratch current working directory `./target/test-cwd`.
 
-To fire up a REPL when working on these tests, run:
+To fire up a REPL when working on babashka fs tests, you must run:
 
 ```
 bb dev
 ```
-
-> [!TIP]
-> The `.nrepl-port` file will be generated under `./target/test-cwd/`, so you'll have to type the REPL port in manually when connecting.
 
 ### API Docs
 This project generates API docs with quickdoc, to regenerate `API.md`:
