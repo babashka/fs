@@ -179,6 +179,6 @@ shell quickdoc
 
 ## License
 
-Copyright © 2020-2025 Michiel Borkent
+Copyright © 2020-2026 Michiel Borkent
 
 Distributed under the EPL License, same as Clojure. See LICENSE.
