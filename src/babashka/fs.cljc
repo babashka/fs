@@ -1262,52 +1262,67 @@
 ;;;; GZip
 
 (defn gunzip
-  "Extracts `gz-file` to `dest` directory (default `\".\"`).
+  "Extracts `gz-file` to `dest` dir.
+
+   If `dest` dir not specified (or `nil`) defaults to `gz-file` dir.
+
+   File is extracted to `dest` dir with `gz-file` [[file-name]] without `.gz` extension.
+
+   Creates `dest` dir(s) if necessary.
+   The `gz-file` is not deleted.
 
    Options:
-   * `:replace-existing` - `true` / `false`: overwrite existing files"
-  ([gz-file] (gunzip gz-file "."))
-  ([gz-file dest] (gunzip gz-file dest nil))
+   * `:replace-existing` - when `true` overwrites existing file
+
+   See also: [[gzip]]"
+  ([gz-file] (gunzip gz-file nil))
+  ([gz-file dest] (gunzip gz-file dest {}))
   ([gz-file dest {:keys [replace-existing]}]
-   (let [output-path (as-path dest)
-         dest-filename (str/replace-first gz-file #"\.gz$" "")
+   (let [dest-dir (or dest (parent gz-file) "")
+         dest-filename (str/replace-first (file-name gz-file) #"\.gz$" "")
          gz-file (as-path gz-file)
-         _ (create-dirs dest)
          cp-opts (->copy-opts replace-existing nil nil nil)
-         new-path (.resolve output-path dest-filename)]
+         output-file (path dest-dir dest-filename)] 
      (with-open
       [fis (Files/newInputStream gz-file (into-array java.nio.file.OpenOption []))
        gzis (GZIPInputStream. fis)]
-       (create-dirs (parent new-path))
+       (when (parent output-file)
+         (create-dirs (parent output-file)))
        (Files/copy ^java.io.InputStream gzis
-                   new-path
+                   output-file
                    cp-opts)))))
 
 (defn gzip
-  "Gzips `source-file` and writes the output to `dir/out-file`.
+  "Gzips `source-file` to `dir/out-file`.
 
+  Does not store the `source-file` name in the `.gz` file.
+  The `source-file` is not deleted.
+  
   Options:
-  * `out-file` if not provided, the `source-file` name with `.gz` appended is used.
-  * `dir` if not provided, the current directory is used.
+  * `dir`(s) created if necessary. If not specified, defaults to `source-file` dir.
+  * `out-file` if not specified, defaults to `source-file` [[file-name]] with `.gz` extension.
+  
+  Returns the created gzip file. 
 
-  Returns the created gzip file."
+  See also: [[gunzip]]"
   ([source-file]
-   (gzip source-file {:dir "."}))
-  ([source-file {:keys [dir out-file] :or {dir "."}}]
+   (gzip source-file {}))
+  ([source-file {:keys [dir out-file]}]
    (assert source-file "source-file must be specified")
    (assert (exists? source-file) "source-file does not exist")
-   (let [output-path (as-path dir)
-         ^String dest-filename (if (not out-file)
-                                 (str source-file ".gz")
-                                 (str out-file))
-         new-path (.resolve output-path dest-filename)]
-     (create-dirs (parent new-path))
+   (let [dest-dir (or dir (parent source-file) "")
+         dest-filename (if (not out-file)
+                         (str (file-name source-file) ".gz")
+                         (str out-file))
+         output-file (path dest-dir dest-filename)]
+     (when (parent output-file)
+       (create-dirs (parent output-file)))
      (with-open [source-input-stream (io/input-stream (file source-file))
                  gzos                (GZIPOutputStream.
-                                      (FileOutputStream. (file new-path)))]
+                                      (FileOutputStream. (file output-file)))]
        (io/copy source-input-stream
                 gzos))
-     (str new-path))))
+     (str output-file))))
 
 ;;;; End gzip
 
