@@ -35,7 +35,7 @@
   For example this [file1.txt dir1 dir1/dir2 dir1/dir2/dir3 dir1/dir2/dir3/file2.txt dir4]
   Becomes [file1.txt dir1/ dir1/dir2/ dir1/dir2/dir3/ dir1/dir2/dir3/file2.txt dir4/]
 
-  Optinally specify:
+  Optionally specify:
   - `:collapse true` also collapses dirs like so: [dir1/dir2/dir3/file2.txt dir4/ file1.txt]
   - `:relativize <some-dir>` to `fs/relativize` files to `<some-dir>`
   - `:normalize true` to `fs/normalize` files."
