@@ -877,7 +877,7 @@
   ([path attribute {:keys [:nofollow-links]}]
    (Files/getAttribute (as-path path)
                        attribute
-                       (->link-opts {:nofollow-links nofollow-links}))))
+                       (->link-opts nofollow-links))))
 
 (defn- keyize
   [key-fn m]
@@ -893,7 +893,7 @@
    (read-attributes* path attributes nil))
   ([path attributes {:keys [:nofollow-links]}]
    (let [p (as-path path)
-         link-opts (->link-opts {:nofollow-links nofollow-links})
+         link-opts (->link-opts nofollow-links)
          attrs
          ;; prevent reflection warning
          (if (instance? String attributes)
@@ -923,7 +923,7 @@
    (Files/setAttribute (as-path path)
                        attribute
                        value
-                       (->link-opts {:nofollow-links nofollow-links}))))
+                       (->link-opts nofollow-links))))
 
 (defn file-time->instant
   "Converts `ft` [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)

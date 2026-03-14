@@ -2,6 +2,7 @@
   (:require
    [babashka.fs :as fs]
    [babashka.fs-test-util :as util]
+   [babashka.process :as process]
    [babashka.test-report]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -9,7 +10,7 @@
    [matcher-combinators.test])
   (:import
    [java.io FileNotFoundException]
-   [java.nio.file FileAlreadyExistsException]))
+   [java.nio.file Files FileAlreadyExistsException FileSystemException LinkOption]))
 
 (set! *warn-on-reflection* true)
 
@@ -21,6 +22,11 @@
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
                   (str/starts-with? "windows")))
+
+(def cant-set-last-modified-time-on-sym-link?
+  "Some os jdk combos have bugs in that they do not allow setting last modfieid time on a symbolic link"
+  (or (and (= :unix (util/os)) (= 11 (util/jdk-major)))
+      (and (= :mac (util/os)) (#{11 21} (util/jdk-major)))))
 
 (defn- files [& files]
   (doseq [f files]
@@ -78,6 +84,10 @@
         (let [bytes (.getBytes content)]
           (.write zos bytes 0 (count bytes))))
       (.closeEntry zos))))
+
+(defn- file-time [date-string]
+  (java.nio.file.attribute.FileTime/from
+   (java.time.Instant/parse date-string)))
 
 (deftest walk-test
   (files "f0.ext"
@@ -548,10 +558,83 @@
                 (list-tree ".")))
     (is (= foo-content (str/trim (slurp "dest-dir/foo.txt"))))))
 
+(deftest read-attributes*-sym-link-test
+  (files "file")
+  (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
+        lmt-link (file-time "2025-01-01T00:00:00.00Z")
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (fs/create-sym-link "link" "file")
+    ;; use JVM API to set precondition (when we can)
+    (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+    (if cant-set-last-modified-time-on-sym-link?
+      (process/shell "touch -h -d" (str lmt-link) "link")
+      (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
+    (is (= lmt-file
+           (get (fs/read-attributes* "link" "*") "lastModifiedTime")
+           (get (fs/read-attributes* "link" "*" {:nofollow-links false}) "lastModifiedTime"))
+        "following links")
+    (is (= lmt-link
+           (get (fs/read-attributes* "link" "*" {:nofollow-links true}) "lastModifiedTime"))
+        "not following links")))
+
+(deftest read-attributes-sym-link-test
+  (files "file")
+  (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
+        lmt-link (file-time "2025-01-01T00:00:00.00Z")
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (fs/create-sym-link "link" "file")
+    ;; use JVM API to set precondition (when we can)
+    (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+    (if cant-set-last-modified-time-on-sym-link?
+      (process/shell "touch -h -d" (str lmt-link) "link")
+      (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
+    (is (= lmt-file
+           (:lastModifiedTime (fs/read-attributes "link" "*"))
+           (:lastModifiedTime (fs/read-attributes "link" "*" {:nofollow-links false})))
+        "following links")
+    (is (= lmt-link
+           (:lastModifiedTime (fs/read-attributes "link" "*" {:nofollow-links true})))
+        "not following links")))
+
 (deftest set-attribute-test
   (files "afile")
   (is (= 100 (-> (fs/set-attribute "afile" "basic:lastModifiedTime" (fs/millis->file-time 100))
                  (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis))))
+
+(deftest set-attribute-sym-link-test
+  (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
+        lmt-link (file-time "2022-01-01T00:00:00.00Z")
+        lmt-new (file-time "2023-01-01T00:00:00.00Z")
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
+            [[nil                       lmt-link           lmt-new            nil ]
+             [{:nofollow-links false}   lmt-link           lmt-new            nil ]
+             (if cant-set-last-modified-time-on-sym-link?
+               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
+               [{:nofollow-links true}  lmt-new            lmt-file           nil ])]]
+      (testing (str "opts: " (pr-str opts))
+        (util/clean-cwd)
+        (files "file")
+        (fs/create-sym-link "link" "file")
+        ;; use JVM API to set precondition (when we can)
+        (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+        (if cant-set-last-modified-time-on-sym-link?
+          (process/shell "touch -h -d" (str lmt-link) "link")
+          (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
+        ;; bb fs call (due to jdk bug, is expected to throw on some os/jdk combos)
+        (is (match?
+             expected-exception
+             (try
+               (fs/set-attribute "link" "basic:lastModifiedTime" lmt-new opts)
+               nil
+               (catch Throwable e
+                 (class e))))
+            "exception")
+        ;; use JVM API to test expected result
+        (is (= expected-lmt-file (Files/getAttribute (fs/path "file") "basic:lastModifiedTime" nofollow-opts))
+            "file")
+        (is (= expected-lmt-link (Files/getAttribute (fs/path "link") "basic:lastModifiedTime" nofollow-opts))
+            "link")))))
 
 (deftest list-dirs-and-which-test
   (let [java-executable (if windows?
@@ -779,6 +862,23 @@
     (is (= lmt (fs/get-attribute "file" "basic:lastModifiedTime")))
     (is (= lmt (fs/last-modified-time "file")))))
 
+(deftest get-attribute-sym-link-test
+  (files "file")
+  (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
+        lmt-link (file-time "2025-01-01T00:00:00.00Z")
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (fs/create-sym-link "link" "file")
+    ;; use JVM API to set precondition (when we can)
+    (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+    (if cant-set-last-modified-time-on-sym-link?
+      (process/shell "touch -h -d" (str lmt-link) "link")
+      (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
+    (is (= lmt-file
+           (fs/get-attribute "link" "basic:lastModifiedTime")
+           (fs/get-attribute "link" "basic:lastModifiedTime" {:nofollow-links false})))
+    (is (= lmt-link
+           (fs/get-attribute "link" "basic:lastModifiedTime" {:nofollow-links true})))))
+
 (deftest file-time-test
   (let [lmt (fs/get-attribute "." "basic:lastModifiedTime")]
     (is (instance? java.time.Instant (fs/file-time->instant lmt)))
@@ -789,6 +889,58 @@
   (fs/set-last-modified-time "dir" 0)
   (is (= 0 (-> (fs/last-modified-time "dir")
                (fs/file-time->millis)))))
+
+(deftest last-modified-time-sym-link-test
+  (files "file")
+  (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
+        lmt-link (file-time "2025-01-01T00:00:00.00Z")
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (fs/create-sym-link "link" "file")
+    ;; use JVM API to set precondition (when we can)
+    (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+    (if cant-set-last-modified-time-on-sym-link?
+      (process/shell "touch -h -d" (str lmt-link) "link")
+      (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
+    (is (= lmt-file
+           (fs/last-modified-time "link")
+           (fs/last-modified-time "link" {:nofollow-links false})))
+    (is (= lmt-link
+           (fs/last-modified-time "link" {:nofollow-links true})))))
+
+(deftest set-last-modified-time-sym-link-test
+  (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
+        lmt-link (file-time "2022-01-01T00:00:00.00Z")
+        lmt-new (file-time "2023-01-01T00:00:00.00Z")
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
+            [[nil                       lmt-link           lmt-new            nil ]
+             [{:nofollow-links false}   lmt-link           lmt-new            nil ]
+             (if cant-set-last-modified-time-on-sym-link?
+               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
+               [{:nofollow-links true}  lmt-new            lmt-file           nil ])]]
+      (testing (str "opts: " (pr-str opts))
+        (util/clean-cwd)
+        (files "file")
+        (fs/create-sym-link "link" "file")
+        ;; use JVM API to set precondition (when we can)
+        (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+        (if cant-set-last-modified-time-on-sym-link?
+          (process/shell "touch -h -d" (str lmt-link) "link")
+          (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
+        ;; bb fs call (due to jdk bug, is expected to throw on some os/jdk combos)
+        (is (match?
+             expected-exception
+             (try
+               (fs/set-last-modified-time "link" lmt-new opts)
+               nil
+               (catch Throwable e
+                 (class e))))
+            "exception")
+        ;; use JVM API to test expected result
+        (is (= expected-lmt-file (Files/getAttribute (fs/path "file") "basic:lastModifiedTime" nofollow-opts))
+            "file")
+        (is (= expected-lmt-link (Files/getAttribute (fs/path "link") "basic:lastModifiedTime" nofollow-opts))
+            "link")))))
 
 (deftest set-creation-time-test
   (files "dir/")
@@ -810,6 +962,50 @@
       ;; other times old creation time is returned 
       :else
       (is (= old-create-time (fs/creation-time "dir")) "returns original creation time"))))
+
+(when (or (= :win (util/os))
+          (and (= :mac (util/os)) (> (util/jdk-major) 17)))
+  ;; we'll only test on envs where creation time fully works, see set-creation-time-test
+  (deftest creation-time-sym-link-test
+    (files "file")
+    (let [ct-file (file-time "2024-01-01T00:00:00.00Z")
+          ct-link (file-time "2025-01-01T00:00:00.00Z")
+          nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+      (fs/create-sym-link "link" "file")
+      ;; use JVM API to set precondition
+      (Files/setAttribute (fs/path "file") "basic:creationTime" ct-file nofollow-opts)
+      (Files/setAttribute (fs/path "link") "basic:creationTime" ct-link nofollow-opts)
+      (is (= ct-file
+             (fs/creation-time "link")
+             (fs/creation-time "link" {:nofollow-links false}))
+          "following link")
+      (is (= ct-link
+             (fs/creation-time "link" {:nofollow-links true}))
+          "not following link")))
+
+  (deftest set-creation-time-sym-link-test
+    (let [ct-file (file-time "2021-01-01T00:00:00.00Z")
+          ct-link (file-time "2022-01-01T00:00:00.00Z")
+          ct-new (file-time "2023-01-01T00:00:00.00Z")
+          nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+      (doseq [[opts                     expected-ct-link expected-ct-file]
+              [[nil                     ct-link          ct-new]
+               [{:nofollow-links false} ct-link          ct-new]
+               [{:nofollow-links true}  ct-new           ct-file]]]
+        (testing (str "opts: " (pr-str opts))
+          (util/clean-cwd)
+          (files "file")
+          (fs/create-sym-link "link" "file")
+          ;; use JVM API to set precondition
+          (Files/setAttribute (fs/path "file") "basic:creationTime" ct-file nofollow-opts)
+          (Files/setAttribute (fs/path "link") "basic:creationTime" ct-link nofollow-opts)
+          ;; bb fs call
+          (fs/set-creation-time "link" ct-new opts)
+          ;; use JVM API to test expected result
+          (is (= expected-ct-file (Files/getAttribute (fs/path "file") "basic:creationTime" nofollow-opts))
+              "file")
+          (is (= expected-ct-link (Files/getAttribute (fs/path "link") "basic:creationTime" nofollow-opts))
+              "link"))))))
 
 (deftest split-ext-test
   (testing "strings"
