@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # It is important to install java before installing clojure tools which needs java
       # exclusions: babashka, clj-kondo and cljstyle
@@ -26,13 +26,13 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@13.4
+        uses: DeLaGuardo/setup-clojure@13.5.3
         with:
           bb: latest
 
       # Optional step:
       - name: Cache clojure dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.m2/repository
