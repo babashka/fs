@@ -763,6 +763,23 @@
   (is (= "foo/bar/baz" (fs/unixify (fs/normalize "foo/bar/baz"))))
   (is (= "foo/bar/baz" (fs/unixify (fs/normalize "./foo/./bing/./boop/.././../bar/./baz/.")))))
 
+(deftest canonicalize-sym-link-test
+  (files "file")
+  (fs/create-sym-link "link" "file")
+  (if (and (= :win (util/os)) (< (util/jdk-major) 24))
+    ;; https://bugs.openjdk.org/browse/JDK-8003887: windows does not follow sym-links prior to JDK 24
+    ;; test errant behaviour to learn if JDK team ever backports fix to earlier versions
+    (is (= (fs/path (fs/cwd) "link")
+           (fs/canonicalize "link/foo/..")
+           (fs/canonicalize "link/foo/.." {:nofollow-links false}))
+        "following link does not work due to JDK bug")
+    (is (= (fs/path (fs/cwd) "file")
+           (fs/canonicalize "link/foo/..")
+           (fs/canonicalize "link/foo/.." {:nofollow-links false}))
+        "following link"))
+  (is (= (fs/path (fs/cwd) "link") (fs/canonicalize "link/foo/.." {:nofollow-links true}))
+      "not following link"))
+
 (deftest temp-dir-test
   (let [tmp-dir-in-temp-dir (fs/create-temp-dir {:path (fs/temp-dir)})]
     (is (fs/starts-with? tmp-dir-in-temp-dir (fs/temp-dir)))))
