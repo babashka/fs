@@ -13,6 +13,8 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 They now respect the `:nofollow-links` option (see note on JDK bugs in [README](/README.md#nofollow-links)).
 Fixes: `get-attribute`, `creation-time`, `last-modified-time`, `read-attributes*`, `read-attributes`, `set-attribute`, `set-creation-time`, and `set-last-modified-time`
 ([@lread](https://github.com/lread))
+- [#233](https://github.com/babashka/fs/issues/233): test & document: `canonicalize` will never follow links on Windows with JDK < 24 (see [README](/README.md#nofollow-links))
+([@lread](https://github.com/lread))
 
 ## 0.5.31 (2026-01-05)
 

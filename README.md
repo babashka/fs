@@ -158,6 +158,8 @@ Considering latest JDK 11+ LTS releases only, at the time of this writing, we ha
 ;;    foo-link: Too many levels of symbolic links or unable to access attributes of symbolic link
 ```
 
+On Windows, for JDK < 24, we have found that `canonicalize` will never follow symbolic links due to this JDK bug [JDK-8003887](https://bugs.openjdk.org/browse/JDK-8003887).
+
 <!-- note: linked from docstring -->
 ### :follow-links
 Some babashka.fs functions accept the `:follow-links` option.
