@@ -13,6 +13,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 They now respect the `:nofollow-links` option (see note on JDK bugs in [README](/README.md#nofollow-links)).
 Fixes: `get-attribute`, `creation-time`, `last-modified-time`, `read-attributes*`, `read-attributes`, `set-attribute`, `set-creation-time`, and `set-last-modified-time`
 ([@lread](https://github.com/lread))
+- [#237](https://github.com/babashka/fs/issues/237): match Clojure version in pom to min supported version stated in README (v1.10.3) ([@lread](https://github.com/lread))
 
 ## 0.5.31 (2026-01-05)
 
