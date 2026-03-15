@@ -8,7 +8,7 @@
                                       {:git/tag "v0.5.1" :git/sha "dfb30dd"}
                                       babashka/process {:mvn/version "0.6.25"}
                                       clj-kondo/clj-kondo {:mvn/version "2026.01.19"}
-                                      nubank/matcher-combinators {:mvn/version "3.9.2"}}
+                                      nubank/matcher-combinators {:mvn/version "3.10.0"}}
                          :main-opts ["-m" "cognitect.test-runner"
                                      "--dir" "../.."]}
 
