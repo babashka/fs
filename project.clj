@@ -6,7 +6,7 @@
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src"]
-  :dependencies [[org.clojure/clojure "1.9.0"]]
+  :dependencies [[org.clojure/clojure "1.10.3"]]
   :plugins [[lein-cloverage "1.2.4"]]
   :profiles {:test {:jvm-opts ["-Djdk.attach.allowAttachSelf"]
                     :dependencies [[clj-commons/conch "0.9.2"]]}}
