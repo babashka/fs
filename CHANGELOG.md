@@ -4,12 +4,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## 0.5.32 (2026-03-16)
 
 - [#215](https://github.com/babashka/fs/issues/215): document effect of `umask` on created files and directories ([@lread](https://github.com/lread))
 - [#182](https://github.com/babashka/fs/issues/182): enable soft & hard link tests on Windows ([@lread](https://github.com/lread))
 - [#202](https://github.com/babashka/fs/issues/202): `gzip` & `gunzip` now honor dest dir when specified & docstrings for default dest dir corrected ([@lread](https://github.com/lread))
-- [#231](https://github.com/babashka/fs/issues/231): get/set attribute functions were never following links. 
+- [#231](https://github.com/babashka/fs/issues/231): get/set attribute functions were never following links.
 They now respect the `:nofollow-links` option (see note on JDK bugs in [README](/README.md#nofollow-links)).
 Fixes: `get-attribute`, `creation-time`, `last-modified-time`, `read-attributes*`, `read-attributes`, `set-attribute`, `set-creation-time`, and `set-last-modified-time`
 ([@lread](https://github.com/lread))
