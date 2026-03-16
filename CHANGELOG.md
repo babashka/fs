@@ -16,6 +16,7 @@ Fixes: `get-attribute`, `creation-time`, `last-modified-time`, `read-attributes*
 - [#233](https://github.com/babashka/fs/issues/233): test & document: `canonicalize` will never follow links on Windows with JDK < 24 (see [README](/README.md#nofollow-links))
 ([@lread](https://github.com/lread))
 - [#237](https://github.com/babashka/fs/issues/237): match Clojure version in pom to min supported version stated in README (v1.10.3) ([@lread](https://github.com/lread))
+- [#234](https://github.com/babashka/fs/issues/234): add missing tests for `:nofollow-links` functions ([@lread](https://github.com/lread))
 
 ## 0.5.31 (2026-01-05)
 
