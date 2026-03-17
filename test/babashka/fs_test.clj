@@ -309,12 +309,34 @@
   (is (= false (fs/directory? "idontexist")))
   (is (= false (fs/directory? (fs/path "dir" "idontexist")))))
 
+(deftest directory?-sym-link-test
+  (files "dir/")
+  (fs/create-sym-link "dir-link" "dir")
+  (is (= true
+         (fs/directory? "dir-link")
+         (fs/directory? "dir-link" {:nofollow-links false}))
+      "following links")
+  (is (= false
+         (fs/directory? "file-link" {:nofollow-links true}))
+      "not following links"))
+
 (deftest regular-file?-test
   (files "dir/file.txt")
   (is (= false (fs/regular-file? "dir")))
   (is (= true (fs/regular-file? "dir/file.txt")))
   (is (= false (fs/regular-file? "idontexist")))
   (is (= false (fs/regular-file? (fs/path "dir" "idontexist")))))
+
+(deftest regular-file?-sym-link-test
+  (files "file")
+  (fs/create-sym-link "file-link" "file")
+  (is (= true
+         (fs/regular-file? "file-link")
+         (fs/regular-file? "file-link" {:nofollow-links false}))
+      "following links (file is a regular file)")
+  (is (= false
+         (fs/regular-file? "file-link" {:nofollow-links true}))
+      "not following links (file-link is not a regular file)"))
 
 (deftest parent-test
   (is (= (fs/path "dir") (fs/parent "dir/foo")))
@@ -759,6 +781,13 @@
   (is (= false (fs/writable? "dir")))
   (is (= false (fs/writable? "file.txt"))))
 
+(deftest exists?-sym-link-test
+  (fs/create-sym-link "link" "non-existent-target")
+  (is (= false (fs/exists? "link") (fs/exists? {:nofollow-links false}))
+      "following link (to non existent target)")
+  (is (= true (fs/exists? "link" {:nofollow-links true}))
+      "not following link (link exists)"))
+
 (deftest normalize-test
   (is (= "foo/bar/baz" (fs/unixify (fs/normalize "foo/bar/baz"))))
   (is (= "foo/bar/baz" (fs/unixify (fs/normalize "./foo/./bing/./boop/.././../bar/./baz/.")))))
@@ -810,6 +839,29 @@
                  (fs/posix->str)))
           (str "temp-dir created with umask: " util/umask)))))
 
+(when-not windows?
+  (deftest posix-sym-link-test
+    (files "file")
+    (fs/create-sym-link "link" "file")
+    (let [nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])
+          orig-link-permissions (fs/posix->str (Files/getPosixFilePermissions (fs/path "link") nofollow-opts))]
+      ;; cycle through some variations so we know we'll have at least one that does not match perms at create time
+      (doseq [[target  set-permissions]
+              [["file" "rw-rw-rw-"]
+               ["file" "rwxrwxrwx"]
+               ["link" "rw-rw-rw-"]
+               ["link" "rwxrwxrwx"]]]
+        (testing (str "target: " target ", set-permissions: " set-permissions)
+          ;; we can only set posix file permissions on a file, links are always followed on set
+          (fs/set-posix-file-permissions target set-permissions)
+          (is (= set-permissions
+                 (fs/posix->str (fs/posix-file-permissions "link"))
+                 (fs/posix->str (fs/posix-file-permissions "link" {:nofollow-links false})))
+              "following links")
+          (is (= orig-link-permissions
+                 (fs/posix->str (fs/posix-file-permissions "link" {:nofollow-links true})))
+              "not following links"))))))
+
 (deftest delete-if-exists-test
   (files "dude")
   (is (= true (fs/delete-if-exists "dude")))
@@ -836,6 +888,20 @@
       (is (= permissions (-> (fs/posix-file-permissions "foo")
                              fs/posix->str))
           (str "existing file permissions set to " permissions)))))
+
+(deftest real-path-sym-link-test
+  (files "dir/file")
+  (fs/create-sym-link "my-link" "dir/file")
+  (is (= (fs/path (fs/cwd) "dir/file")
+         (fs/real-path "my-link")
+         (fs/real-path "my-link" {:nofollow-links false})
+         (fs/real-path "./dir/../my-link")
+         (fs/real-path "./dir/../my-link" {:nofollow-links false}))
+      "following links")
+  (is (= (fs/path (fs/cwd) "my-link")
+         (fs/real-path "./dir/../my-link" {:nofollow-links true})
+         (fs/real-path "my-link" {:nofollow-links true}))
+      "not following links"))
 
 (deftest same-file?-test
   (files "file1" "dir1/")
@@ -1501,6 +1567,17 @@
 (deftest file-owner-test
   (files "dir/file")
   (is (= (str (fs/owner "dir")) (str (fs/owner "dir/file")))))
+
+(deftest file-owner-sym-link-test
+  ;; This test assumes that the owner of "/" will be different than the owner of a link created in the cwd
+  (files "file")
+  (fs/create-sym-link "my-link" "/")
+  (is (not= (fs/owner "file") (fs/owner "/"))
+      "sanity test: owners are different for root dir and file in cwd")
+  (is (= (fs/owner "/") (fs/owner "my-link") (fs/owner "my-link" {:nofollow-links false}))
+      "following link")
+  (is (= (fs/owner "file") (fs/owner "my-link" {:nofollow-links true}))
+      "not following link"))
 
 (deftest filesystem-path-resolves-test
   ;; see issue 135
