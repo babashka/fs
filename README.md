@@ -66,9 +66,13 @@ For convenience, the above use case is also supported using the `which` function
 
 ## Notes 
 
-### File Systems & OSes
+### File Systems & OSes & JDK Bugs
 Behaviour can vary on different file systems and OSes.
-If you uncover some interesting nuance, please let us know. 
+
+The JDK file APIs have historically had some obscure bugs; we've described known issues that affect babashka fs below.
+The JDK team has fixed most of these bugs, so we encourage you to use the latest stable JDK, if you can.
+
+If you uncover some interesting new unexpected behaviour, please let us know.
 
 ### Windows & Links
 You may have to enable the ability to create soft & hard links on Windows.
@@ -164,6 +168,11 @@ On Windows, for JDK < 24, we have found that `canonicalize` will never follow sy
 ### :follow-links
 Some babashka.fs functions accept the `:follow-links` option.
 These functions will _not_ follow symbolic links unless you pass in `{:follow-links true}`.
+
+<!-- note: linked from docstring -->
+### glob
+
+On macOS, for JDK < 26, functions that match on a glob pattern will omit filenames with Unicode characters that include a variant-selector due to this JDK bug [JDK-8354490](https://bugs.openjdk.org/browse/JDK-8354490).
 
 ## Test & Dev
 

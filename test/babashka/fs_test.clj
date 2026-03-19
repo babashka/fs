@@ -260,6 +260,28 @@
                     (normalized
                       (fs/glob "." ".gitig*"))))))))
 
+(deftest glob-unicode-test
+  (let [test-files [{:name "dir/📷 photography.md"        :has-variant-selector false}
+                    {:name "dir/🗞️ article.md"            :has-variant-selector true}
+                    {:name "dir/🗣️ talk.md"               :has-variant-selector true}
+                    {:name "dir/🤔 interesting things.md" :has-variant-selector false}]]
+    ;; sanity test our data
+    (doseq [{:keys [name has-variant-selector]} test-files]
+      (is (= has-variant-selector (str/includes? name "\uFE0F"))
+          name))
+    (apply files (map :name test-files))
+    (if (and (= :mac (util/os)) (< (util/jdk-major) 26))
+      ;; On macOS with JDK < 26 a bug exhibits where filenames with unicode with
+      ;; variant selectors do not match.
+      ;; See https://bugs.openjdk.org/browse/JDK-8354490 and https://github.com/babashka/fs/issues/141
+      ;; We explicitly test for this bug learn if the fix is ever backported by JDK team
+      (is (match? (keep #(when-not (:has-variant-selector %) (:name %)) test-files)
+                  (normalized (fs/glob "dir" "*.md")))
+          "JDK bug means we do not match filenames that have Unicode char with variation selector")
+      (is (match? (map :name test-files)
+                  (normalized (fs/glob "dir" "*.md")))
+          "all files are returned"))))
+
 (deftest glob-with-specific-depth-test
   (files "foo/bar/baz/dude.txt")
   (is (match? ["foo/bar/baz/dude.txt"]

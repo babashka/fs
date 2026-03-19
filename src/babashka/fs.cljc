@@ -275,7 +275,7 @@
    (defn- directory-stream
      "Returns a stream of all files in `dir`. The caller of this function is
   responsible for closing the stream, e.g. using `with-open`. The stream
-  can consumed as a seq by calling seq on it. Accepts optional glob or
+  can consumed as a seq by calling seq on it. Accepts optional [[glob]] string or
   accept function of one argument."
      (^DirectoryStream [dir]
       (Files/newDirectoryStream (as-path dir)))
@@ -290,8 +290,8 @@
 
 #?(:bb nil :clj
    (defn list-dir
-     "Returns all paths in `dir` as vector. For descending into subdirectories use `glob.`
-     - `glob-or-accept` - a glob string such as \"*.edn\" or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
+     "Returns all paths in `dir` as vector. For descending into subdirectories use [[glob]].
+     - `glob-or-accept` - a [[glob]] string such as \"*.edn\" or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
      ([dir]
       (with-open [stream (directory-stream dir)]
         (vec stream)))
@@ -432,6 +432,8 @@
   - `(fs/glob \".\" \"**.clj\")` - finds `.clj` files and dirs under `.` dir and its subdirs
   - `(fs/glob \".\" \"**.clj\" {:recursive false})` - finds `.clj` files and dirs immediately under `.` dir only
   - `(fs/glob \".\" \"*.clj\" {:recursive true})` - finds `.clj` files and dirs immediately under `.` only (`pattern` lacks directory wildcards)
+
+  If on macOS, see [note on glob](/README.md#glob)
 
   See also: [[match]]"
   ([root pattern] (glob root pattern nil))
@@ -990,7 +992,7 @@
 
 (defn list-dirs
   "Similar to list-dir but accepts multiple roots in `dirs` and returns the concatenated results.
-  - `glob-or-accept` - a glob string such as `\"*.edn\"` or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
+  - `glob-or-accept` - a [[glob]] string such as `\"*.edn\"` or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
   [dirs glob-or-accept]
   (mapcat #(list-dir % glob-or-accept) dirs))
 
@@ -1147,7 +1149,7 @@
   The `anchor` path can be a regular file or directory, in which case
   the recursive max last modified time stamp is used as the timestamp
   to compare with.  The `file-set` may be a regular file, directory or
-  collection of files (e.g. returned by glob). Directories are
+  collection of files (e.g. returned by [[glob]]). Directories are
   searched recursively."
   [anchor file-set]
   (let [lm (last-modified anchor)]
