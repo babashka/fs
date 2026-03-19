@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Unreleased
+
+- [#242](https://github.com/babashka/fs/issues/242): test: add JDK 26 to CI test matrix ([@lread](https://github.com/lread))
+
 ## 0.5.32 (2026-03-16)
 
 - [#215](https://github.com/babashka/fs/issues/215): document effect of `umask` on created files and directories ([@lread](https://github.com/lread))
