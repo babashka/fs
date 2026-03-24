@@ -1299,12 +1299,12 @@
 
   Does not store the `source-file` name in the `.gz` file.
   The `source-file` is not deleted.
-  
+
   Options:
   * `dir`(s) created if necessary. If not specified, defaults to `source-file` dir.
   * `out-file` if not specified, defaults to `source-file` [[file-name]] with `.gz` extension.
-  
-  Returns the created gzip file. 
+
+  Returns the created gzip file.
 
   See also: [[gunzip]]"
   ([source-file]

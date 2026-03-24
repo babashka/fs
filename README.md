@@ -64,7 +64,7 @@ For convenience, the above use case is also supported using the `which` function
 "/Users/borkdude/.jenv/versions/11.0/bin/java"
 ```
 
-## Notes 
+## Notes
 
 ### File Systems & OSes & JDK Bugs
 Behaviour can vary on different file systems and OSes.
@@ -124,7 +124,7 @@ Babashka fs, as a light wrapper, reflects this behaviour.
 <!-- note: linked from docstring -->
 ### creation-time
 Depending on which OS and JDK version you are running, `creation-time` might return unexpected results.
-As of this writing, our testing has revealed: 
+As of this writing, our testing has revealed:
 
 - Windows - returns creation time as expected
 - macOS - returns creation time as expected
@@ -134,7 +134,7 @@ See [JDK-8316304](https://bugs.openjdk.org/browse/JDK-8316304).
 
 <!-- note: linked from docstring -->
 ### set-creation-time
-Depending on which OS and JDK version you are running, `set-creation-time` might not do what you would expect. 
+Depending on which OS and JDK version you are running, `set-creation-time` might not do what you would expect.
 As of this writing, our testing has revealed:
 - Windows - sets creation time as expected
 - macOS
@@ -146,10 +146,10 @@ See [JDK-8151430](https://bugs.openjdk.org/browse/JDK-8151430)
 
 <!-- note: linked from docstring -->
 ### :nofollow-links
-Many babashka.fs functions accept the `:nofollow-links` option.
+Many `babashka.fs` functions accept the `:nofollow-links` option.
 These functions will follow symbolic links unless you pass in `{:nofollow-links true}`.
 
-On some JDK/OS combinations,  `set-attribute` and `set-last-modified-time` may throw when attempting to set on the link itself. 
+On some JDK/OS combinations,  `set-attribute` and `set-last-modified-time` may throw when attempting to set on the link itself.
 Considering latest JDK 11+ LTS releases only, at the time of this writing, we have found this bug on JDK 11 for both macOS and Linux and JDK 21 for Linux. For example, on JDK11 on Linux and macOS:
 ```clojure
 (spit "foo" "foo.txt")
