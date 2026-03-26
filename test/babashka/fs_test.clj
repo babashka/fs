@@ -1679,15 +1679,15 @@
         (is (= "/bar/baz.clj" (str zip-path)))))))
 
 ;;
-;; es- empty-string tests
+;; empty-string tests
 ;; 
-(deftest es-absolute?-test
+(deftest absolute?-empty-string-test
   (is (= false (fs/absolute? ""))))
 
-(deftest es-absolutize-test
+(deftest absolutize-empty-string-test
   (is (= (util/path->str (System/getProperty "user.dir")) (util/path->str (fs/absolutize "")))))
 
-(deftest es-canonicalize-test
+(deftest canonicalize-empty-string-test
   ;; There is windows bug in jdk24: https://bugs.openjdk.org/browse/JDK-8355342
   ;; that not only canonicalizes, but converts mapped drives to network drives.
   ;; This is slated to be fixed in jdk26, at the time of this writing, I don't see
@@ -1697,10 +1697,10 @@
     (throw (ex-info "due to bug JDK-8355342 in jdk24, please run this test on windows from an unmapped drive" {}))
     (is (= (util/path->str (System/getProperty "user.dir")) (util/path->str (fs/canonicalize ""))))))
 
-(deftest es-components-test
+(deftest components-empty-string-test
   (is (= [""] (mapv util/path->str (fs/components "")))))
 
-(deftest es-copy-test
+(deftest copy-empty-string-test
   (files "f1.ext")
   ;; returns the target 
   ;; as per javadoc: ...if the source and target are the same file... completes without copying the file
@@ -1711,14 +1711,14 @@
     (is (= "f1.ext" (util/path->str res)))
     (is (= true (fs/directory? res)))))
 
-(deftest es-copy-tree-test
+(deftest copy-tree-empty-string-test
   ;; returns the starting file
   ;; effectively copying self to self through tree so no-op
   (let [before (util/fsnapshot)]
     (is (= (fs/absolutize "") (fs/copy-tree "" "")))
     (is (match? before (util/fsnapshot)))))
 
-(deftest es-dest-copy-tree-test
+(deftest copy-tree-dest-empty-string-test
   (files "da1/da2/da3/da4/f2.txt")
   ;; returns the starting file
   (let [res (fs/copy-tree "da1" "")]
@@ -1727,33 +1727,33 @@
                  "da2/da3/da4/f2.txt"]
                 (list-tree ".")))))
 
-(deftest es-src-copy-tree-test
+(deftest copy-tree-src-empty-string-test
   (files "f1.ext")
   (files "da1/da2/da3/f2.txt")
   (is (thrown-with-msg? java.lang.IllegalArgumentException #"Not a directory.*" (fs/copy-tree "" "f1.ext")))
   (is (thrown-with-msg? Exception #"Cannot copy.*under itself" (fs/copy-tree "" "da1"))))
 
-(deftest es-create-dir-test
+(deftest create-dir-empty-string-test
   (is (thrown? java.nio.file.FileAlreadyExistsException (fs/create-dir ""))))
 
-(deftest es-create-dirs-test
+(deftest create-dirs-empty-string-test
   ;; dir already exists, no-op
   (is (= "" (util/path->str (fs/create-dirs "")))))
 
-(deftest es-create-file-test
+(deftest create-file-empty-string-test
   ;; NOTE:
   ;; - JDK25 linux throws:  java.nio.file.FileAlreadyExistsException
   ;; - prior to that: java.lang.ArrayIndexOutOfBoundsException
   (is (thrown? Exception (fs/create-file ""))))
 
-(deftest es-create-link-test
+(deftest create-link-empty-string-test
   (is (thrown? java.nio.file.FileSystemException (fs/create-link "" "")))
   ;; javadoc implies link is for files only (not directories):
   (is (thrown? java.nio.file.FileSystemException (fs/create-link "link" "")))
   ;; for comparison:
   (is (thrown? java.nio.file.FileSystemException (fs/create-link "link" "."))))
 
-(deftest es-create-sym-link-test
+(deftest create-sym-link-empty-string-test
   (files "da1/da2/da3/da4/f2.txt")
   ;; on macOS throws java.nio.file.FileAlreadyExistsException
   ;; on linux throws java.nio.file.NoSuchFileException
@@ -1779,83 +1779,83 @@
               (list-tree "."))) 
   (is (fs/exists? "symlink2/da1/da2/da3/da4/f2.txt")))
 
-(deftest es-create-temp-dir-test
+(deftest create-temp-dir-empty-string-test
   (let [temp-dir (fs/create-temp-dir {:dir "" :prefix ""})]
     (is (re-matches #".+" (util/path->str temp-dir)))
     (is (= true (fs/exists? (fs/file-name temp-dir))))
     (is (= true (fs/directory? temp-dir)))))
 
-(deftest es-create-temp-file-test
+(deftest create-temp-file-empty-string-test
   (let [temp-file (fs/create-temp-file {:dir "" :prefix ""})]
     (is (re-matches #".+" (util/path->str temp-file)))
     (is (= true (fs/exists? (fs/file-name temp-file))))
     (is (= true (fs/regular-file? temp-file)))))
 
-(deftest es-creation-time-test
+(deftest creation-time-empty-string-test
   (let [dir-creation-time (fs/creation-time ".")]
     (is (= dir-creation-time (fs/creation-time "")))))
 
-(deftest es-delete-test
+(deftest delete-empty-string-test
   (files "foo/bar/baz/boop.txt" "bop.txt")
   (let [before (util/fsnapshot)]
     ;; can't delete non-empty dir
     (is (thrown? java.nio.file.FileSystemException (fs/delete "")))
     (is (match? before (util/fsnapshot)))))
 
-(deftest es-delete-if-exists-test
+(deftest delete-if-exists-empty-string-test
   (files "foo/bar/baz/boop.txt" "bop.txt")
   (let [before (util/fsnapshot)]
     ;; can't delete non-empty dir
     (is (thrown? java.nio.file.FileSystemException (fs/delete-if-exists "")))
     (is (match? before (util/fsnapshot)))))
 
-(deftest es-delete-on-exit-test
+(deftest delete-on-exit-empty-string-test
   ;; tested elsewhere, here we just check that it does not throw
   ;; NOTE: this does not seem to actually delete on exit, perhaps because the dir is in use?
   (is (do (fs/delete-on-exit "")
           true)
       "does not throw"))
 
-(deftest es-delete-tree-test
+(deftest delete-tree-empty-string-test
   (files "f1.ext"
          "da1/da2/da3/da4/f2.ext")
   ;; although this throws, assumedly on attempting to delete cwd, it first deletes all files and subdirs
   (is (thrown? java.nio.file.FileSystemException (fs/delete-tree "")))
   (is (match? [] (list-tree "."))))
 
-(deftest es-directory?-test
+(deftest directory?-empty-string-test
   (is (= true (fs/directory? ""))))
 
-(deftest es-ends-with?-test
+(deftest ends-with?-empty-string-test
   (is (= true (fs/ends-with? "" ""))))
 
-(deftest es-executable?-test
+(deftest executable?-empty-string-test
   ;; dir has +x so returns true
   (is (= true (fs/executable? ""))))
 
-(deftest es-exists?-test
+(deftest exists?-empty-string-test
   (is (= true (fs/exists? ""))))
 
-(deftest es-expand-home-test
+(deftest expand-home-empty-string-test
   (is (= "" (util/path->str (fs/expand-home "")))))
 
-(deftest es-extension-test
+(deftest extension-empty-string-test
   (is (nil? (fs/extension ""))))
 
-(deftest es-file-test
+(deftest file-empty-string-test
   (is (= "" (util/path->str (fs/file "")))))
 
-(deftest es-file-name-test
+(deftest file-name-empty-string-test
   (is (= "" (fs/file-name ""))))
 
-(deftest es-get-attribute-test
+(deftest get-attribute-empty-string-test
   (is (= true (fs/get-attribute "" "basic:isDirectory"))))
 
-(deftest es-glob-test
+(deftest glob-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (is (= ["da1/da2/da3/da4/f2.ext"] (mapv util/path->str (fs/glob "" "**/f2.ext")))))
 
-(deftest es-gunzip-test
+(deftest gunzip-empty-string-test
   (files "f1.ext")
   (let [last-modified (fs/last-modified-time "f1.ext")
         content (slurp "f1.ext")
@@ -1866,32 +1866,32 @@
     (is (not= last-modified (fs/last-modified-time "f1.ext")))
     (is (= content (slurp "f1.ext")))))
 
-(deftest es-gzip-test
+(deftest gzip-empty-string-test
   ;; gzip expects a file, not a dir
   (is (thrown? java.io.FileNotFoundException (fs/gzip ""))))
 
-(deftest es-hidden-test
+(deftest hidden-empty-string-test
   (if (and (not (fs/windows?)) (< (util/jdk-major) 17))
     (is (thrown? java.lang.ArrayIndexOutOfBoundsException (fs/hidden? "")))
     (is (= false (fs/hidden? "")))))
 
-(deftest es-last-modified-time-test
+(deftest last-modified-time-empty-string-test
   (let [dir-last-modified-time (fs/last-modified-time ".")]
     (is (= dir-last-modified-time (fs/last-modified-time "")))))
 
-(deftest es-list-dir-test
+(deftest list-dir-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (is (= ["da1/" "f1.ext"] (normalized (fs/list-dir "")))))
 
-(deftest es-list-dirs-test
+(deftest list-dirs-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (is (= ["da1/" "f1.ext"] (normalized (fs/list-dirs [""] "*")))))
 
-(deftest es-match-test
+(deftest match-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (is (= ["da1/da2/da3/da4/f2.ext" "f1.ext"] (normalized (fs/match "" "regex:.*\\.ext" {:recursive true})))))
 
-(deftest es-modified-since
+(deftest modified-empty-string-since
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (let [later (java.time.Instant/parse "2025-11-09T10:15:30.00Z")
         earlier (.minusSeconds later 1)]
@@ -1908,7 +1908,7 @@
     (fs/set-last-modified-time "da1/da2/da3/da4/f2.ext" earlier)
     (is (= ["f1.ext"] (normalized (fs/modified-since "da1/da2/da3/da4/f2.ext" ""))))))
 
-(deftest es-move-test
+(deftest move-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   ;; returns target
   ;; as per javadoc should be no-op
@@ -1916,7 +1916,7 @@
     (is (= "" (util/path->str (fs/move "" ""))))
     (is (match? before (util/fsnapshot)))))
 
-(deftest es-src-move-test
+(deftest move-src-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (let [before (util/fsnapshot)
         target (fs/create-temp-dir)]
@@ -1924,7 +1924,7 @@
     (is (thrown? java.nio.file.FileSystemException (fs/move "" (fs/file target "new-thing"))))
     (is (match? before (util/fsnapshot)))))
 
-(deftest es-dest-move-test
+(deftest move-dest-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (is (= "da3" (util/path->str (fs/move "da1/da2/da3" ""))))
   (is (match? ["da1/da2/"
@@ -1932,60 +1932,60 @@
                "f1.ext"]
               (list-tree "."))))
 
-(deftest es-normalize-test
+(deftest normalize-empty-string-test
   (is (= "" (util/path->str (fs/normalize "")))))
 
-(deftest es-owner-test
+(deftest owner-empty-string-test
   (files "f1.ext")
   (is (= (fs/owner "") (fs/owner "f1.ext"))))
 
-(deftest es-parent-test
+(deftest parent-empty-string-test
   ;; reminder: parent in path, not parent in filesystem
   (is (nil? (fs/parent ""))))
 
-(deftest es-path-test
+(deftest path-empty-string-test
   (is (= "" (util/path->str (fs/path "")))))
 
-(deftest es-read-all-bytes-test
+(deftest read-all-bytes-empty-string-test
   (is (thrown? java.io.IOException (fs/read-all-bytes ""))))
 
-(deftest es-read-all-lines-test
+(deftest read-all-lines-empty-string-test
   (is (thrown? java.io.IOException (fs/read-all-lines ""))))
 
-(deftest es-read-attributes-test
+(deftest read-attributes-empty-string-test
   (is (= {:isDirectory true} (fs/read-attributes "" "basic:isDirectory"))))
 
-(deftest es-read-attributes*-test
+(deftest read-attributes*-empty-string-test
   (is (= {"isDirectory" true} (fs/read-attributes* "" "basic:isDirectory"))))
 
-(deftest es-read-link-test
+(deftest read-link-empty-string-test
   (is (thrown? java.nio.file.NotLinkException (fs/read-link ""))))
 
-(deftest es-readable?-test
+(deftest readable?-empty-string-test
   (is (= true (fs/readable? ""))))
 
-(deftest es-real-path-test
+(deftest real-path-empty-string-test
   (is (= (util/path->str (System/getProperty "user.dir")) (util/path->str (fs/real-path "")))))
 
-(deftest es-regular-file?-test
+(deftest regular-file?-empty-string-test
   (is (= false (fs/regular-file? ""))))
 
-(deftest es-relative?-test
+(deftest relative?-empty-string-test
   (is (= true (fs/relative? ""))))
 
-(deftest es-relativize-test
+(deftest relativize-empty-string-test
   (is (= "" (util/path->str (fs/relativize "" "")))))
 
-(deftest es-same-file?-test
+(deftest same-file?-empty-string-test
   (is (= true (fs/same-file? "" "")))
   (is (= true (fs/same-file? "." ""))))
 
-(deftest es-set-attribute-test
+(deftest set-attribute-empty-string-test
   (let [new-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:03.00Z"))]
     (fs/set-attribute "" "basic:lastModifiedTime" new-time)
     (is (= new-time (fs/get-attribute "" "basic:lastModifiedTime")))))
 
-(deftest es-set-creation-time-test
+(deftest set-creation-time-empty-string-test
   ;; getting creation time on linux supported only since jdk22 and backported to jdk17 and jdk21
   ;; prior to that it returned last modified time
   ;; https://bugs.openjdk.org/browse/JDK-8316304
@@ -2010,7 +2010,7 @@
       :else
       (is (= old-create-time (fs/creation-time "")) "returns original creation time"))))
 
-(deftest es-set-last-modified-time-test
+(deftest set-last-modified-time-empty-string-test
   (let [old-time (fs/last-modified-time "")
         new-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:03.00Z"))]
     (fs/set-last-modified-time "" new-time)
@@ -2018,34 +2018,34 @@
     (is (= new-time (fs/last-modified-time "")))))
 
 (when (not (fs/windows?))
-  (deftest es-set-posix-file-permission-test
+  (deftest set-posix-file-permission-empty-string-test
     (let [old (fs/posix-file-permissions "")
           new "rwxrwxrwx"]
       (fs/set-posix-file-permissions "" new)
       (is (not= old (fs/posix->str (fs/posix-file-permissions ""))))
       (is (= new (fs/posix->str (fs/posix-file-permissions "")))))))
 
-(deftest es-size-test
+(deftest size-empty-string-test
   ;; non-obvious, but size works on directories, per javadocs:
   ;; The size of files that are not regular files is implementation specific and therefore unspecified.
   (is (= (fs/size ".") (fs/size ""))))
 
-(deftest es-split-ext-test
+(deftest split-ext-empty-string-test
   (is (= ["" nil] (fs/split-ext ""))))
 
-(deftest es-split-paths-test
+(deftest split-paths-empty-string-test
   (is (= [""] (mapv util/path->str (fs/split-paths "")))))
 
-(deftest es-starts-with?-test
+(deftest starts-with?-empty-string-test
   (is (= true (fs/starts-with? "" ""))))
 
-(deftest es-strip-ext-test
+(deftest strip-ext-empty-string-test
   (is (= "" (fs/strip-ext ""))))
 
-(deftest es-unixify-test
+(deftest unixify-empty-string-test
   (is (= "" (fs/unixify ""))))
 
-(deftest es-zip-unzip-test
+(deftest zip-unzip-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (let [before (util/fsnapshot)
         ;; zip to temp-dir instead of cwd, so we don't zip our zip
@@ -2058,11 +2058,11 @@
                 (mapv #(update % :attr dissoc :creationTime :lastModifiedTime :lastAccessTime)
                       (util/fsnapshot))))))
 
-(deftest es-update-file-test
+(deftest update-file-empty-string-test
   ;; makes sense, "" is the cwd, not a regular file
   (is (thrown? java.io.FileNotFoundException (fs/update-file "" str "updated"))))
 
-(deftest es-walk-file-tree-test
+(deftest walk-file-tree-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
   (let [files (atom [])]
     (fs/walk-file-tree "" {:visit-file (fn [f _attrs]
@@ -2070,25 +2070,25 @@
                                          :continue)})
     (is (= ["da1/da2/da3/da4/f2.ext" "f1.ext"] (normalized @files)))))
 
-(deftest es-which-test
+(deftest which-empty-string-test
   (is (nil? (fs/which ""))))
 
-(deftest es-which-all-test
+(deftest which-all-empty-string-test
   (is (= [] (fs/which-all ""))))
 
-(deftest es-write-all-test
+(deftest write-all-empty-string-test
   (is (true? (fs/writable? ""))))
 
-(deftest es-write-bytes-test
+(deftest write-bytes-empty-string-test
   (is (thrown? FileSystemException (fs/write-bytes "" (.getBytes (String. "foo"))))))
 
-(deftest es-write-lines-test
+(deftest write-lines-empty-string-test
   (is (thrown? FileSystemException (fs/write-lines "" ["foo"]))))
 
 ;;
-;; sl- symbolic link tests
+;; symbolic link tests
 ;;
-(deftest sl-create-dirs-test
+(deftest create-dirs-sym-link-test
   (files "dir1/dir2/dir3/"
          "dir1/file1.txt"
          "dir1/dir2/file2.txt")
@@ -2129,7 +2129,7 @@
     (is (= true (fs/directory? expected-new-path {:nofollow-links true}))
         (format "new %s is directory" expected-new-path))))
 
-(deftest sl-delete-tree-good-sym-link-root-test
+(deftest delete-tree-good-sym-link-root-sym-link-test
   (files "foo/bar/baz/")
   (fs/create-sym-link "good-link" "foo")
   (fs/delete-tree "good-link")
@@ -2137,25 +2137,25 @@
               (list-tree "."))
       "link was deleted, dir was not"))
 
-(deftest sl-delete-tree-bad-sym-link-root-test
+(deftest delete-tree-bad-sym-link-root-sym-link-test
   (fs/create-sym-link "bad-link" "bad-target")
   (fs/delete-tree "bad-link")
   (is (match? [] (list-tree "."))
       "bad link was deleted"))
 
-(deftest sl-copy-tree-nofollow-src-link-throws-test
+(deftest copy-tree-nofollow-src-link-throws-sym-link-test
   (files "src-dir/bar/baz/somefile.txt")
   (fs/create-sym-link "link-src-dir" "src-dir")
   (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-src-dir"
                         (fs/copy-tree "link-src-dir" "dest-dir" {:nofollow-links true}))))
 
-(deftest sl-copy-tree-nofollow-dest-link-throws-test
+(deftest copy-tree-nofollow-dest-link-throws-sym-link-test
   (files "src-dir/bar/baz/somefile.txt")
   (fs/create-sym-link "link-dest-dir" "dest-dir")
   (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-dest-dir"
                         (fs/copy-tree "src-dir" "link-dest-dir" {:nofollow-links true}))))
 
-(deftest sl-copy-tree-follow-src-dest-links-test
+(deftest copy-tree-follow-src-dest-links-sym-link-test
   (files "src-dir/src-bar/src-baz/src-file.txt"
          "dest-dir/dest-bar/dest-baz/dest-file.txt")
   (fs/create-sym-link "link-src-dir" "src-dir")
@@ -2168,7 +2168,7 @@
                "src-dir/src-bar/src-baz/src-file.txt"]
               (list-tree "."))))
 
-(deftest sl-copy-tree-follow-src-link-new-dest-test
+(deftest copy-tree-follow-src-link-new-dest-sym-link-test
   (files "src-dir/bar/baz/somefile.txt")
   (fs/create-sym-link "link-src-dir" "src-dir")
   (is (= (fs/real-path "link-src-dir") (fs/copy-tree "link-src-dir" "new-dest-dir")))
@@ -2177,14 +2177,14 @@
                "src-dir/bar/baz/somefile.txt"]
               (list-tree "."))))
 
-(deftest sl-move-bad-link-to-bad-link-test
+(deftest move-bad-link-to-bad-link-sym-link-test
   (fs/create-sym-link "bad-link1" "bad-target1")
   (fs/create-sym-link "bad-link2" "bad-target2")
   (fs/move "bad-link1" "bad-link2" {:replace-existing true})
   (is (match? ["bad-link2"] (list-tree ".")))
   (is (= (fs/path "bad-target1") (fs/read-link "bad-link2"))))
 
-(deftest sl-move-good-link-to-good-link-test
+(deftest move-good-link-to-good-link-sym-link-test
   (files "dir1/" "dir2/")
   (fs/create-sym-link "good-link1" "dir1")
   (fs/create-sym-link "good-link2" "dir2")
@@ -2195,14 +2195,14 @@
               (list-tree ".")))
   (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
 
-(deftest sl-move-good-link-to-good-link-no-replace-test
+(deftest move-good-link-to-good-link-no-replace-sym-link-test
   (files "dir1/" "dir2/")
   (fs/create-sym-link "good-link1" "dir1")
   (fs/create-sym-link "good-link2" "dir2")
   (is (thrown? FileAlreadyExistsException
                (fs/move "good-link1" "good-link2" {:replace-existing false}))))
 
-(deftest sl-move-good-link-under-dir-test
+(deftest move-good-link-under-dir-sym-link-test
   (files "dir1/" "dir2/")
   (fs/create-sym-link "good-link1" "dir1")
   (fs/move "good-link1" "dir2")
@@ -2211,7 +2211,7 @@
               (list-tree ".")))
   (is (= (fs/path "dir1") (fs/read-link (fs/path "dir2" "good-link1")))))
 
-(deftest sl-move-file-to-to-good-link-test
+(deftest move-file-to-to-good-link-sym-link-test
   (files "file1.txt" "dir1/")
   (fs/create-sym-link "good-link1" "dir1")
   (fs/move "file1.txt" "good-link1" {:replace-existing true})
@@ -2220,7 +2220,7 @@
               (list-tree ".")))
   (is (= false (fs/sym-link? "good-link1"))))
 
-(deftest sl-move-good-link-to-file-test
+(deftest move-good-link-to-file-sym-link-test
   (files "file1.txt" "dir1/")
   (fs/create-sym-link "good-link1" "dir1")
   (fs/move "good-link1" "file1.txt" {:replace-existing true})
@@ -2229,7 +2229,7 @@
               (list-tree ".")))
   (is (= true (fs/sym-link? "file1.txt"))))
 
-(deftest sl-rename-good-link-test
+(deftest rename-good-link-sym-link-test
   (files "dir1/")
   (fs/create-sym-link "good-link1" "dir1")
   (fs/move "good-link1" "good-link2")
@@ -2239,7 +2239,7 @@
   (is (= true (fs/sym-link? "good-link2")))
   (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
 
-(deftest sl-move-link-without-replace-test
+(deftest move-link-without-replace-sym-link-test
   (files "dir1/" "dir2/")
   (fs/create-sym-link "good-link1" "dir1")
   (fs/create-sym-link "good-link2" "dir2")
