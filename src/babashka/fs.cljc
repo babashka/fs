@@ -953,7 +953,8 @@
 (defn- ->file-time [x]
   (cond (int? x) (millis->file-time x)
         (instance? java.time.Instant x) (instant->file-time x)
-        :else x))
+        (instance? FileTime x) x
+        :else (throw (ex-info "Unrecognized time type" {}))))
 
 (defn last-modified-time
   "Returns last modified time of `f` as a [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)."
@@ -989,6 +990,25 @@
    (set-creation-time f time nil))
   ([f time {:keys [nofollow-links] :as opts}]
    (set-attribute f "basic:creationTime" (->file-time time) opts)))
+
+(defn- now
+  "To suppport testing"
+  []
+  (FileTime/from (java.time.Instant/now)))
+
+(defn touch
+  "Update last modified time of `path` to `:time`, creating `path` as file if it does not exist.
+
+  Options:
+  * `:time` last modified time (epoch milliseconds, `Instant`, or `FileTime`), else current time is used
+  * [`:nofollow-links`](/README.md#nofollow-links)"
+  ([path]
+   (touch path nil))
+  ([path {:keys [time nofollow-links] :as opts}]
+   (let [time (when time (->file-time time))] ;; convert early to fail fast on invalid time value
+     (when-not (exists? path)
+       (create-file path))
+     (set-last-modified-time path (or time (now)) opts))))
 
 (defn list-dirs
   "Similar to list-dir but accepts multiple roots in `dirs` and returns the concatenated results.

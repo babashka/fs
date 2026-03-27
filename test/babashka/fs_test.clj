@@ -2077,15 +2077,90 @@
   (is (= "" (fs/strip-ext ""))))
 
 ;;
-;; sym-link?
-;;
-
-;;
 ;; temp-dir
 ;;
 (deftest temp-dir-test
   (let [tmp-dir-in-temp-dir (fs/create-temp-dir {:path (fs/temp-dir)})]
     (is (fs/starts-with? tmp-dir-in-temp-dir (fs/temp-dir)))))
+
+;;
+;; touch
+;;
+(deftest touch-updates-existing-file-test
+  (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
+        lmt-now (file-time "2025-01-01T00:00:00.00Z")
+        lmt-new (file-time "2026-01-01T00:00:00.00Z") 
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (files "file")
+    ;; use JVM API to set precondition 
+    (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+    (is (= lmt-file (fs/last-modified-time "file"))
+        "sanity test: file time before touch")
+    (with-redefs [fs/now (constantly lmt-now)]
+      (fs/touch "file"))
+    (is (= lmt-now (fs/last-modified-time "file"))
+        "file time touched with current time")
+    (fs/touch "file" {:time lmt-new})
+    (is (= lmt-new (fs/last-modified-time "file"))
+        "file time touched (with specified time)")))
+
+(deftest touch-creates-new-file-with-current-time-test
+  (let [lmt-now (file-time "2023-01-01T00:00:00.00Z")]
+    (with-redefs [fs/now (constantly lmt-now)]
+      (fs/touch "file"))
+    (is (= lmt-now (fs/last-modified-time "file"))
+        "file created and touched with current time")))
+
+(deftest touch-creates-new-file-with-specific-time-test
+  (let [lmt-new (file-time "2024-01-01T00:00:00.00Z")]
+    (fs/touch "file" {:time lmt-new})
+    (is (= lmt-new (fs/last-modified-time "file"))
+        "file time touched (with specified time)")))
+
+(deftest touch-fails-fast-on-invalid-time-test
+  (is (thrown? Exception  (fs/touch "file" {:time "notvalid"})))
+  (is (match? [] (list-tree "."))
+      "no file created"))
+
+(deftest touch-without-now-redef-test
+  (fs/touch "file")
+  (is (match? ["file"] (list-tree "."))))
+
+(deftest touch-sym-link-test
+  ;; the mechanics of now vs specific time have been tested above, here we focus touching a link
+  (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
+        lmt-link (file-time "2022-01-01T00:00:00.00Z")
+        lmt-new (file-time "2023-01-01T00:00:00.00Z")
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
+            [[nil                       lmt-link           lmt-new            nil]
+             [{:nofollow-links false}   lmt-link           lmt-new            nil]
+             (if cant-set-last-modified-time-on-sym-link?
+               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
+               [{:nofollow-links true}  lmt-new            lmt-file           nil])]]
+      (testing (str "opts: " (pr-str opts))
+        (util/clean-cwd)
+        (files "file")
+        (fs/create-sym-link "link" "file")
+        ;; use JVM API to set precondition (when we can)
+        (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
+        (if cant-set-last-modified-time-on-sym-link?
+          (process/shell "touch -h -d" (str lmt-link) "link")
+          (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
+        ;; bb fs call (due to jdk bug, is expected to throw on some os/jdk combos)
+        (is (match?
+             expected-exception
+             (try
+               (fs/touch "link" (assoc opts :time lmt-new))
+               nil
+               (catch Throwable e
+                 (class e))))
+            "exception")
+        ;; use JVM API to test expected result
+        (is (= expected-lmt-file (Files/getAttribute (fs/path "file") "basic:lastModifiedTime" nofollow-opts))
+            "file")
+        (is (= expected-lmt-link (Files/getAttribute (fs/path "link") "basic:lastModifiedTime" nofollow-opts))
+            "link")))))
 
 ;;
 ;; unixify
