@@ -995,7 +995,7 @@
   "Update last modified time of `path` to `:time`, creating `path` as file if it does not exist.
 
   Options:
-  * `:time` last modified time (epoch milliseconds, `Instant`, or `FileTime`), else current time is used
+  * `:time` last modified time (epoch milliseconds, `Instant`, or `FileTime`), defaults to current time
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([path]
    (touch path nil))

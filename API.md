@@ -1148,7 +1148,7 @@ Function.
 Update last modified time of `path` to `:time`, creating `path` as file if it does not exist.
 
   Options:
-  * `:time` last modified time (epoch milliseconds, `Instant`, or `FileTime`), else current time is used
+  * `:time` last modified time (epoch milliseconds, `Instant`, or `FileTime`), defaults to current time
   * [`:nofollow-links`](/README.md#nofollow-links)
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L994-L1015">Source</a></sub></p>
 
