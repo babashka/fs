@@ -398,6 +398,10 @@
 ;;
 ;; create-file
 ;;
+
+(deftest create-file-test
+  (is (= "new-file" (str (fs/create-file "new-file")))))
+
 (deftest create-file-empty-string-test
   ;; NOTE:
   ;; - JDK25 linux throws:  java.nio.file.FileAlreadyExistsException
@@ -441,7 +445,7 @@
   (if (not= :mac (util/os))
     ;; linux/windows bug? inconsistent: if "" is cwd, should be equivalent to (fs/create-sym-link "symlink1" ".") but throws:
     (is (thrown? Exception  (fs/create-sym-link "symlink1" "")))
-    (do (fs/create-sym-link "symlink1" "")
+    (do (is (= "symlink1" (str (fs/create-sym-link "symlink1" ""))))
         ;; link is created
         (is (= true (fs/sym-link? "symlink1")))
         ;; but does not map to cwd
