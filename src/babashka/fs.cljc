@@ -991,11 +991,6 @@
   ([f time {:keys [nofollow-links] :as opts}]
    (set-attribute f "basic:creationTime" (->file-time time) opts)))
 
-(defn- now
-  "To suppport testing"
-  []
-  (FileTime/from (java.time.Instant/now)))
-
 (defn touch
   "Update last modified time of `path` to `:time`, creating `path` as file if it does not exist.
 
@@ -1005,10 +1000,19 @@
   ([path]
    (touch path nil))
   ([path {:keys [time nofollow-links] :as opts}]
-   (let [time (when time (->file-time time))] ;; convert early to fail fast on invalid time value
-     (when-not (exists? path)
-       (create-file path))
-     (set-last-modified-time path (or time (now)) opts))))
+   (let [time (when time (->file-time time)) ;; convert early to fail fast on invalid time value
+         path (as-path path)
+         time (or time (java.time.Instant/now))]
+     (try
+       ;; attempt touch on existing path
+       (set-last-modified-time path time opts)
+       (catch java.nio.file.NoSuchFileException _
+         ;; file/dir does not exist, attempt to create file
+         (with-open [_chan (-> (java.nio.channels.FileChannel/open
+                                path
+                                (into-array [java.nio.file.StandardOpenOption/CREATE
+                                             java.nio.file.StandardOpenOption/WRITE])))])
+         (set-last-modified-time path time opts))))))
 
 (defn list-dirs
   "Similar to list-dir but accepts multiple roots in `dirs` and returns the concatenated results.

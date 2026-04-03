@@ -10,7 +10,8 @@
    [matcher-combinators.test])
   (:import
    [java.io FileNotFoundException]
-   [java.nio.file Files FileAlreadyExistsException FileSystemException LinkOption]))
+   [java.nio.file Files FileAlreadyExistsException FileSystemException LinkOption]
+   [java.nio.file.attribute FileTime]))
 
 (set! *warn-on-reflection* true)
 
@@ -88,6 +89,10 @@
 (defn- file-time [date-string]
   (java.nio.file.attribute.FileTime/from
    (java.time.Instant/parse date-string)))
+
+(defn- file-time-recently
+  []
+  (FileTime/from (.minusMillis (java.time.Instant/now) 100)))
 
 ;;
 ;; Tests are organized alphabetically by bb fs API fn name.
@@ -2088,28 +2093,46 @@
 ;;
 (deftest touch-updates-existing-file-test
   (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
-        lmt-now (file-time "2025-01-01T00:00:00.00Z")
-        lmt-new (file-time "2026-01-01T00:00:00.00Z") 
+        lmt-new (file-time "2026-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
     (files "file")
     ;; use JVM API to set precondition 
     (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
     (is (= lmt-file (fs/last-modified-time "file"))
         "sanity test: file time before touch")
-    (with-redefs [fs/now (constantly lmt-now)]
-      (fs/touch "file"))
-    (is (= lmt-now (fs/last-modified-time "file"))
-        "file time touched with current time")
+    (fs/touch "file")
+    (let [ft (fs/last-modified-time "file")
+          recent-time (file-time-recently)]
+      (is (pos? (compare ft recent-time))
+          (format "file time %s on/after very recent time %s" ft recent-time)))
     (fs/touch "file" {:time lmt-new})
     (is (= lmt-new (fs/last-modified-time "file"))
         "file time touched (with specified time)")))
 
+(deftest touch-updates-existing-dir-test
+  (let [lmt-dir (file-time "2024-01-01T00:00:00.00Z")
+        lmt-new (file-time "2026-01-01T00:00:00.00Z") 
+        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
+    (files "dir/")
+    ;; use JVM API to set precondition 
+    (Files/setAttribute (fs/path "dir") "basic:lastModifiedTime" lmt-dir nofollow-opts)
+    (is (= lmt-dir (fs/last-modified-time "dir"))
+        "sanity test: dir time before touch")
+    (fs/touch "dir")
+    (let [dt (fs/last-modified-time "dir")
+          recent-time (file-time-recently)]
+      (is (pos? (compare dt recent-time))
+          (format "dir time %s on/after very recent time %s" dt recent-time)))
+    (fs/touch "dir" {:time lmt-new})
+    (is (= lmt-new (fs/last-modified-time "dir"))
+        "dir time touched (with specified time)")))
+
 (deftest touch-creates-new-file-with-current-time-test
-  (let [lmt-now (file-time "2023-01-01T00:00:00.00Z")]
-    (with-redefs [fs/now (constantly lmt-now)]
-      (fs/touch "file"))
-    (is (= lmt-now (fs/last-modified-time "file"))
-        "file created and touched with current time")))
+  (fs/touch "file")
+  (let [ft (fs/last-modified-time "file")
+          recent-time (file-time-recently)]
+    (is (pos? (compare ft recent-time))
+          (format "file time %s on/after very recent time %s" ft recent-time))))
 
 (deftest touch-creates-new-file-with-specific-time-test
   (let [lmt-new (file-time "2024-01-01T00:00:00.00Z")]
@@ -2121,10 +2144,6 @@
   (is (thrown? Exception  (fs/touch "file" {:time "notvalid"})))
   (is (match? [] (list-tree "."))
       "no file created"))
-
-(deftest touch-without-now-redef-test
-  (fs/touch "file")
-  (is (match? ["file"] (list-tree "."))))
 
 (deftest touch-sym-link-test
   ;; the mechanics of now vs specific time have been tested above, here we focus touching a link
