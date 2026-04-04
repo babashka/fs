@@ -6,10 +6,9 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
-- [#232](https://github.com/babashka/fs/issues/232): add `touch` fn ([@lread](https://github.com/lread))
+- [#232](https://github.com/babashka/fs/issues/232): add `touch` fn ([@lread](https://github.com/lread) & [@borkdude](https://github.com/borkdude))
 - [#242](https://github.com/babashka/fs/issues/242): test: add JDK 26 to CI test matrix ([@lread](https://github.com/lread))
 - [#141](https://github.com/babashka/fs/issues/141): test & document effect of unicode glob bug on macOS with JDK < 26 ([@lread](https://github.com/lread))
-
 
 ## 0.5.32 (2026-03-16)
 
