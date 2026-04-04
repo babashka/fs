@@ -994,6 +994,10 @@
 (defn touch
   "Update last modified time of `path` to `:time`, creating `path` as file if it does not exist.
 
+  If `path` is deleted by some other process/thread before `:time` is set,
+  a `NoSuchFileException` will be thrown. Callers can, if their use case requires it,
+  implement their own retry loop.
+
   Options:
   * `:time` last modified time (epoch milliseconds, `Instant`, or `FileTime`), defaults to current time
   * [`:nofollow-links`](/README.md#nofollow-links)"
@@ -1008,6 +1012,8 @@
        (set-last-modified-time path time opts)
        (catch java.nio.file.NoSuchFileException _
          ;; file/dir does not exist, attempt to create file
+         ;; create via FileChannel/open to allow for case where some other process/thread
+         ;; might have created path since exception was thrown and now
          (with-open [_chan (-> (java.nio.channels.FileChannel/open
                                 path
                                 (into-array [java.nio.file.StandardOpenOption/CREATE
