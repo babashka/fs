@@ -149,7 +149,7 @@ See [JDK-8151430](https://bugs.openjdk.org/browse/JDK-8151430)
 Many `babashka.fs` functions accept the `:nofollow-links` option.
 These functions will follow symbolic links unless you pass in `{:nofollow-links true}`.
 
-On some JDK/OS combinations,  `set-attribute` and `set-last-modified-time` may throw when attempting to set on the link itself.
+On some JDK/OS combinations,  `set-attribute`, `set-last-modified-time`, and `touch` may throw when attempting to set on the link itself.
 Considering latest JDK 11+ LTS releases only, at the time of this writing, we have found this bug on JDK 11 for both macOS and Linux and JDK 21 for Linux. For example, on JDK11 on Linux and macOS:
 ```clojure
 (spit "foo" "foo.txt")
