@@ -1100,7 +1100,7 @@
                     (into [nil] exts)
                     exts))
                 [nil])
-         paths (or (:paths opts) (babashka.fs/exec-paths))
+         paths (or (:paths opts) (exec-paths))
          ;; if program is exactly a file name, then search all the path entries
          ;; otherwise, only search relative to current directory (absolute paths will throw)
          candidate-paths (if (filename-only? program)
@@ -1115,9 +1115,9 @@
                     (if (seq exts)
                       (let [ext (first exts)
                             program (str program (when ext (str "." ext)))
-                            f (if (babashka.fs/relative? program)
-                                (babashka.fs/path p program)
-                                (babashka.fs/path program))]
+                            f (if (relative? program)
+                                (path p program)
+                                (path program))]
                         (if (and (executable? f) (not (directory? f)))
                           (recur (rest exts)
                                  (conj candidates f))
