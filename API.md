@@ -28,7 +28,7 @@
     -  [`extension`](#babashka.fs/extension) - Returns the extension of <code>path</code> via [<code>split-ext</code>](#babashka.fs/split-ext).
     -  [`file`](#babashka.fs/file) - Coerces <code>path</code>(s) into a <code>File</code>, combining multiple paths into one.
     -  [`file-name`](#babashka.fs/file-name) - Returns the name of the file or directory for <code>path</code> via [File#getName](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getName()).
-    -  [`file-separator`](#babashka.fs/file-separator) - The system-dependent default path component separator character (as string).
+    -  [`file-separator`](#babashka.fs/file-separator) - The system-dependent default path component separator character (as string) via [File/separator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#separator).
     -  [`file-time->instant`](#babashka.fs/file-time->instant) - Converts <code>ft</code> [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) to an [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
     -  [`file-time->millis`](#babashka.fs/file-time->millis) - Converts <code>ft</code> [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) to epoch milliseconds (long).
     -  [`get-attribute`](#babashka.fs/get-attribute) - Returns value of <code>attribute</code> for <code>path</code> via [Files/getAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getAttribute(java.nio.file.Path,java.lang.String,java.nio.file.LinkOption...)).
@@ -49,8 +49,8 @@
     -  [`owner`](#babashka.fs/owner) - Returns the owner of <code>path</code> via [Files/getOwner](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getOwner(java.nio.file.Path,java.nio.file.LinkOption...)).
     -  [`parent`](#babashka.fs/parent) - Returns parent path of <code>path</code> via [Path#getParent](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getParent()).
     -  [`path`](#babashka.fs/path) - Coerces <code>path</code>(s) into a <code>Path</code>, combining multiple paths into one.
-    -  [`path-separator`](#babashka.fs/path-separator) - The system-dependent path-separator character (as string).
-    -  [`posix->str`](#babashka.fs/posix->str) - Converts a set of <code>PosixFilePermission</code> <code>p</code> to a string, like <code>&quot;rwx------&quot;</code>.
+    -  [`path-separator`](#babashka.fs/path-separator) - The system-dependent path-separator character (as string) via [File/pathSeparator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#pathSeparator).
+    -  [`posix->str`](#babashka.fs/posix->str) - Converts a set of <code>PosixFilePermission</code> <code>p</code> to a string, like <code>&quot;rwx------&quot;</code> via [PosixFilePermissions/toString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#toString(java.util.Set)).
     -  [`posix-file-permissions`](#babashka.fs/posix-file-permissions) - Returns a set of <code>PosixFilePermission</code> for <code>path</code> via [Files/getPosixFilePermissions](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getPosixFilePermissions(java.nio.file.Path,java.nio.file.LinkOption...)).
     -  [`read-all-bytes`](#babashka.fs/read-all-bytes) - Returns contents of <code>file</code> as byte array via [Files/readAllBytes](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllBytes(java.nio.file.Path)).
     -  [`read-all-lines`](#babashka.fs/read-all-lines) - Returns contents of <code>file</code> as a vector of lines via [Files/readAllLines](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllLines(java.nio.file.Path,java.nio.charset.Charset)).
@@ -72,7 +72,7 @@
     -  [`split-ext`](#babashka.fs/split-ext) - Splits <code>path</code> on extension.
     -  [`split-paths`](#babashka.fs/split-paths) - Splits <code>joined-paths</code> string into a vector of paths by OS-specific [<code>path-separator</code>](#babashka.fs/path-separator).
     -  [`starts-with?`](#babashka.fs/starts-with?) - Returns <code>true</code> if <code>this-path</code> starts with <code>other-path</code> via [Path#startsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#startsWith(java.nio.file.Path)).
-    -  [`str->posix`](#babashka.fs/str->posix) - Converts a string <code>s</code> to a set of <code>PosixFilePermission</code>.
+    -  [`str->posix`](#babashka.fs/str->posix) - Converts string <code>s</code> to a set of <code>PosixFilePermission</code> via [PosixFilePermissions/fromString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#fromString(java.lang.String)).
     -  [`strip-ext`](#babashka.fs/strip-ext) - Strips extension from <code>path</code> via [<code>split-ext</code>](#babashka.fs/split-ext).
     -  [`sym-link?`](#babashka.fs/sym-link?) - Returns <code>true</code> if <code>path</code> is a symbolic link via [Files/isSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isSymbolicLink(java.nio.file.Path)).
     -  [`temp-dir`](#babashka.fs/temp-dir) - Returns <code>java.io.tmpdir</code> property as path.
@@ -469,7 +469,7 @@ See also: [`home`](#babashka.fs/home)
 Function.
 
 Returns the extension of `path` via [`split-ext`](#babashka.fs/split-ext).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1115-L1118">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1116-L1119">Source</a></sub></p>
 
 ## <a name="babashka.fs/file">`file`</a>
 ``` clojure
@@ -498,7 +498,7 @@ E.g. `(file-name "foo/bar/baz")` returns `"baz"`.
 
 
 
-The system-dependent default path component separator character (as string).
+The system-dependent default path component separator character (as string) via [File/separator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#separator).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L316-L318">Source</a></sub></p>
 
 ## <a name="babashka.fs/file-time->instant">`file-time->instant`</a>
@@ -681,7 +681,7 @@ Function.
 
 Similar to [`list-dir`](#babashka.fs/list-dir) but accepts multiple roots in `dirs` and returns the concatenated results.
 - `glob-or-accept` - a [`glob`](#babashka.fs/glob) string such as `"*.edn"` or a `(fn accept [^java.nio.file.Path p]) -> truthy`
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1075-L1079">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1076-L1080">Source</a></sub></p>
 
 ## <a name="babashka.fs/match">`match`</a>
 ``` clojure
@@ -803,7 +803,7 @@ args as children relative to the parent.
 
 
 
-The system-dependent path-separator character (as string).
+The system-dependent path-separator character (as string) via [File/pathSeparator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#pathSeparator).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L320-L322">Source</a></sub></p>
 
 ## <a name="babashka.fs/posix->str">`posix->str`</a>
@@ -812,7 +812,7 @@ The system-dependent path-separator character (as string).
 ```
 Function.
 
-Converts a set of `PosixFilePermission` `p` to a string, like `"rwx------"`.
+Converts a set of `PosixFilePermission` `p` to a string, like `"rwx------"` via [PosixFilePermissions/toString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#toString(java.util.Set)).
 
 See also: [`str->posix`](#babashka.fs/str->posix)
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L488-L493">Source</a></sub></p>
@@ -995,7 +995,7 @@ Sets `attribute` for `path` to `value` via [Files/setAttribute](https://docs.ora
 Function.
 
 Sets creation `time` of `path`.
-`time` can be `epoch milliseconds`,
+`time` can be `epoch milliseconds` (long),
 [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
 or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
@@ -1015,7 +1015,7 @@ See also: [`creation-time`](#babashka.fs/creation-time)
 Function.
 
 Sets last modified `time` of `path`.
-`time` can be `epoch milliseconds`,
+`time` can be `epoch milliseconds` (long),
 [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
 or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
@@ -1060,7 +1060,7 @@ Examples:
 - `(fs/split-ext "foo.bar.baz")` => `["foo.bar" "baz"]`
 - `(fs/split-ext "foo.bar.baz" {:ext "bar.baz"})`  => `["foo" "bar.baz"]`
 - `(fs/split-ext "foo.bar.baz" {:ext "png"})`  => `["foo.bar.baz" nil]`
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1081-L1106">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1082-L1107">Source</a></sub></p>
 
 ## <a name="babashka.fs/split-paths">`split-paths`</a>
 ``` clojure
@@ -1069,8 +1069,7 @@ Examples:
 Function.
 
 Splits `joined-paths` string into a vector of paths by OS-specific [`path-separator`](#babashka.fs/path-separator).
-On UNIX systems, the separator is `:`, on Microsoft Windows systems it is `;`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1120-L1124">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1121-L1124">Source</a></sub></p>
 
 ## <a name="babashka.fs/starts-with?">`starts-with?`</a>
 ``` clojure
@@ -1089,7 +1088,7 @@ See also: [`ends-with?`](#babashka.fs/ends-with?)
 ```
 Function.
 
-Converts a string `s` to a set of `PosixFilePermission`.
+Converts string `s` to a set of `PosixFilePermission` via [PosixFilePermissions/fromString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#fromString(java.lang.String)).
 
 `s` is a string like `"rwx------"`.
 
@@ -1104,7 +1103,7 @@ See also: [`posix->str`](#babashka.fs/posix->str)
 Function.
 
 Strips extension from `path` via [`split-ext`](#babashka.fs/split-ext).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1108-L1113">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1109-L1114">Source</a></sub></p>
 
 ## <a name="babashka.fs/sym-link?">`sym-link?`</a>
 ``` clojure
@@ -1138,9 +1137,10 @@ a `NoSuchFileException` will be thrown. Callers can, if their use case requires 
 implement their own retry loop.
 
 Options:
-* `:time` - last modified time (epoch milliseconds, `Instant`, or `FileTime`), defaults to current time
+* `:time` - last modified time (epoch milliseconds (long), [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html),
+or [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)), defaults to current time
 * [`:nofollow-links`](/README.md#nofollow-links)
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1046-L1073">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1046-L1074">Source</a></sub></p>
 
 ## <a name="babashka.fs/unixify">`unixify`</a>
 ``` clojure
@@ -1163,7 +1163,7 @@ Unzips `zip-file` to `target-dir` (default `"."`).
 
  Options:
  * `:replace-existing` - `true` / `false`: overwrite existing files
- * `:extract-fn` - function that decides if the current `ZipEntry`
+ * `:extract-fn` - function that decides if the current [ZipEntry](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/zip/ZipEntry.html)
    should be extracted. Extraction only occurs if a truthy value is returned (i.e. not nil/false).
    The function is only called for files (not directories) with a single map arg:
    * `:entry` - the current `ZipEntry`
