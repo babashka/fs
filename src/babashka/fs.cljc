@@ -314,11 +314,11 @@
    (as-path path)))
 
 (def file-separator
-  "The system-dependent default path component separator character (as string)."
+  "The system-dependent default path component separator character (as string) via [File/separator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#separator)."
   File/separator)
 
 (def path-separator
-  "The system-dependent path-separator character (as string)."
+  "The system-dependent path-separator character (as string) via [File/pathSeparator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#pathSeparator)."
   File/pathSeparator)
 
 (def ^:private win?
@@ -486,14 +486,14 @@
        (Files/copy (as-path source-file) dest copy-options)))))
 
 (defn posix->str
-  "Converts a set of `PosixFilePermission` `p` to a string, like `\"rwx------\"`.
+  "Converts a set of `PosixFilePermission` `p` to a string, like `\"rwx------\"` via [PosixFilePermissions/toString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#toString(java.util.Set)).
 
   See also: [[str->posix]]"
   [p]
   (PosixFilePermissions/toString p))
 
 (defn str->posix
-  "Converts a string `s` to a set of `PosixFilePermission`.
+  "Converts string `s` to a set of `PosixFilePermission` via [PosixFilePermissions/fromString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#fromString(java.lang.String)).
 
   `s` is a string like `\"rwx------\"`.
 
@@ -1005,7 +1005,7 @@
 
 (defn set-last-modified-time
   "Sets last modified `time` of `path`.
-  `time` can be `epoch milliseconds`,
+  `time` can be `epoch milliseconds` (long),
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
   or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
@@ -1028,7 +1028,7 @@
 
 (defn set-creation-time
   "Sets creation `time` of `path`.
-  `time` can be `epoch milliseconds`,
+  `time` can be `epoch milliseconds` (long),
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
   or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
@@ -1051,7 +1051,8 @@
   implement their own retry loop.
 
   Options:
-  * `:time` - last modified time (epoch milliseconds, `Instant`, or `FileTime`), defaults to current time
+  * `:time` - last modified time (epoch milliseconds (long), [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html),
+  or [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)), defaults to current time
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([path]
    (touch path nil))
@@ -1118,8 +1119,7 @@
   (-> path split-ext last))
 
 (defn split-paths
-  "Splits `joined-paths` string into a vector of paths by OS-specific [[path-separator]].
-  On UNIX systems, the separator is `:`, on Microsoft Windows systems it is `;`."
+  "Splits `joined-paths` string into a vector of paths by OS-specific [[path-separator]]."
   [^String joined-paths]
   (mapv path (.split joined-paths path-separator)))
 
@@ -1254,7 +1254,7 @@
 
    Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
-   * `:extract-fn` - function that decides if the current `ZipEntry`
+   * `:extract-fn` - function that decides if the current [ZipEntry](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/zip/ZipEntry.html)
      should be extracted. Extraction only occurs if a truthy value is returned (i.e. not nil/false).
      The function is only called for files (not directories) with a single map arg:
      * `:entry` - the current `ZipEntry`
