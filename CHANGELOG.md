@@ -4,6 +4,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Ureleased
+
+- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
+- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: undocumented API return value review ([@lread](https://github.com/lread)):
+  - `copy-tree` now explicitly returns `target-dir`
+
 ## 0.5.33 (2026-04-20)
 
 - [#254](https://github.com/babashka/fs/issues/254): fix `split-ext` and `extension` on dotfiles with parent dirs (e.g. `foo/.gitignore`)
