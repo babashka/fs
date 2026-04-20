@@ -66,6 +66,37 @@ For convenience, the above use case is also supported using the `which` function
 
 ## Notes
 
+<!-- note: linked from later section -->
+### Coercions and Returns
+Babashka fs functions automatically coerce input path args from `File`, `Path`, and string.
+
+For example, these are all supported and equivalent:
+```clojure
+(fs/exists? "foo")
+(fs/exists? (java.io.File. "foo"))
+(fs/exists? (.toPath (java.io.File. "foo")))
+```
+
+If you need a specific concrete type for a returned path, you can coerce it like so:
+```clojure
+(str (fs/cwd))
+(fs/path (fs/cwd))
+(fs/file (fs/cwd))
+```
+
+### Argument Naming Conventions
+API argument names describe the value's logical role.
+For example, if an argument name contains:
+
+| Argument Name | Argument Expects  |
+|---------------|-------------------|
+| `path`        | directory or file |
+| `file`        | file              |
+| `dir`         | directory         |
+
+The argument name conveys the logical role of the value you pass; it does not describe its type.
+See [Coercions and Returns](#coercions-and-returns).
+
 ### File Systems & OSes & JDK Bugs
 Behaviour can vary on different file systems and OSes.
 

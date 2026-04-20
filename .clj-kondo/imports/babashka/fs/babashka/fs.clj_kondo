@@ -31,6 +31,6 @@
                     (list*
                      (api/token-node 'let)
                        ;; it doesn't really matter what we bind to, so long as it is bound
-                     (api/vector-node [binding-sym (api/string-node "value")])
+                     (api/vector-node [binding-sym (api/token-node nil)])
                      options ;; avoid unused binding when options is a binding
                      body))}))))))
