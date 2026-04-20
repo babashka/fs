@@ -601,6 +601,8 @@
 (defn copy-tree
   "Copies entire file tree from `source-dir` to `target-dir`. Creates `target-dir` if needed.
 
+  Returns `target-dir`.
+  
   Options:
   * same as [[copy]]
   * `:posix-file-permissions` - string format unix-like system permissions passed to [[create-dirs]] when creating `target-dir`."
@@ -609,51 +611,53 @@
                                   :copy-attributes
                                   :nofollow-links]
                            :as opts}]
-   ;; cf. Python
-   (when-not (directory? source-dir opts)
-     (throw (IllegalArgumentException. (str "Not a directory: " source-dir))))
-   ;; cf. Python
-   (when (and (exists? target-dir opts)
-              (not (directory? target-dir opts)))
-     (throw (IllegalArgumentException. (str "Not a directory: " target-dir))))
-   ;; cf. Python
-   (let [csrc (canonicalize source-dir)
-         cdest (canonicalize target-dir)]
-     (when (and (not= csrc cdest)
-                (starts-with? cdest csrc))
-       (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
-                                  (str source-dir) (str target-dir))))))
-   (create-dirs target-dir opts)
-   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
-         link-options (->link-opts nofollow-links)
-         from (real-path source-dir {:nofollow-links nofollow-links})
-         ;; using canonicalize here because real-path requires the path to exist
-         to (canonicalize target-dir {:nofollow-links nofollow-links})]
-     (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
-                                            (let [rel (relativize from dir)
-                                                  to-dir (path to rel)]
-                                              (when-not (Files/exists to-dir link-options)
-                                                (Files/copy ^Path dir to-dir
-                                                            ^"[Ljava.nio.file.CopyOption;"
-                                                            copy-options)
-                                                (when-not win?
-                                                  (u+wx to-dir))))
-                                            :continue)
-                           :visit-file (fn [from-path _attrs]
-                                         (let [rel (relativize from from-path)
-                                               to-file (path to rel)]
-                                           (Files/copy ^Path from-path to-file
-                                                       ^"[Ljava.nio.file.CopyOption;"
-                                                       copy-options)
+   (let [target-dir (as-path target-dir)]
+     ;; cf. Python
+     (when-not (directory? source-dir opts)
+       (throw (IllegalArgumentException. (str "Not a directory: " (str source-dir)))))
+     ;; cf. Python
+     (when (and (exists? target-dir opts)
+                (not (directory? target-dir opts)))
+       (throw (IllegalArgumentException. (str "Not a directory: " (str target-dir)))))
+     ;; cf. Python
+     (let [csrc (canonicalize source-dir)
+           cdest (canonicalize target-dir)]
+       (when (and (not= csrc cdest)
+                  (starts-with? cdest csrc))
+         (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
+                                    (str source-dir) (str target-dir))))))
+     (create-dirs target-dir opts)
+     (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
+           link-options (->link-opts nofollow-links)
+           from (real-path source-dir {:nofollow-links nofollow-links})
+           ;; using canonicalize here because real-path requires the path to exist
+           to (canonicalize target-dir {:nofollow-links nofollow-links})]
+       (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+                                              (let [rel (relativize from dir)
+                                                    to-dir (path to rel)]
+                                                (when-not (Files/exists to-dir link-options)
+                                                  (Files/copy ^Path dir to-dir
+                                                              ^"[Ljava.nio.file.CopyOption;"
+                                                              copy-options)
+                                                  (when-not win?
+                                                    (u+wx to-dir))))
+                                              :continue)
+                             :visit-file (fn [from-path _attrs]
+                                           (let [rel (relativize from from-path)
+                                                 to-file (path to rel)]
+                                             (Files/copy ^Path from-path to-file
+                                                         ^"[Ljava.nio.file.CopyOption;"
+                                                         copy-options)
+                                             :continue)
                                            :continue)
-                                         :continue)
-                           :post-visit-dir (fn [dir _ex]
-                                             (let [rel (relativize from dir)
-                                                   to-dir (path to rel)]
-                                               (when-not win?
-                                                 (let [perms (posix-file-permissions (file dir))]
-                                                   (Files/setPosixFilePermissions to-dir perms)))
-                                               :continue))}))))
+                             :post-visit-dir (fn [dir _ex]
+                                               (let [rel (relativize from dir)
+                                                     to-dir (path to rel)]
+                                                 (when-not win?
+                                                   (let [perms (posix-file-permissions (file dir))]
+                                                     (Files/setPosixFilePermissions to-dir perms)))
+                                                 :continue))})
+       target-dir))))
 
 (defn temp-dir
   "Returns `java.io.tmpdir` property as path."

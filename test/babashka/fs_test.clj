@@ -196,7 +196,7 @@
          "src-dir/a/b/b.txt"
          "src-dir/a/b/c"
          "src-dir/foo.txt")
-  (fs/copy-tree "src-dir" "dest-dir")
+  (is (= "dest-dir" (str (fs/copy-tree "src-dir" "dest-dir"))))
   (is (match? ["dest-dir/.foo"
                "dest-dir/a/a.txt"
                "dest-dir/a/b/b.txt"
@@ -224,7 +224,7 @@
          "dest-dir/")
   ;; https://github.com/babashka/fs/issues/42
   ;; foo2 doesn't exist
-  (fs/copy-tree "src-dir/foo" "dest-dir/foo2/foo")
+  (is (= "dest-dir/foo2/foo" (fs/unixify (fs/copy-tree "src-dir/foo" "dest-dir/foo2/foo"))))
   (is (match? ["dest-dir/foo2/foo/file.txt"
                "src-dir/foo/file.txt"]
               (list-tree "."))))
@@ -233,7 +233,7 @@
   (files "src-dir/foo/bar/")
   ;; https://github.com/babashka/fs/issues/122
   (.setReadOnly (fs/file "src-dir" "foo"))
-  (fs/copy-tree  "src-dir" "dest-dir")
+  (is (= "dest-dir" (str (fs/copy-tree  "src-dir" "dest-dir"))))
   (is (match? ["dest-dir/foo/bar/"
                "src-dir/foo/bar/"]
               (list-tree ".")))
@@ -245,23 +245,23 @@
 (deftest copy-tree-fails-on-parent-to-child-test
   (files "foo/bar/baz/somefile.txt")
   (let [before (util/fsnapshot)]
-    (is (= (fs/absolutize "foo") (fs/copy-tree "foo" "foo"))
+    (is (= "foo" (str (fs/copy-tree "foo" "foo")))
         "copy to self is allowed and a no-op")
-    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo/new-dir"
+    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo.new-dir"
                           (fs/copy-tree "foo" "foo/new-dir"))
         "copy to new dir under self throws")
-    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo/bar"
+    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo.bar"
                           (fs/copy-tree "foo" "foo/bar"))
         "copy to existing dir under self throws")
     (is (= before (util/fsnapshot))
         "files/dirs are unchanged")
-    (fs/copy-tree "foo" "foobar")
+    (is (= "foobar" (str (fs/copy-tree "foo" "foobar"))))
     (is (fs/exists? "foobar/bar/baz/somefile.txt"))))
 
 (deftest copy-tree-ok-on-child-to-existing-parent-test
   (files "foo/bar/baz/somefile.txt")
   (spit "foo/bar/baz/somefile.txt" "bippity boo")
-  (is (= (fs/absolutize "foo/bar") (fs/copy-tree "foo/bar" "foo"))
+  (is (= "foo" (str (fs/copy-tree "foo/bar" "foo")))
       "copy to dir above self to existing dir is fine")
   (is (match? ["foo/bar/baz/somefile.txt"
                ;; our copied dir
@@ -271,7 +271,7 @@
 
 (deftest copy-tree-ok-on-child-to-new-parent-test
   (files "foo/bar/baz/somefile.txt")
-  (is (= (fs/absolutize "foo/bar/baz") (fs/copy-tree "foo/bar/baz" "foo/new-dir"))
+  (is (= "foo/new-dir" (fs/unixify (fs/copy-tree "foo/bar/baz" "foo/new-dir")))
       "copy to dir above self to new dir is fine")
   (is (match? ["foo/bar/baz/somefile.txt"
                ;; our copied dir
@@ -283,17 +283,15 @@
   ;; returns the starting file
   ;; effectively copying self to self through tree so no-op
   (let [before (util/fsnapshot)]
-    (is (= (fs/absolutize "") (fs/copy-tree "" "")))
+    (is (= "" (str (fs/copy-tree "" ""))))
     (is (match? before (util/fsnapshot)))))
 
 (deftest copy-tree-dest-empty-string-test
   (files "da1/da2/da3/da4/f2.txt")
-  ;; returns the starting file
-  (let [res (fs/copy-tree "da1" "")]
-    (is (= (fs/absolutize "da1") res))
-    (is (match? ["da1/da2/da3/da4/f2.txt"
-                 "da2/da3/da4/f2.txt"]
-                (list-tree ".")))))
+  (is (= "" (str (fs/copy-tree "da1" ""))))
+  (is (match? ["da1/da2/da3/da4/f2.txt"
+               "da2/da3/da4/f2.txt"]
+              (list-tree "."))))
 
 (deftest copy-tree-src-empty-string-test
   (files "f1.ext")
@@ -318,7 +316,7 @@
          "dest-dir/dest-bar/dest-baz/dest-file.txt")
   (fs/create-sym-link "link-src-dir" "src-dir")
   (fs/create-sym-link "link-dest-dir" "dest-dir")
-  (is (= (fs/real-path "link-src-dir") (fs/copy-tree "link-src-dir" "link-dest-dir")))
+  (is (= "link-dest-dir" (fs/unixify (fs/copy-tree "link-src-dir" "link-dest-dir"))))
   (is (match? ["dest-dir/dest-bar/dest-baz/dest-file.txt"
                "dest-dir/src-bar/src-baz/src-file.txt"
                "link-dest-dir/"
@@ -329,7 +327,7 @@
 (deftest copy-tree-follow-src-link-new-dest-sym-link-test
   (files "src-dir/bar/baz/somefile.txt")
   (fs/create-sym-link "link-src-dir" "src-dir")
-  (is (= (fs/real-path "link-src-dir") (fs/copy-tree "link-src-dir" "new-dest-dir")))
+  (is (= "new-dest-dir" (str (fs/copy-tree "link-src-dir" "new-dest-dir"))))
   (is (match? ["link-src-dir/"
                "new-dest-dir/bar/baz/somefile.txt"
                "src-dir/bar/baz/somefile.txt"]
