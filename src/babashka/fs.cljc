@@ -1040,7 +1040,7 @@
                    (subs file-name last-dot)))]
        (if (and ext
                 (str/ends-with? path-str ext)
-                (not= path-str ext))
+                (not= file-name ext))
          (let [loc (str/last-index-of path-str ext)]
            [(subs path-str 0 loc)
             (subs path-str (inc loc))])

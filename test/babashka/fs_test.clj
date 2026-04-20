@@ -772,6 +772,8 @@
   (is (= "clj" (fs/extension "file-name.clj")))
   (is (= "template" (fs/extension "file-name.html.template")))
   (is (nil? (fs/extension ".dotfile")))
+  (is (nil? (fs/extension "foo/.dotfile")))
+  (is (nil? (fs/extension "/home/.zshrc")))
   (is (nil? (fs/extension "bin/something"))))
 
 (deftest extension-empty-string-test
@@ -2041,6 +2043,8 @@
     (is (= ["/path/to/file" "ext"] (fs/split-ext "/path/to/file.ext")))
     (is (= ["some/path/hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
     (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
+    (is (= ["foo/.dotfile" nil] (fs/split-ext "foo/.dotfile")))
+    (is (= ["/home/.zshrc" nil] (fs/split-ext "/home/.zshrc")))
     (is (= ["name" nil] (fs/split-ext "name"))))
 
   (testing "coerces paths and files"
