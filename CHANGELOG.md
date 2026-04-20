@@ -6,6 +6,8 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
+- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 1: consistent arg naming, improved docstrings, added `Coercions and Returns` / `Argument Naming Conventions` sections to README ([@lread](https://github.com/lread))
+- [#254](https://github.com/babashka/fs/issues/254): fix `split-ext` and `extension` on dotfiles with parent dirs (e.g. `foo/.gitignore`)
 - [#232](https://github.com/babashka/fs/issues/232): add `touch` fn ([@lread](https://github.com/lread) & [@borkdude](https://github.com/borkdude))
 - [#242](https://github.com/babashka/fs/issues/242): test: add JDK 26 to CI test matrix ([@lread](https://github.com/lread))
 - [#141](https://github.com/babashka/fs/issues/141): test & document effect of unicode glob bug on macOS with JDK < 26 ([@lread](https://github.com/lread))

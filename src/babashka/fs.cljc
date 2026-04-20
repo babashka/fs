@@ -49,7 +49,7 @@
   (System/getenv k))
 
 (defn path
-  "Returns `path`(s) coerced to a `Path`, combining multiple paths into one.
+  "Coerces `path`(s) into a `Path`, combining multiple paths into one.
   Multiple-arg versions treat the first argument as parent and subsequent
   args as children relative to the parent."
   (^Path [path]
@@ -66,7 +66,7 @@
 (def ^:private path* "synonym to avoid path arg-name to path fn shadowing conflicts" path)
 
 (defn file
-  "Returns `path`(s) coerced to a `File`, combining multiple paths into one.
+  "Coerces `path`(s) into a `File`, combining multiple paths into one.
   Multiple-arg versions treat the first argument as parent and subsequent args
   as children relative to the parent."
   (^File [path] (as-file path))
@@ -81,7 +81,7 @@
                 (conj LinkOption/NOFOLLOW_LINKS))))
 
 (defn real-path
-  "Returns real path for `path` via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
+  "Converts `path` into real `Path` via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)"
@@ -177,7 +177,7 @@
   (seq (as-path path)))
 
 (defn absolutize
-  "Returns absolute path for `path` via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
+  "Converts `path` into an absolute `Path` via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
   [path] (.toAbsolutePath (as-path path)))
 
 (defn relativize
@@ -190,12 +190,12 @@
   (.relativize (as-path base-path) (as-path other-path)))
 
 (defn normalize
-  "Returns normalized path for `path` via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize())."
+  "Returns normalized `Path` for `path` via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize())."
   [path]
   (.normalize (as-path path)))
 
 (defn canonicalize
-  "Returns canonical path for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
+  "Returns the canonical `Path` for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links) - when set, falls back on [[absolutize]] + [[normalize]].
@@ -298,7 +298,7 @@
    (defn list-dir
      "Returns a vector of all paths in `dir`. For descending into subdirectories use [[glob]].
 
-     - `glob-or-accept` - a [[glob]] string such as \"*.edn\" or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
+     - `glob-or-accept` - a [[glob]] string such as `\"*.edn\"` or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
      ([dir]
       (with-open [stream (directory-stream dir)]
         (vec stream)))
@@ -353,12 +353,12 @@
   `false`, i.e. skip hidden files and folders.
   * [`:follow-links`](/README.md#follow-links) - follow symlinks. Defaults to false.
   * `:recursive`
-    * `true` - `pattern` is matched against all descendant files and directories under `root`
-    * `false` (default) - `pattern` is matched only against immediate children under `root`
+    * `true` - `pattern` is matched against all descendant files and directories under `root-dir`
+    * `false` (default) - `pattern` is matched only against immediate children under `root-dir`
   * `:max-depth` - max depth to descend into directory structure, when
   matching recursively. Defaults to `Integer/MAX_VALUE`.
 
-  Examples: 
+  Examples:
   - `(fs/match \".\" \"regex:.*\\\\.clj\" {:recursive true})`
 
   See also: [[glob]]"
@@ -419,7 +419,7 @@
 (defn glob
   "Returns a vector of paths matching glob `pattern` (on path and filename) relative to `root-dir`.
   Patterns containing `**` or `/` will cause a recursive walk under
-  `root-dir`, unless overriden with `:recursive false`. Similarly, `:hidden` will be automaticaly enabled 
+  `root-dir`, unless overriden with `:recursive false`. Similarly, `:hidden` will be automatically enabled
   when `pattern` starts with a dot.
   Glob interpretation is done using the rules described in
   [FileSystem#getPathMatcher](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String))
@@ -430,8 +430,8 @@
   not hidden, unless their hidden attribute is set.
   * [`:follow-links`](/README.md#follow-links) - follow symlinks. Defaults to `false`.
   * `:recursive` - implied `true` when `pattern` contains `**` or `/`; otherwise, defaults to `false`.
-    * `true` - `pattern` is matched against all descendant files and directories under `root`
-    * `false` - `pattern` is matched only against immediate children under `root`
+    * `true` - `pattern` is matched against all descendant files and directories under `root-dir`
+    * `false` - `pattern` is matched only against immediate children under `root-dir`
   * `:max-depth` - max depth to descend into directory structure, when
   recursing. Defaults to `Integer/MAX_VALUE`.
 
@@ -468,7 +468,9 @@
   Options:
   * `:replace-existing`
   * `:copy-attributes`
-  * [`:nofollow-links`](/README.md#nofollow-links) - used to determine to copy symbolic link itself or not."
+  * [`:nofollow-links`](/README.md#nofollow-links) - used to determine to copy symbolic link itself or not.
+
+  Returns `target-path`."
   ([source-file target-path] (copy source-file target-path nil))
   ([source-file target-path {:keys [replace-existing
                                     copy-attributes
@@ -484,18 +486,18 @@
        (Files/copy (as-path source-file) dest copy-options)))))
 
 (defn posix->str
-  "Returns permissions string, like `\"rwx------\"`, for a set of `PosixFilePermission` `p`.
+  "Converts a set of `PosixFilePermission` `p` to a string, like `\"rwx------\"`.
 
-  See also [[str->posix]]"
+  See also: [[str->posix]]"
   [p]
   (PosixFilePermissions/toString p))
 
 (defn str->posix
-  "Returns a set of `PosixFilePermission` for permissions string `s`.
+  "Converts a string `s` to a set of `PosixFilePermission`.
 
   `s` is a string like `\"rwx------\"`.
 
-  See also [[posix->str]]"
+  See also: [[posix->str]]"
   [s]
   (PosixFilePermissions/fromString s))
 
@@ -521,8 +523,10 @@
     (into-array FileAttribute attrs)))
 
 (defn create-dir
-  "Returns new `dir` created via [Files/createDirectory](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectory(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
+  "Creates `dir` via [Files/createDirectory](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectory(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
   Does not create parents.
+
+  Returns `dir`.
 
   Options:
   * `:posix-file-permissions` - string format for unix-like system permissions for `dir`, as described in [[str->posix]].
@@ -534,10 +538,12 @@
      (Files/createDirectory (as-path dir) attrs))))
 
 (defn create-dirs
-  "Returns `dir` after creating directories for `dir` via [Files/createDirectories](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectories(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
+  "Creates `dir` via [Files/createDirectories](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectories(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
   Also creates parents if needed.
   Does not throw an exception if the dirs exist already. Similar to `mkdir -p` shell command.
-  
+
+  Returns `dir`.
+
   Options:
   * `:posix-file-permissions` - string format for unix-like system permissions for `dir`, as described in [[str->posix]].
   Affected by [umask](/README.md#umask)."
@@ -557,7 +563,7 @@
   (Files/setPosixFilePermissions (as-path path) (->posix-file-permissions posix-file-permissions)))
 
 (defn posix-file-permissions
-  "Returns a set of `PosixFilePermissions` for `path` via [Files/getPosixFilePermissions](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getPosixFilePermissions(java.nio.file.Path,java.nio.file.LinkOption...)).
+  "Returns a set of `PosixFilePermission` for `path` via [Files/getPosixFilePermissions](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getPosixFilePermissions(java.nio.file.Path,java.nio.file.LinkOption...)).
   Use [[posix->str]] to convert to a string.
 
   Options:
@@ -594,7 +600,7 @@
 
 (defn copy-tree
   "Copies entire file tree from `source-dir` to `target-dir`. Creates `target-dir` if needed.
- 
+
   Options:
   * same as [[copy]]
   * `:posix-file-permissions` - string format unix-like system permissions passed to [[create-dirs]] when creating `target-dir`."
@@ -739,7 +745,9 @@
         attrs)))))
 
 (defn create-sym-link
-  "Returns new symbolic `link` to `target-path` created via [Files/createSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createSymbolicLink(java.nio.file.Path,java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
+  "Creates a symbolic `link` to `target-path` via [Files/createSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createSymbolicLink(java.nio.file.Path,java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
+
+  Returns `link`.
 
   As of this writing, JDKs do not recognize empty-string `target-path` `\"\"` as the cwd.
   Consider instead using a `target-path` of `\".\"` to link to the cwd."
@@ -750,7 +758,9 @@
    (make-array FileAttribute 0)))
 
 (defn create-link
-  "Returns a new hard `link` (directory entry) for an `existing-file` created via [Files/createLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createLink(java.nio.file.Path,java.nio.file.Path))."
+  "Creates a new hard `link` (directory entry) for an `existing-file` via [Files/createLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createLink(java.nio.file.Path,java.nio.file.Path)).
+
+  Returns `link`."
   [link existing-file]
   (Files/createLink
    (as-path link)
@@ -808,7 +818,9 @@
                                         :continue)}))))
 
 (defn create-file
-  "Returns new empty `file` created via [Files/createFile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createFile(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
+  "Creates empty `file` via [Files/createFile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createFile(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
+
+  Returns `file`.
 
   Options:
   * `:posix-file-permissions` - string format for unix-like system permissions for `file`, as described in [[str->posix]].
@@ -824,7 +836,7 @@
   If `target-path` is a directory, moves `source-path` under `target-path`.
   Never follows symbolic links.
 
-  Returns `target-path` path.
+  Returns `target-path`.
 
   Options:
   * `replace-existing` - overwrite existing `target-path`, default `false`
@@ -844,7 +856,7 @@
                    (->copy-opts replace-existing false atomic-move nofollow-links))))))
 
 (defn parent
-  "Returns parent path of `path` via [Paths/getParent](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getParent()).
+  "Returns parent path of `path` via [Path#getParent](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getParent()).
   Akin to `dirname` in bash."
   [path]
   (.getParent (as-path path)))
@@ -878,10 +890,10 @@
     charset))
 
 (defn read-all-lines
-  "Return contents of `file` as a vector of lines via [Files/readAllLines](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllLines(java.nio.file.Path,java.nio.charset.Charset)).
+  "Returns contents of `file` as a vector of lines via [Files/readAllLines](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllLines(java.nio.file.Path,java.nio.charset.Charset)).
 
   Options:
-  - `:charset` - defaults to `\"utf-8\"`"
+  * `:charset` - defaults to `\"utf-8\"`"
   ([file]
    (vec (Files/readAllLines (as-path file))))
   ([file {:keys [charset]
@@ -893,7 +905,7 @@
 ;;;; Attributes, from github.com/corasaurus-hex/fs
 
 (defn get-attribute
-  "Returns `attribute` for `path` via [Files/getAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getAttribute(java.nio.file.Path,java.lang.String,java.nio.file.LinkOption...)).
+  "Returns value of `attribute` for `path` via [Files/getAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getAttribute(java.nio.file.Path,java.lang.String,java.nio.file.LinkOption...)).
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)"
@@ -944,7 +956,7 @@
         (keyize (or key-fn keyword)))))
 
 (defn set-attribute
-  "Sets `attribute` for `path` to `value` via [Files/setAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#setAttribute(java.nio.file.Path,java.lang.String,java.lang.Object,java.nio.file.LinkOption...))"
+  "Sets `attribute` for `path` to `value` via [Files/setAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#setAttribute(java.nio.file.Path,java.lang.String,java.lang.Object,java.nio.file.LinkOption...))."
   ([path attribute value]
    (set-attribute path attribute value nil))
   ([path attribute value {:keys [:nofollow-links]}]
@@ -954,26 +966,25 @@
                        (->link-opts nofollow-links))))
 
 (defn file-time->instant
-  "Returns [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) `ft`
-  as [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html)."
+  "Converts `ft` [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)
+  to an [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html)."
   [^FileTime ft]
   (.toInstant ft))
 
 (defn instant->file-time
-  "Returns [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html) `instant`
-  as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)."
+  "Converts `instant` [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html)
+  to a [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)."
   [instant]
   (FileTime/from instant))
 
 (defn file-time->millis
-  "Returns [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) `ft`
-  as epoch milliseconds (long)."
+  "Converts `ft` [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)
+  to epoch milliseconds (long)."
   [^FileTime ft]
   (.toMillis ft))
 
 (defn millis->file-time
-  "Returns epoch milliseconds (long)
-  as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)"
+  "Converts epoch milliseconds (long) to a [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)."
   [millis]
   (FileTime/fromMillis millis))
 
@@ -993,7 +1004,7 @@
    (get-attribute path "basic:lastModifiedTime" opts)))
 
 (defn set-last-modified-time
-  "Sets last modified `time` of `path`. 
+  "Sets last modified `time` of `path`.
   `time` can be `epoch milliseconds`,
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
   or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
@@ -1019,7 +1030,7 @@
   "Sets creation `time` of `path`.
   `time` can be `epoch milliseconds`,
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
-  or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html) .
+  or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)
@@ -1033,7 +1044,7 @@
    (set-attribute path "basic:creationTime" (->file-time time) opts)))
 
 (defn touch
-  "Update last modified time of `path` to `:time`, creating `path` as a file if it does not exist.
+  "Updates last modified time of `path` to `:time`, creating `path` as a file if it does not exist.
 
   If `path` is deleted by some other process/thread before `:time` is set,
   a `NoSuchFileException` will be thrown. Callers can, if their use case requires it,
@@ -1068,12 +1079,12 @@
   (mapcat #(list-dir % glob-or-accept) dirs))
 
 (defn split-ext
-  "Returns `path` split on extension.
+  "Splits `path` on extension. Returns `[name ext]`.
   Leading directories in `path` are not processed.
 
   Options:
-  * `:ext` - split on specified extension (do not include a leading dot) 
-  
+  * `:ext` - split on specified extension (do not include a leading dot)
+
   Examples:
   - `(fs/split-ext \"foo.bar.baz\")` => `[\"foo.bar\" \"baz\"]`
   - `(fs/split-ext \"foo.bar.baz\" {:ext \"bar.baz\"})`  => `[\"foo\" \"bar.baz\"]`
@@ -1088,14 +1099,14 @@
                    (subs file-name last-dot)))]
        (if (and ext
                 (str/ends-with? path-str ext)
-                (not= path-str ext))
+                (not= file-name ext))
          (let [loc (str/last-index-of path-str ext)]
            [(subs path-str 0 loc)
             (subs path-str (inc loc))])
          [path-str nil])))))
 
 (defn strip-ext
-  "Returns `path` with extension stripped via [[split-ext]]."
+  "Strips extension from `path` via [[split-ext]]."
   ([path]
    (strip-ext path nil))
   ([path {:keys [ext] :as opts}]
@@ -1107,8 +1118,7 @@
   (-> path split-ext last))
 
 (defn split-paths
-  "Returns a vector of paths from paths in `joined-paths` string.
-  `joined-paths` is split on OS-specific [[path-separator]].
+  "Splits `joined-paths` string into a vector of paths by OS-specific [[path-separator]].
   On UNIX systems, the separator is `:`, on Microsoft Windows systems it is `;`."
   [^String joined-paths]
   (mapv path (.split joined-paths path-separator)))
@@ -1208,7 +1218,7 @@
           (FileTime/fromMillis 0) filetimes))
 
 (defn- last-modified
-  "Returns max last-modified of path or of all files within `path`"
+  "Returns max last-modified of `path` or of all files within `path`."
   [path]
   (if (exists? path)
     (if (regular-file? path)
@@ -1246,7 +1256,7 @@
    * `:replace-existing` - `true` / `false`: overwrite existing files
    * `:extract-fn` - function that decides if the current `ZipEntry`
      should be extracted. Extraction only occurs if a truthy value is returned (i.e. not nil/false).
-     The function is only called for for files (not directories) with a single map arg:
+     The function is only called for files (not directories) with a single map arg:
      * `:entry` - the current `ZipEntry`
      * `:name` - the name of the `ZipEntry` (result of calling `getName`)
 
@@ -1318,7 +1328,7 @@
   Options:
   * `:root` - optional directory to be elided in `zip-file` entries. E.g.: `(fs/zip [\"src\"] {:root \"src\"})`
   * `:path-fn` - an optional custom path conversion function.
-  A single-arg function called for each file sytem path returning the path to be used for the corresponding zip entry.
+  A single-arg function called for each file system path returning the path to be used for the corresponding zip entry.
 
   See also: [[unzip]]."
   ([zip-file path-or-paths]
@@ -1366,7 +1376,7 @@
          dest-filename (str/replace-first (file-name gz-file) #"\.gz$" "")
          gz-file (as-path gz-file)
          cp-opts (->copy-opts replace-existing nil nil nil)
-         output-file (path dest-dir dest-filename)]
+         output-file (path dest-dir dest-filename)] 
      (with-open
       [fis (Files/newInputStream gz-file (into-array java.nio.file.OpenOption []))
        gzis (GZIPInputStream. fis)]
@@ -1411,15 +1421,14 @@
 ;;;; End gzip
 
 (defmacro with-temp-dir
-  "Evaluates body with `temp-dir` bound to the result of `(create-temp-dir
-  opts)`.
+  "Evaluates body with `temp-dir` bound to the result of `(create-temp-dir opts)`.
 
   By default, the `temp-dir` will be removed with [[delete-tree]] on exit from the scope.
 
   Options:
-  * see [[delete-tree]]
-  * `:keep` - if `true` does not delete the directory on exit from macro scope. 
-  
+  * see [[create-temp-dir]] for options that control directory creation
+  * `:keep` - if `true` does not delete the directory on exit from macro scope.
+
   Example:
   ```
   (with-temp-dir [d]
@@ -1452,7 +1461,7 @@
   "Returns home dir path.
 
   With no arguments, returns the current value of the `user.home`
-  system property as a path. If a `user` is passed, returns that user's home
+  system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args."
   (^Path [] @cached-home-dir)
   (^Path [user] (if (empty? user) @cached-home-dir
@@ -1464,10 +1473,10 @@
   If `path`:
   - does not start with `~`, returns `path`.
   - starts with `~` then [[file-separator]], `~` is replaced with `(home)`.
-  e.g., `~/foo` -> `/home/myuser/foo` 
+  e.g., `~/foo` -> `/home/myuser/foo`
   - starts with `~` then some other chars, those other chars are
   assumed to be a username, then naively expanded to `(home username)`.
-  e.g., `~someuser/foo` -> `/home/someuser/foo`  
+  e.g., `~someuser/foo` -> `/home/someuser/foo`
 
   See also: [[home]]"
   ^Path [path]
@@ -1544,10 +1553,10 @@
   * `:charset` - (default `\"utf-8\"`)
 
   Open options:
-  * `:create` (default `true`)
-  * `:truncate-existing` (default `true`)
-  * `:write` (default `true`)
-  * `:append` (default `false`)
+  * `:create` - (default `true`)
+  * `:truncate-existing` - (default `true`)
+  * `:write` - (default `true`)
+  * `:append` - (default `false`)
   * or any `java.nio.file.StandardOption`."
   ([file lines] (write-lines file lines nil))
   ([file lines {:keys [charset]
