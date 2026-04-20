@@ -81,7 +81,7 @@
                 (conj LinkOption/NOFOLLOW_LINKS))))
 
 (defn real-path
-  "Converts `path` into real `Path` via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
+  "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)"
@@ -177,7 +177,7 @@
   (seq (as-path path)))
 
 (defn absolutize
-  "Converts `path` into an absolute `Path` via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
+  "Converts `path` into an absolute path via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
   [path] (.toAbsolutePath (as-path path)))
 
 (defn relativize
@@ -190,12 +190,12 @@
   (.relativize (as-path base-path) (as-path other-path)))
 
 (defn normalize
-  "Returns normalized `Path` for `path` via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize())."
+  "Returns normalized path for `path` via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize())."
   [path]
   (.normalize (as-path path)))
 
 (defn canonicalize
-  "Returns the canonical `Path` for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
+  "Returns the canonical path for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links) - when set, falls back on [[absolutize]] + [[normalize]].

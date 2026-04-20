@@ -1,8 +1,8 @@
 # Table of contents
 -  [`babashka.fs`](#babashka.fs) 
     -  [`absolute?`](#babashka.fs/absolute?) - Returns <code>true</code> if <code>path</code> is absolute via [Path#isAbsolute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#isAbsolute()).
-    -  [`absolutize`](#babashka.fs/absolutize) - Converts <code>path</code> into an absolute <code>Path</code> via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath()).
-    -  [`canonicalize`](#babashka.fs/canonicalize) - Returns the canonical <code>Path</code> for <code>path</code> via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
+    -  [`absolutize`](#babashka.fs/absolutize) - Converts <code>path</code> into an absolute path via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath()).
+    -  [`canonicalize`](#babashka.fs/canonicalize) - Returns the canonical path for <code>path</code> via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
     -  [`components`](#babashka.fs/components) - Returns a seq of paths for all components of <code>path</code>.
     -  [`copy`](#babashka.fs/copy) - Copies <code>source-file</code> to <code>target-path</code> dir or file via [Files/copy](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#copy(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
     -  [`copy-tree`](#babashka.fs/copy-tree) - Copies entire file tree from <code>source-dir</code> to <code>target-dir</code>.
@@ -45,7 +45,7 @@
     -  [`millis->file-time`](#babashka.fs/millis->file-time) - Converts epoch milliseconds (long) to a [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html).
     -  [`modified-since`](#babashka.fs/modified-since) - Returns seq of regular files (non-directories, non-symlinks) from <code>path-set</code> that were modified since the <code>anchor-path</code>.
     -  [`move`](#babashka.fs/move) - Moves or renames dir or file at <code>source-path</code> to <code>target-path</code> dir or file via [Files/move](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#move(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
-    -  [`normalize`](#babashka.fs/normalize) - Returns normalized <code>Path</code> for <code>path</code> via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize()).
+    -  [`normalize`](#babashka.fs/normalize) - Returns normalized path for <code>path</code> via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize()).
     -  [`owner`](#babashka.fs/owner) - Returns the owner of <code>path</code> via [Files/getOwner](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getOwner(java.nio.file.Path,java.nio.file.LinkOption...)).
     -  [`parent`](#babashka.fs/parent) - Returns parent path of <code>path</code> via [Path#getParent](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getParent()).
     -  [`path`](#babashka.fs/path) - Coerces <code>path</code>(s) into a <code>Path</code>, combining multiple paths into one.
@@ -58,7 +58,7 @@
     -  [`read-attributes*`](#babashka.fs/read-attributes*) - Returns requested <code>attributes</code> for <code>path</code> via [Files/readAttributes](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAttributes(java.nio.file.Path,java.lang.Class,java.nio.file.LinkOption...)).
     -  [`read-link`](#babashka.fs/read-link) - Returns the immediate target of <code>sym-link-path</code> via [Files/readSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readSymbolicLink(java.nio.file.Path)).
     -  [`readable?`](#babashka.fs/readable?) - Returns <code>true</code> if <code>path</code> is readable via [Files/isReadable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isReadable(java.nio.file.Path)).
-    -  [`real-path`](#babashka.fs/real-path) - Converts <code>path</code> into real <code>Path</code> via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
+    -  [`real-path`](#babashka.fs/real-path) - Converts <code>path</code> into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
     -  [`regular-file?`](#babashka.fs/regular-file?) - Returns <code>true</code> if <code>path</code> is a regular file via [Files/isRegularFile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isRegularFile(java.nio.file.Path,java.nio.file.LinkOption...)).
     -  [`relative?`](#babashka.fs/relative?) - Returns <code>true</code> if <code>path</code> is relative (in other words, is not [<code>absolute?</code>](#babashka.fs/absolute?)).
     -  [`relativize`](#babashka.fs/relativize) - Returns <code>other-path</code> relative to <code>base-path</code> via [Path#relativize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#relativize(java.nio.file.Path)).
@@ -117,7 +117,7 @@ Returns `true` if `path` is absolute via [Path#isAbsolute](https://docs.oracle.c
 ```
 Function.
 
-Converts `path` into an absolute `Path` via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath()).
+Converts `path` into an absolute path via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath()).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L179-L181">Source</a></sub></p>
 
 ## <a name="babashka.fs/canonicalize">`canonicalize`</a>
@@ -127,7 +127,7 @@ Converts `path` into an absolute `Path` via [Path#toAbsolutePath](https://docs.o
 ```
 Function.
 
-Returns the canonical `Path` for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
+Returns the canonical path for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
 
 Options:
 * [`:nofollow-links`](/README.md#nofollow-links) - when set, falls back on [`absolutize`](#babashka.fs/absolutize) + [`normalize`](#babashka.fs/normalize).
@@ -758,7 +758,7 @@ Options:
 ```
 Function.
 
-Returns normalized `Path` for `path` via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize()).
+Returns normalized path for `path` via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize()).
 <p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L192-L195">Source</a></sub></p>
 
 ## <a name="babashka.fs/owner">`owner`</a>
@@ -908,7 +908,7 @@ Returns `true` if `path` is readable via [Files/isReadable](https://docs.oracle.
 ```
 Function.
 
-Converts `path` into real `Path` via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
+Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
 
 Options:
 * [`:nofollow-links`](/README.md#nofollow-links)
