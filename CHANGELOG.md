@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Ureleased
+## Unreleased
 
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: undocumented API return value review ([@lread](https://github.com/lread)):
