@@ -614,11 +614,11 @@
    (let [target-dir (as-path target-dir)]
      ;; cf. Python
      (when-not (directory? source-dir opts)
-       (throw (IllegalArgumentException. (str "Not a directory: " (str source-dir)))))
+       (throw (IllegalArgumentException. (str "Not a directory: " source-dir))))
      ;; cf. Python
      (when (and (exists? target-dir opts)
                 (not (directory? target-dir opts)))
-       (throw (IllegalArgumentException. (str "Not a directory: " (str target-dir)))))
+       (throw (IllegalArgumentException. (str "Not a directory: " target-dir))))
      ;; cf. Python
      (let [csrc (canonicalize source-dir)
            cdest (canonicalize target-dir)]
