@@ -11,6 +11,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
   - `copy` returns copied target file (fixed for case when `source` is input stream)
   - `copy-tree` now explicitly returns `target-dir` (previously undefined)
   - `delete-tree` existing return value now documented (previously undefined)
+  - `gunzip` now explicitly returns the extracted file (previously undefined)
   - `unzip` now explicitly returns `target-dir` (previously undefined)
   - `zip` now explicitly returns created `zip-file` (previously undefined)
 

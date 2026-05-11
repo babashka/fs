@@ -985,7 +985,7 @@
                      (fs/gunzip expected-gz-file))
             "throws on attempted overwrite")
         ;; NOTE: we must specify the `dest` when specifying options, specify `nil` for default
-        (fs/gunzip expected-gz-file nil {:replace-existing true})
+        (is (= input-file (str (fs/gunzip expected-gz-file nil {:replace-existing true}))))
         (is (match? (normalized
                       [input-file
                        expected-gz-file]
@@ -1016,9 +1016,8 @@
             "both input file and output file exist")
         (if-not (= (fs/absolutize expected-ungz-file) (fs/absolutize input-file))
           (do
-            (is (do (fs/gunzip expected-gz-file out-dir)
-                    true)
-                "does not throw")
+            (is (= (fs/unixify (fs/path out-dir "README.md"))
+                   (fs/unixify (fs/gunzip expected-gz-file out-dir))))
             (is (match? (normalized
                          [input-file
                           expected-gz-file
@@ -1031,8 +1030,8 @@
                          (fs/gunzip expected-gz-file out-dir))
                 "throws on attempted overwrite")
             (spit expected-ungz-file "some\nnew\ncontent\n")
-            (is (do (fs/gunzip expected-gz-file out-dir {:replace-existing true})
-                    true)
+            (is (= (fs/unixify (fs/path out-dir "README.md")) 
+                   (fs/unixify (fs/gunzip expected-gz-file out-dir {:replace-existing true})))
                 "does not throw on overwrite")
             (is (match? (normalized
                          [expected-gz-file
@@ -1055,9 +1054,10 @@
       (files source-file)
       (spit source-file "orig content")
       (is (= expected-gz (fs/unixify (fs/gzip source-file opts))))
-      (fs/gunzip expected-gz "verify")
-      (is (= "orig content" (slurp (fs/file "verify" (-> expected-gz fs/file-name fs/strip-ext))))
-          "ungzipped matches original"))))
+      (let [expected-ungz (fs/unixify (fs/file "verify" (-> expected-gz fs/file-name fs/strip-ext)))]
+        (is (= expected-ungz (fs/unixify (fs/gunzip expected-gz "verify"))))
+        (is (= "orig content" (slurp expected-ungz))
+            "ungzipped matches original")))))
 
 (deftest gzip-arg-types-test
   (files "foo.txt")
@@ -1078,7 +1078,7 @@
         gzip (fs/gzip "f1.ext")]
     (is (thrown? java.nio.file.FileAlreadyExistsException (fs/gunzip gzip "")))
     (Thread/sleep 50)
-    (fs/gunzip gzip "" {:replace-existing true})
+    (is (= "f1.ext" (str (fs/gunzip gzip "" {:replace-existing true}))))
     (is (not= last-modified (fs/last-modified-time "f1.ext")))
     (is (= content (slurp "f1.ext")))))
 

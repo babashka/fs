@@ -1379,6 +1379,8 @@
    Creates `target-dir` dir(s) if necessary.
    The `gz-file` is not deleted.
 
+   Returns the extracted file.
+
    Options:
    * `:replace-existing` - when `true` overwrites existing file
 
@@ -1398,7 +1400,8 @@
          (create-dirs (parent output-file)))
        (Files/copy ^java.io.InputStream gzis
                    output-file
-                   cp-opts)))))
+                   cp-opts))
+     output-file)))
 
 (defn gzip
   "Gzips `source-file` to `:dir`/`:out-file`.
@@ -1406,11 +1409,11 @@
   Does not store the `source-file` name in the `.gz` file.
   The `source-file` is not deleted.
 
+  Returns the created gzip file.
+
   Options:
   * `:dir`(s) - created if necessary. If not specified, defaults to `source-file` dir.
   * `:out-file` - if not specified, defaults to `source-file` [[file-name]] with `.gz` extension.
-
-  Returns the created gzip file.
 
   See also: [[gunzip]]"
   ([source-file]

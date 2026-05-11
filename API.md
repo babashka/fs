@@ -342,7 +342,7 @@ See also: [`set-creation-time`](#babashka.fs/set-creation-time), [`last-modified
 Function.
 
 Returns current working directory path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1511-L1514">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1514-L1517">Source</a></sub></p>
 
 ## <a name="babashka.fs/delete">`delete`</a>
 ``` clojure
@@ -464,7 +464,7 @@ assumed to be a username, then naively expanded to `(home username)`.
 e.g., `~someuser/foo` -> `/home/someuser/foo`
 
 See also: [`home`](#babashka.fs/home)
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1484-L1504">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1487-L1507">Source</a></sub></p>
 
 ## <a name="babashka.fs/extension">`extension`</a>
 ``` clojure
@@ -590,11 +590,13 @@ File is extracted to `target-dir` with `gz-file` [`file-name`](#babashka.fs/file
 Creates `target-dir` dir(s) if necessary.
 The `gz-file` is not deleted.
 
+Returns the extracted file.
+
 Options:
 * `:replace-existing` - when `true` overwrites existing file
 
 See also: [`gzip`](#babashka.fs/gzip)
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1372-L1401">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1372-L1404">Source</a></sub></p>
 
 ## <a name="babashka.fs/gzip">`gzip`</a>
 ``` clojure
@@ -608,14 +610,14 @@ Gzips `source-file` to `:dir`/`:out-file`.
 Does not store the `source-file` name in the `.gz` file.
 The `source-file` is not deleted.
 
+Returns the created gzip file.
+
 Options:
 * `:dir`(s) - created if necessary. If not specified, defaults to `source-file` dir.
 * `:out-file` - if not specified, defaults to `source-file` [`file-name`](#babashka.fs/file-name) with `.gz` extension.
 
-Returns the created gzip file.
-
 See also: [`gunzip`](#babashka.fs/gunzip)
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1403-L1433">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1406-L1436">Source</a></sub></p>
 
 ## <a name="babashka.fs/hidden?">`hidden?`</a>
 ``` clojure
@@ -641,7 +643,7 @@ Returns home dir path.
 With no arguments, returns the current value of the `user.home`
 system property. If a `user` is passed, returns that user's home
 directory as found in the parent of home with no args.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1474-L1482">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1477-L1485">Source</a></sub></p>
 
 ## <a name="babashka.fs/instant->file-time">`instant->file-time`</a>
 ``` clojure
@@ -1153,7 +1155,7 @@ or [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/
 Function.
 
 Returns `path` as string with Unix-style file separators (`/`).
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1603-L1609">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1606-L1612">Source</a></sub></p>
 
 ## <a name="babashka.fs/unzip">`unzip`</a>
 ``` clojure
@@ -1190,7 +1192,7 @@ Returns the new contents.
 
 Options:
 * `:charset` - charset of file, default to "utf-8"
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1584-L1601">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1587-L1604">Source</a></sub></p>
 
 ## <a name="babashka.fs/walk-file-tree">`walk-file-tree`</a>
 ``` clojure
@@ -1253,7 +1255,7 @@ Returns a vector of every path to `program` found in ([`exec-paths`](#babashka.f
 Function.
 
 Returns `true` if OS is Windows.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1506-L1509">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1509-L1512">Source</a></sub></p>
 
 ## <a name="babashka.fs/with-temp-dir">`with-temp-dir`</a>
 ``` clojure
@@ -1280,7 +1282,7 @@ Example:
 ;; d no longer exists here
 ```
   
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1437-L1466">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1440-L1469">Source</a></sub></p>
 
 ## <a name="babashka.fs/writable?">`writable?`</a>
 ``` clojure
@@ -1313,7 +1315,7 @@ Examples:
 (fs/write-bytes f (.getBytes (String. "foo"))) ;; overwrites + truncates or creates new file
 (fs/write-bytes f (.getBytes (String. "foo")) {:append true})
 ```
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1537-L1561">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1540-L1564">Source</a></sub></p>
 
 ## <a name="babashka.fs/write-lines">`write-lines`</a>
 ``` clojure
@@ -1333,7 +1335,7 @@ Open options:
 * `:write` - (default `true`)
 * `:append` - (default `false`)
 * or any `java.nio.file.StandardOption`.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1563-L1582">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1566-L1585">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-cache-home">`xdg-cache-home`</a>
 ``` clojure
@@ -1346,7 +1348,7 @@ Returns path to user-specific non-essential data as described in the [XDG Base D
 
 Uses env-var `XDG_CACHE_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".cache")`.
 When provided, appends `app` to the returned path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1641-L1649">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1644-L1652">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-config-home">`xdg-config-home`</a>
 ``` clojure
@@ -1359,7 +1361,7 @@ Returns path to user-specific configuration files as described in the [XDG Base 
 
 Uses env-var `XDG_CONFIG_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".config")`.
 When provided, appends `app` to the returned path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1631-L1639">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1634-L1642">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-data-home">`xdg-data-home`</a>
 ``` clojure
@@ -1372,7 +1374,7 @@ Returns path to user-specific data files as described in the [XDG Base Directory
 
 Uses env-var `XDG_DATA_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".local" "share")`.
 When provided, appends `app` to the returned path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1651-L1659">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1654-L1662">Source</a></sub></p>
 
 ## <a name="babashka.fs/xdg-state-home">`xdg-state-home`</a>
 ``` clojure
@@ -1385,7 +1387,7 @@ Returns path to user-specific state files as described in the [XDG Base Director
 
 Uses env-var `XDG_STATE_HOME` (if set and representing an absolute path), else `(fs/path (fs/home) ".local" "state")`.
 When provided, appends `app` to the returned path.
-<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1661-L1669">Source</a></sub></p>
+<p><sub><a href="https://github.com/babashka/fs/blob/master/src/babashka/fs.cljc#L1664-L1672">Source</a></sub></p>
 
 ## <a name="babashka.fs/zip">`zip`</a>
 ``` clojure
