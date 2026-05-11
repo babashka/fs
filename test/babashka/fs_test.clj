@@ -2205,8 +2205,8 @@
 ;;
 (deftest zip-unzip-file-test
   (files "README.md")
-  (fs/zip "foo.zip" "README.md")
-  (fs/unzip "foo.zip" "out-dir")
+  (is (= "foo.zip" (str (fs/zip "foo.zip" "README.md"))))
+  (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir"))))
   (is (match? ["README.md"
                "foo.zip"
                "out-dir/README.md"]
@@ -2215,8 +2215,7 @@
   (is (thrown? FileAlreadyExistsException (fs/unzip "foo.zip" "out-dir")))
   (spit "out-dir/README.md" "content to be replaced")
   (testing "no exception when replacing-existing option specified"
-    (is (do (fs/unzip "foo.zip" "out-dir" {:replace-existing true})
-            true)))
+    (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir" {:replace-existing true})))))
   (testing (= (slurp "README.md") (slurp "out-dir/README.md"))))
 
 (deftest zip-unzip-zip-file-entry-order-test
@@ -2239,7 +2238,7 @@
                                [["foo/bar/baz/boop.txt" "boop content"]]]]]
     (util/clean-cwd)
     (create-zip-file "foo.zip" zip-entries)
-    (fs/unzip "foo.zip" ".")
+    (is (= "." (str (fs/unzip "foo.zip"))))
     (is (match? ["foo.zip"
                  "foo/bar/baz/boop.txt"]
                 (list-tree ".")) desc)))
@@ -2247,8 +2246,8 @@
 (deftest zip-unzip-dir-test
   (files "src/dira/dirb/dirc/c1.txt"
          "src/dira/a1.txt")
-  (fs/zip "foo.zip" "src")
-  (fs/unzip "foo.zip" "out-dir")
+  (is (= "foo.zip" (str (fs/zip "foo.zip" "src"))))
+  (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir"))))
   (is (match? ["out-dir/src/dira/a1.txt"
                "out-dir/src/dira/dirb/dirc/c1.txt"]
               (list-tree "out-dir"))))
@@ -2258,8 +2257,8 @@
   ;;  zip out-dir/foo.zip src README.md
   (files "README.md"
          "src/foo/bar/baz.txt")
-  (fs/zip "foo.zip" ["src" "README.md"])
-  (fs/unzip "foo.zip" "out-dir")
+  (is (= "foo.zip" (str (fs/zip "foo.zip" ["src" "README.md"]))))
+  (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir"))))
   (is (match? ["out-dir/README.md"
                "out-dir/src/foo/bar/baz.txt"]
               (list-tree "out-dir"))))
@@ -2267,8 +2266,8 @@
 (deftest zip-unzip-elide-root-parent-dir-test
   (files "src/foo/bar/baz.txt"
          "src/foo/bar/boop.txt")
-  (fs/zip "foo.zip" "src" {:root "src"})
-  (fs/unzip "foo.zip" "out-dir")
+  (is (= "foo.zip" (str (fs/zip "foo.zip" "src" {:root "src"}))))
+  (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir"))))
   (is (match? ["out-dir/foo/bar/baz.txt"
                "out-dir/foo/bar/boop.txt"]
               (list-tree "out-dir"))))
@@ -2278,8 +2277,8 @@
          "src/foo/bar/baz.clj"
          "src/foo/bar/boop.cljc"
          "src/foo/bar/bap.cljc/")
-  (fs/zip "foo.zip" ["src" "README.md"])
-  (fs/unzip "foo.zip" "out-dir" {:extract-fn #(str/ends-with? (:name %) ".clj")})
+  (is (= "foo.zip" (str (fs/zip "foo.zip" ["src" "README.md"]))))
+  (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir" {:extract-fn #(str/ends-with? (:name %) ".clj")}))))
   ;; only files that have names ending in .cljc should present
   ;; directories are not subject to extract-fn
   (is (match? ["out-dir/src/foo/bar/bap.cljc/"
@@ -2293,12 +2292,13 @@
     (fs/set-last-modified-time "README.md" readme-time)
     (fs/set-last-modified-time "LICENSE" license-time)
     (let [zip-entry-times (atom {})]
-      (fs/zip "foo.zip" ["LICENSE" "README.md"])
+      (is (= "foo.zip" (str (fs/zip "foo.zip" ["LICENSE" "README.md"]))))
       ;; record zip entry times while extracting to out-dir1
-      (fs/unzip "foo.zip" "out-dir1"
-                {:extract-fn #(let [time (.getTime ^java.util.zip.ZipEntry (:entry %))]
-                                (swap! zip-entry-times assoc (:name %) time)
-                                true)})
+      (is (= "out-dir1"
+             (str (fs/unzip "foo.zip" "out-dir1"
+                            {:extract-fn #(let [time (.getTime ^java.util.zip.ZipEntry (:entry %))]
+                                            (swap! zip-entry-times assoc (:name %) time)
+                                            true)}))))
       (is (match? {"README.md" readme-time
                    "LICENSE" license-time}
                   @zip-entry-times) "zip entry times match source file times")
@@ -2306,15 +2306,16 @@
                    "out-dir1/README.md"]
                   (list-tree "out-dir1")))
       ;; extract files to out-dir2 that have the same time as README.md
-      (fs/unzip "foo.zip" "out-dir2"
-                {:extract-fn #(= (.getTime ^java.util.zip.ZipEntry (:entry %)) readme-time)})
+      (is (= "out-dir2"
+             (str (fs/unzip "foo.zip" "out-dir2"
+                            {:extract-fn #(= (.getTime ^java.util.zip.ZipEntry (:entry %)) readme-time)}))))
       (is (match? ["out-dir2/README.md"]
                   (list-tree "out-dir2"))))))
 
 (deftest zip-should-not-zip-self-test
   (files "foo/bar/baz/somefile.txt")
-  (fs/zip "foo/zippy.zip" "foo")
-  (fs/unzip "foo/zippy.zip" "zip-out")
+  (is (= "foo/zippy.zip" (fs/unixify (fs/zip "foo/zippy.zip" "foo"))))
+  (is (= "zip-out" (str (fs/unzip "foo/zippy.zip" "zip-out"))))
   (is (match?
         ["foo/bar"
          "foo/bar/baz"
@@ -2333,9 +2334,9 @@
   (let [before (util/fsnapshot)
         ;; zip to temp-dir instead of cwd, so we don't zip our zip
         dest-zip (fs/file (fs/temp-dir) "foo.zip")]
-    (fs/zip dest-zip "" {:root ""})
+    (is (= (fs/unixify dest-zip) (fs/unixify (fs/zip dest-zip "" {:root ""}))))
     (is (thrown? java.nio.file.FileAlreadyExistsException (fs/unzip dest-zip "")))
-    (fs/unzip dest-zip "" {:replace-existing true})
+    (is (= "" (str (fs/unzip dest-zip "" {:replace-existing true}))))
     (is (match? (mapv #(update % :attr dissoc :creationTime :lastModifiedTime :lastAccessTime)
                       before)
                 (mapv #(update % :attr dissoc :creationTime :lastModifiedTime :lastAccessTime)
