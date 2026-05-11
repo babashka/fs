@@ -801,6 +801,8 @@
 (defn delete-tree
   "Deletes the file tree at `root-path` using [[walk-file-tree]]. Similar to `rm -rf` shell command. Does not follow symlinks.
 
+  Returns `root-path`, or `nil` if `root-path` not found.
+  
   Options:
   * `:force` - if `true` forces deletion of read-only files/directories. Similar to `chmod -R +wx` + `rm -rf` shell commands."
   ;; See: delete-permissions-* tests
