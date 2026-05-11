@@ -1259,7 +1259,9 @@
 (defn unzip
   "Unzips `zip-file` to `target-dir` (default `\".\"`).
 
-   Options:
+  Returns `target-dir`.
+
+  Options:
    * `:replace-existing` - `true` / `false`: overwrite existing files
    * `:extract-fn` - function that decides if the current [ZipEntry](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/zip/ZipEntry.html)
      should be extracted. Extraction only occurs if a truthy value is returned (i.e. not nil/false).
@@ -1294,7 +1296,8 @@
                    (Files/copy ^java.io.InputStream zis
                                new-path
                                cp-opts))))
-             (recur))))))))
+             (recur)))))
+     output-path)))
 
 ;; partially borrowed from tools.build
 (defn- add-zip-entry
@@ -1332,6 +1335,8 @@
   directory. Directories are included recursively and their names are
   preserved in the zip file. Currently only accepts relative paths.
 
+  Returns created `zip-file`.
+
   Options:
   * `:root` - optional directory to be elided in `zip-file` entries. E.g.: `(fs/zip [\"src\"] {:root \"src\"})`
   * `:path-fn` - an optional custom path conversion function.
@@ -1341,7 +1346,8 @@
   ([zip-file path-or-paths]
    (zip zip-file path-or-paths nil))
   ([zip-file path-or-paths opts]
-   (let [entries (if (or (string? path-or-paths)
+   (let [zip-file (as-path zip-file)
+         entries (if (or (string? path-or-paths)
                          (instance? File path-or-paths)
                          (instance? Path path-or-paths))
                    [path-or-paths]
@@ -1356,7 +1362,8 @@
                       (FileOutputStream. (file zip-file)))]
        (doseq [zpath entries]
          (copy-to-zip zos zpath #(when-not (same-file? % zip-file)
-                                   (path-fn %))))))))
+                                   (path-fn %)))))
+     zip-file)))
 
 ;;;; End zip
 
