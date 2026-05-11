@@ -463,27 +463,28 @@
                 nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))))
 
 (defn copy
-  "Copies `source-file` to `target-path` dir or file via [Files/copy](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#copy(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
-
+  "Copies `source` file or input-stream to `target-path` dir or file via [Files/copy](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#copy(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
+  
+  Returns copied target file.
+  
   Options:
   * `:replace-existing`
   * `:copy-attributes`
-  * [`:nofollow-links`](/README.md#nofollow-links) - used to determine to copy symbolic link itself or not.
-
-  Returns `target-path`."
-  ([source-file target-path] (copy source-file target-path nil))
-  ([source-file target-path {:keys [replace-existing
+  * [`:nofollow-links`](/README.md#nofollow-links) - used to determine to copy symbolic link itself or not."
+  ([source target-path] (copy source target-path nil))
+  ([source target-path {:keys [replace-existing
                                     copy-attributes
                                     nofollow-links]}]
    (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
          dest (as-path target-path)
          dest (if (directory-simple? dest)
-                (path dest (file-name source-file))
+                (path dest (file-name source))
                 dest)
-         input-stream? (instance? java.io.InputStream source-file)]
+         input-stream? (instance? java.io.InputStream source)]
      (if input-stream?
-       (Files/copy ^java.io.InputStream source-file dest copy-options)
-       (Files/copy (as-path source-file) dest copy-options)))))
+       (do (Files/copy ^java.io.InputStream source dest copy-options)
+           dest)
+       (Files/copy (as-path source) dest copy-options)))))
 
 (defn posix->str
   "Converts a set of `PosixFilePermission` `p` to a string, like `\"rwx------\"` via [PosixFilePermissions/toString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#toString(java.util.Set)).

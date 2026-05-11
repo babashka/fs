@@ -7,8 +7,9 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
-- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: undocumented API return value review ([@lread](https://github.com/lread)):
-  - `copy-tree` now explicitly returns `target-dir`
+- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: API return value review ([@lread](https://github.com/lread)):
+  - `copy` returns copied target file (fixed for case when `source` is input stream)
+  - `copy-tree` now explicitly returns `target-dir` (previously undefined)
 
 ## 0.5.33 (2026-04-20)
 

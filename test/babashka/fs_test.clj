@@ -156,22 +156,24 @@
 ;; 
 (deftest copy-to-file-test
   (files "file" "dest-dir/")
-  (fs/copy "file" "dest-dir/file")
+  (is (= "dest-dir/file" (fs/unixify (fs/copy "file" "dest-dir/file"))))
   (is (match? ["dest-dir/file"
                "file"]
               (list-tree "."))))
 
 (deftest copy-into-dir-test
   (files "file" "dest-dir/")
-  (fs/copy "file" "dest-dir")
+  (is (= "dest-dir/file" (fs/unixify (fs/copy "file" "dest-dir"))))
   (is (match? ["dest-dir/file"
                "file"]
               (list-tree "."))))
 
 (deftest copy-input-stream-test
   (files "file" "dest-dir/")
-  (with-open [is (io/input-stream (fs/file "file"))]
-    (fs/copy is "dest-dir/file"))
+  (is (= "dest-dir/file"
+         (fs/unixify 
+           (with-open [is (io/input-stream (fs/file "file"))]
+             (fs/copy is "dest-dir/file")))))
   (is (match? ["dest-dir/file"
                "file"]
               (list-tree "."))))
