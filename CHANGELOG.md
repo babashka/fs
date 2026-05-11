@@ -10,6 +10,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: API return value review ([@lread](https://github.com/lread)):
   - `copy` returns copied target file (fixed for case when `source` is input stream)
   - `copy-tree` now explicitly returns `target-dir` (previously undefined)
+  - `delete-tree` existing return value now documented (previously undefined)
 
 ## 0.5.33 (2026-04-20)
 

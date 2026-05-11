@@ -589,20 +589,18 @@
 ;;
 (deftest delete-tree-test
   (files "foo/bar/baz/file.txt")
-  (fs/delete-tree "foo")
+  (is (= "foo" (str (fs/delete-tree "foo"))))
   (is (match? [] (fs/glob "." "**"))))
 
 (deftest delete-tree-nested-test
   (files "foo/bar/baz/file.txt")
-  (fs/delete-tree "foo/bar/baz")
+  (is (= "foo/bar/baz" (fs/unixify (fs/delete-tree "foo/bar/baz"))))
   (is (match? ["foo/bar/"]
               (list-tree "."))))
 
 (deftest delete-tree-ok-if-dir-missing-test
-  (is (do (fs/delete-tree "foo")
-          true))
-  (is (do (fs/delete-tree "foo/bar/baz")
-          true)))
+  (is (= nil (fs/delete-tree "foo")))
+  (is (= nil (fs/delete-tree "foo/bar/baz"))))
 
 (deftest delete-tree-does-not-follow-symlink-test
   (files "dir1/"
@@ -612,7 +610,7 @@
   (is (match? ["dir1/link-to-dir2/"
                "dir2/foo"]
               (list-tree ".")) "precondition: files")
-  (fs/delete-tree "dir1")
+  (is (= "dir1" (str (fs/delete-tree "dir1"))))
   (is (match? ["dir2/foo"]
               (list-tree "."))))
 
@@ -630,7 +628,7 @@
       (fs/set-posix-file-permissions "dir1/subdir/file2.txt" "r--r--r--")
       (fs/set-posix-file-permissions "dir1/subdir" "r--r--r--")
       (fs/set-posix-file-permissions "dir1" "r--r--r--")))
-  (fs/delete-tree "dir1" {:force true})
+  (is (= "dir1" (str (fs/delete-tree "dir1" {:force true}))))
   (is (match? [] (fs/glob "." "**"))))
 
 (deftest delete-tree-empty-string-test
@@ -643,14 +641,14 @@
 (deftest delete-tree-good-sym-link-root-sym-link-test
   (files "foo/bar/baz/")
   (fs/create-sym-link "good-link" "foo")
-  (fs/delete-tree "good-link")
+  (is (= "good-link" (str (fs/delete-tree "good-link"))))
   (is (match? ["foo/bar/baz/"]
               (list-tree "."))
       "link was deleted, dir was not"))
 
 (deftest delete-tree-bad-sym-link-root-sym-link-test
   (fs/create-sym-link "bad-link" "bad-target")
-  (fs/delete-tree "bad-link")
+  (is (= "bad-link" (str (fs/delete-tree "bad-link"))))
   (is (match? [] (list-tree "."))
       "bad link was deleted"))
 
