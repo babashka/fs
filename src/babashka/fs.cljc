@@ -559,6 +559,8 @@
   "Sets `posix-file-permissions` on `path` via [Files/setPosixFilePermissions](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#setPosixFilePermissions(java.nio.file.Path,java.util.Set)).
   Accepts a string like `\"rwx------\"` or a set of `PosixFilePermission`.
 
+  Returns `path`.
+
   See also: [[posix-file-permissions]]"
   [path posix-file-permissions]
   (Files/setPosixFilePermissions (as-path path) (->posix-file-permissions posix-file-permissions)))
@@ -963,7 +965,9 @@
         (keyize (or key-fn keyword)))))
 
 (defn set-attribute
-  "Sets `attribute` for `path` to `value` via [Files/setAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#setAttribute(java.nio.file.Path,java.lang.String,java.lang.Object,java.nio.file.LinkOption...))."
+  "Sets `attribute` for `path` to `value` via [Files/setAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#setAttribute(java.nio.file.Path,java.lang.String,java.lang.Object,java.nio.file.LinkOption...)).
+
+  Returns `path`."
   ([path attribute value]
    (set-attribute path attribute value nil))
   ([path attribute value {:keys [:nofollow-links]}]
@@ -1016,6 +1020,8 @@
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
   or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
+  Returns `path`.
+
   See also: [[last-modified-time]]"
   ([path time]
    (set-last-modified-time path time nil))
@@ -1039,6 +1045,8 @@
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
   or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
+  Returns `path`.
+  
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)
 
@@ -1540,6 +1548,8 @@
 (defn write-bytes
   "Writes `bytes` to `file` via [Files/write](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#write(java.nio.file.Path,byte%5B%5D,java.nio.file.OpenOption...)).
 
+  Returns `file`.
+
   Options:
   * `:create` - (default `true`)
   * `:truncate-existing` - (default `true`)
@@ -1565,6 +1575,8 @@
 
 (defn write-lines
   "Writes `lines`, a seqable of strings, to `file` via [Files/write](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#write(java.nio.file.Path,java.lang.Iterable,java.nio.charset.Charset,java.nio.file.OpenOption...)).
+
+  Returns `file`.
 
   Options:
   * `:charset` - (default `\"utf-8\"`)
