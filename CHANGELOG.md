@@ -7,13 +7,19 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 ## Unreleased
 
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
-- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: API return value review ([@lread](https://github.com/lread)):
-  - `copy` returns copied target file (fixed for case when `source` is input stream)
-  - `copy-tree` now explicitly returns `target-dir` (previously undefined)
-  - `delete-tree` existing return value now documented (previously undefined)
-  - `gunzip` now explicitly returns the extracted file (previously undefined)
-  - `unzip` now explicitly returns `target-dir` (previously undefined)
-  - `zip` now explicitly returns created `zip-file` (previously undefined)
+- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: define/document undefined return values: 
+  - `copy` returns copied target file (and fixed for case when `source` is input stream)
+  - `copy-tree` now explicitly returns `target-dir` (previously `source-dir`)
+  - `delete-tree` existing return value now documented 
+  - `gunzip` now explicitly returns the extracted file (previously `nil`)
+  - `set-attribute` document that `path` is return 
+  - `set-creation-time` document that `path` is return
+  - `set-last-modified-time` document that `path` is return
+  - `set-posix-file-permissions` document that `path` is return
+  - `write-bytes` document that `file` is return
+  - `write-lines` document that `file` is return
+  - `unzip` now explicitly returns `target-dir` (previously `nil`)
+  - `zip` now explicitly returns created `zip-file` (previously `nil`)
 
 ## 0.5.33 (2026-04-20)
 

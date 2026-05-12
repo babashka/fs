@@ -388,7 +388,7 @@
            ["dir1/link-dir2/new2"      "dir1/dir2/new2"]
            ["link-dir1/link-dir2/new3" "dir1/dir2/new3"]
            ["link-dir1/dir2/new4"      "dir1/dir2/new4"]]]
-    (is (= (fs/path create-path) (fs/create-dirs create-path))
+    (is (= create-path (fs/unixify (fs/create-dirs create-path)))
         "creates new dir when parent path has sym-links to dirs")
     (is (= true (fs/exists? expected-new-path))
         (format "new %s item exists" expected-new-path))
@@ -1606,7 +1606,7 @@
                ["link" "rwxrwxrwx"]]]
         (testing (str "target: " target ", set-permissions: " set-permissions)
           ;; we can only set posix file permissions on a file, links are always followed on set
-          (fs/set-posix-file-permissions target set-permissions)
+          (is (= target (str (fs/set-posix-file-permissions target set-permissions))))
           (is (= set-permissions
                  (fs/posix->str (fs/posix-file-permissions "link"))
                  (fs/posix->str (fs/posix-file-permissions "link" {:nofollow-links false})))
@@ -1625,7 +1625,7 @@
                                       fs/posix->str))))
     ;; an existing file is not affected by umask
     (doseq [permissions ["rwxrwxrwx" "rwx------"]]
-      (fs/set-posix-file-permissions "foo" permissions)
+      (is (= "foo" (str (fs/set-posix-file-permissions "foo" permissions))))
       (is (= permissions (-> (fs/posix-file-permissions "foo")
                              fs/posix->str))
           (str "existing file permissions set to " permissions)))))
@@ -1634,7 +1634,7 @@
   (deftest set-posix-file-permission-empty-string-test
     (let [old (fs/posix-file-permissions "")
           new "rwxrwxrwx"]
-      (fs/set-posix-file-permissions "" new)
+      (is (= "" (util/path->str (fs/set-posix-file-permissions "" new))))
       (is (not= old (fs/posix->str (fs/posix-file-permissions ""))))
       (is (= new (fs/posix->str (fs/posix-file-permissions "")))))))
 
@@ -1876,13 +1876,12 @@
           (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
         ;; bb fs call (due to jdk bug, is expected to throw on some os/jdk combos)
         (is (match?
-             expected-exception
+             (or expected-exception "link")
              (try
-               (fs/set-attribute "link" "basic:lastModifiedTime" lmt-new opts)
-               nil
+               (str (fs/set-attribute "link" "basic:lastModifiedTime" lmt-new opts))
                (catch Throwable e
                  (class e))))
-            "exception")
+            "return/exception")
         ;; use JVM API to test expected result
         (is (= expected-lmt-file (Files/getAttribute (fs/path "file") "basic:lastModifiedTime" nofollow-opts))
             "file")
@@ -1891,7 +1890,7 @@
 
 (deftest set-attribute-empty-string-test
   (let [new-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:03.00Z"))]
-    (fs/set-attribute "" "basic:lastModifiedTime" new-time)
+    (is (= "" (util/path->str (fs/set-attribute "" "basic:lastModifiedTime" new-time))))
     (is (= new-time (fs/get-attribute "" "basic:lastModifiedTime")))))
 
 ;;
@@ -1904,7 +1903,7 @@
         os (util/os)
         jdk-major (util/jdk-major)
         new-create-time (fs/millis->file-time 0)]
-    (fs/set-creation-time "dir" new-create-time)
+    (is (= "dir" (str (fs/set-creation-time "dir" new-create-time))))
     (cond
       ;; quite a storied history here
       ;; sometimes the correct creation time is returned
@@ -1938,7 +1937,7 @@
           (Files/setAttribute (fs/path "file") "basic:creationTime" ct-file nofollow-opts)
           (Files/setAttribute (fs/path "link") "basic:creationTime" ct-link nofollow-opts)
           ;; bb fs call
-          (fs/set-creation-time "link" ct-new opts)
+          (is (= "link" (str (fs/set-creation-time "link" ct-new opts))))
           ;; use JVM API to test expected result
           (is (= expected-ct-file (Files/getAttribute (fs/path "file") "basic:creationTime" nofollow-opts))
               "file")
@@ -1955,7 +1954,7 @@
   (let [old-create-time (fs/creation-time "")
         new-create-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:01.00Z"))
         new-modify-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:10.00Z"))]
-    (fs/set-creation-time "" new-create-time) 
+    (is (= "" (util/path->str (fs/set-creation-time "" new-create-time)))) 
     (fs/set-last-modified-time "" new-modify-time)
     (cond
       ;; quite a storied history here
@@ -1975,7 +1974,7 @@
 ;;
 (deftest set-last-modified-time-test
   (files "dir/")
-  (fs/set-last-modified-time "dir" 0)
+  (is (= "dir" (str (fs/set-last-modified-time "dir" 0))))
   (is (= 0 (-> (fs/last-modified-time "dir")
                (fs/file-time->millis)))))
 
@@ -2001,13 +2000,12 @@
           (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
         ;; bb fs call (due to jdk bug, is expected to throw on some os/jdk combos)
         (is (match?
-             expected-exception
+             (or expected-exception "link")
              (try
-               (fs/set-last-modified-time "link" lmt-new opts)
-               nil
+               (str (fs/set-last-modified-time "link" lmt-new opts))
                (catch Throwable e
                  (class e))))
-            "exception")
+            "return/exception")
         ;; use JVM API to test expected result
         (is (= expected-lmt-file (Files/getAttribute (fs/path "file") "basic:lastModifiedTime" nofollow-opts))
             "file")
@@ -2017,7 +2015,7 @@
 (deftest set-last-modified-time-empty-string-test
   (let [old-time (fs/last-modified-time "")
         new-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:03.00Z"))]
-    (fs/set-last-modified-time "" new-time)
+    (is (= "" (util/path->str (fs/set-last-modified-time "" new-time))))
     (is (not= old-time (fs/last-modified-time "")))
     (is (= new-time (fs/last-modified-time "")))))
 
@@ -2501,12 +2499,12 @@
 ;; write-bytes 
 ;;
 (deftest write-bytes-test
-  (fs/write-bytes "file.bin" (.getBytes (String. "foo")))
+  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "foo"))))))
   (is (= "foo" (String. (fs/read-all-bytes "file.bin"))))
-  (fs/write-bytes "file.bin" (.getBytes (String. "bar")))
+  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "bar"))))))
   (is (= "bar" (String. (fs/read-all-bytes "file.bin")))
       "existing file overwritten")
-  (fs/write-bytes "file.bin" (.getBytes (String. "baz")) {:append true})
+  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "baz")) {:append true}))))
   (is (= "barbaz" (String. (fs/read-all-bytes "file.bin")))
       "existing file appended to"))
 
@@ -2517,12 +2515,12 @@
 ;; write-lines
 ;;
 (deftest write-lines-test
-  (fs/write-lines "file.txt" (repeat 3 "foo"))
+  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "foo")))))
   (is (= (repeat 3 "foo") (fs/read-all-lines "file.txt")))
-  (fs/write-lines "file.txt" (repeat 3 "bar"))
+  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "bar")))))
   (is (= (repeat 3 "bar") (fs/read-all-lines "file.txt"))
       "existing file overwritten")
-  (fs/write-lines "file.txt" (repeat 3 "baz") {:append true})
+  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "baz") {:append true}))))
   (is (= (into (vec (repeat 3 "bar")) (repeat 3 "baz"))
          (fs/read-all-lines "file.txt"))
       "existing file appended to"))
