@@ -16,6 +16,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
   - `set-creation-time` document that `path` is return
   - `set-last-modified-time` document that `path` is return
   - `set-posix-file-permissions` document that `path` is return
+  - `touch` document that `path` is return
   - `write-bytes` document that `file` is return
   - `write-lines` document that `file` is return
   - `unzip` now explicitly returns `target-dir` (previously `nil`)

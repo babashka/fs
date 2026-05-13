@@ -233,6 +233,8 @@
 (defn walk-file-tree
   "Walks `path` via [Files/walkFileTree](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#walkFileTree(java.nio.file.Path,java.util.Set,int,java.nio.file.FileVisitor)).
 
+  Returns `path`.
+
   Options:
   * [`:follow-links`](/README.md#follow-links)
   * `:max-depth` - maximum directory depth to walk, defaults is unlimited
@@ -244,9 +246,7 @@
 
   All visitor functions must return one of `:continue`, `:skip-subtree`, `:skip-siblings` or `:terminate`.
   A different return value will throw. When not supplied, visitor functions default
-  to `(constantly :continue)`.
-
-  Returns `path`."
+  to `(constantly :continue)`."
   [path
    {:keys [:pre-visit-dir :post-visit-dir
            :visit-file :visit-file-failed
@@ -1065,6 +1065,8 @@
   a `NoSuchFileException` will be thrown. Callers can, if their use case requires it,
   implement their own retry loop.
 
+  Returns `path`.
+  
   Options:
   * `:time` - last modified time (epoch milliseconds (long), [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html),
   or [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)), defaults to current time

@@ -2104,12 +2104,12 @@
     (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
     (is (= lmt-file (fs/last-modified-time "file"))
         "sanity test: file time before touch")
-    (fs/touch "file")
+    (is (= "file" (str (fs/touch "file"))))
     (let [ft (fs/last-modified-time "file")
           recent-time (file-time-recently)]
       (is (pos? (compare ft recent-time))
           (format "file time %s on/after very recent time %s" ft recent-time)))
-    (fs/touch "file" {:time lmt-new})
+    (is (= "file" (str (fs/touch "file" {:time lmt-new}))))
     (is (= lmt-new (fs/last-modified-time "file"))
         "file time touched (with specified time)")))
 
@@ -2122,17 +2122,17 @@
     (Files/setAttribute (fs/path "dir") "basic:lastModifiedTime" lmt-dir nofollow-opts)
     (is (= lmt-dir (fs/last-modified-time "dir"))
         "sanity test: dir time before touch")
-    (fs/touch "dir")
+    (is (= "dir" (str (fs/touch "dir"))))
     (let [dt (fs/last-modified-time "dir")
           recent-time (file-time-recently)]
       (is (pos? (compare dt recent-time))
           (format "dir time %s on/after very recent time %s" dt recent-time)))
-    (fs/touch "dir" {:time lmt-new})
+    (is (= "dir" (str (fs/touch "dir" {:time lmt-new}))))
     (is (= lmt-new (fs/last-modified-time "dir"))
         "dir time touched (with specified time)")))
 
 (deftest touch-creates-new-file-with-current-time-test
-  (fs/touch "file")
+  (is (= "file" (str (fs/touch "file"))))
   (let [ft (fs/last-modified-time "file")
           recent-time (file-time-recently)]
     (is (pos? (compare ft recent-time))
@@ -2140,7 +2140,7 @@
 
 (deftest touch-creates-new-file-with-specific-time-test
   (let [lmt-new (file-time "2024-01-01T00:00:00.00Z")]
-    (fs/touch "file" {:time lmt-new})
+    (is (= "file" (str (fs/touch "file" {:time lmt-new}))))
     (is (= lmt-new (fs/last-modified-time "file"))
         "file time touched (with specified time)")))
 
@@ -2172,13 +2172,12 @@
           (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
         ;; bb fs call (due to jdk bug, is expected to throw on some os/jdk combos)
         (is (match?
-             expected-exception
+             (or expected-exception "link")
              (try
-               (fs/touch "link" (assoc opts :time lmt-new))
-               nil
+               (str (fs/touch "link" (assoc opts :time lmt-new)))
                (catch Throwable e
                  (class e))))
-            "exception")
+            "return/exception")
         ;; use JVM API to test expected result
         (is (= expected-lmt-file (Files/getAttribute (fs/path "file") "basic:lastModifiedTime" nofollow-opts))
             "file")
