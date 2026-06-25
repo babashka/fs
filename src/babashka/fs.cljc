@@ -1830,7 +1830,7 @@
 
   See also: [[home]]"
   [path]
-  (let [path-str (str path)]
+  (let [path-str #?(:clj (str (as-path path)) :default (str path))]
     (if (.startsWith path-str "~")
       (let [sep (.indexOf path-str ^String file-separator)]
         (if (neg? sep)
