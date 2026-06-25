@@ -9,6 +9,12 @@
   #?(:clj (String. ^bytes b "UTF-8")
      :default (.toString b)))
 
+(defn file-time?
+  "True if `t` is the platform's last-modified-time type."
+  [t]
+  #?(:clj (instance? java.nio.file.attribute.FileTime t)
+     :default (instance? js/Date t)))
+
 (defn tmp []
   (fs/create-temp-dir {:prefix "fs-node-test-"}))
 
