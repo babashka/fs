@@ -1555,9 +1555,9 @@
   [anchor-path path-set]
   (let [lm (last-modified anchor-path)]
     (map str
-         (filter #(#?(:clj pos? :default (fn [x] (pos? x)))
-                   (#?(:clj .compareTo :default (fn [a b] (- (.getTime a) (.getTime b))))
-                    (last-modified-1 %) lm))
+         (filter (fn [f]
+                   (pos? #?(:clj (.compareTo ^FileTime (last-modified-1 f) ^FileTime lm)
+                            :default (- (.getTime (last-modified-1 f)) (.getTime lm)))))
                  (expand-file-set path-set)))))
 
 ;;;; Zip
@@ -1832,7 +1832,7 @@
   [path]
   (let [path-str (str path)]
     (if (.startsWith path-str "~")
-      (let [sep (.indexOf path-str file-separator)]
+      (let [sep (.indexOf path-str ^String file-separator)]
         (if (neg? sep)
           (home (subs path-str 1))
           (path* (home (subs path-str 1 sep)) (subs path-str (inc sep)))))
