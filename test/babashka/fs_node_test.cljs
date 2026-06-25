@@ -1,12 +1,8 @@
 (ns babashka.fs-node-test
   (:require [babashka.fs :as fs]
             [clojure.string :as str]
-            #?@(:clj     [[babashka.fs-test-utils :refer [with-tmp]]
-                          [clojure.test :refer [deftest is testing run-tests]]]
-                :cljs    [[babashka.fs-test-utils :include-macros true :refer [with-tmp]]
-                          [clojure.test :refer [deftest is testing run-tests]]]
-                :default [[babashka.fs-test-utils :refer [with-tmp]]
-                          [clojure.test :refer [deftest is testing run-tests]]])))
+            [babashka.fs-test-utils :include-macros true :refer [with-tmp]]
+            [clojure.test :refer [deftest is testing run-tests]]))
 
 ;;;; Path manipulation
 
