@@ -67,6 +67,16 @@
   {:doc "Launch an nREPL server"
    :task (from-scratch-cwd "repl" [:test-runner :repl-runner] *command-line-args*)}
 
+  cljs-test
+  {:doc "Run ClojureScript tests"
+   :task (apply clojure "-M:cljs-test" *command-line-args*)}
+
+  squint-test
+  {:doc "Run squint/Node.js tests"
+   :task (do (shell "npm" "install" "--no-save" "--prefix" "." "file:/Users/borkdude/dev/squint")
+             (shell "node_modules/.bin/squint" "compile")
+             (shell "node" ".squint-out/babashka/run_tests.mjs"))}
+
   quickdoc
   {:doc "Invoke quickdoc"
    :requires ([quickdoc.api :as api])

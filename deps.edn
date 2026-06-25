@@ -12,6 +12,11 @@
                          :main-opts ["-m" "cognitect.test-runner"
                                      "--dir" "../.."]}
 
+           :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.1"}
+                                   org.clojure/clojurescript {:mvn/version "1.12.145"}}
+                       :extra-paths ["test" "cljs-test-runner-out/gen"]
+                       :main-opts ["-m" "cljs-test-runner.main" "-d" "test"]}
+
            :repl-runner {:extra-paths ["dev"]
                          :extra-deps {nrepl/nrepl {:mvn/version "1.6.0"}
                                       refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}

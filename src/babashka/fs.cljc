@@ -1,93 +1,125 @@
 (ns babashka.fs
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str]
-            [clojure.walk :as walk])
-  (:import [java.io File InputStream]
-           [java.net URI]
-           [java.nio.file StandardOpenOption CopyOption
-            #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
-            Files
-            FileSystems
-            FileVisitOption
-            FileVisitResult
-            StandardCopyOption
-            LinkOption Path
-            FileVisitor]
-           [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions PosixFilePermission]
-           [java.nio.charset Charset]
-           [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry]
-           [java.io File BufferedInputStream FileInputStream FileOutputStream]))
+  (:require [clojure.string :as str]
+            #?@(:bb [[clojure.java.io :as io]
+                     [clojure.walk :as walk]]
+                :clj [[clojure.java.io :as io]
+                      [clojure.walk :as walk]]
+                :default [["fs" :as node-fs]
+                          ["path" :as node-path]
+                          ["os" :as node-os]
+                          ["zlib" :as node-zlib]]))
+  #?@(:cljs []
+      :squint []
+      :default [(:import [java.io File InputStream]
+                         [java.net URI]
+                         [java.nio.file StandardOpenOption CopyOption
+                          #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
+                          Files
+                          FileSystems
+                          FileVisitOption
+                          FileVisitResult
+                          StandardCopyOption
+                          LinkOption Path
+                          FileVisitor]
+                         [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions PosixFilePermission]
+                         [java.nio.charset Charset]
+                         [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry]
+                         [java.io File BufferedInputStream FileInputStream FileOutputStream])]))
 
-(set! *warn-on-reflection* true)
+#?(:clj (set! *warn-on-reflection* true))
+
+;;;; Private helpers
+
+(defn- as-path
+  #?(:clj ^Path [path]
+     :default [path])
+  #?(:clj (if (instance? Path path) path
+              (if (instance? URI path)
+                (java.nio.file.Paths/get ^URI path)
+                (.toPath (io/file path))))
+     :default (str path)))
+
+(defn- as-file
+  #?(:clj ^java.io.File [path]
+     :default [path])
+  #?(:clj (if (instance? Path path) (.toFile ^Path path)
+              (io/file path))
+     :default (str path)))
+
+(defn- get-env [k]
+  #?(:clj (System/getenv k)
+     :default (aget (.-env js/process) k)))
 
 (def ^:private fvr-lookup
-  {:continue FileVisitResult/CONTINUE
-   :skip-subtree FileVisitResult/SKIP_SUBTREE
-   :skip-siblings FileVisitResult/SKIP_SIBLINGS
-   :terminate FileVisitResult/TERMINATE})
+  #?(:clj {:continue FileVisitResult/CONTINUE
+           :skip-subtree FileVisitResult/SKIP_SUBTREE
+           :skip-siblings FileVisitResult/SKIP_SIBLINGS
+           :terminate FileVisitResult/TERMINATE}
+     :default nil))
 
 (defn- file-visit-result
   [x]
-  (if (instance? FileVisitResult x) x
-      (or (fvr-lookup x)
-          (throw (Exception. "Expected: one of :continue, :skip-subtree, :skip-siblings, :terminate.")))))
-
-(defn- as-path
-  ^Path [path]
-  (if (instance? Path path) path
-      (if (instance? URI path)
-        (java.nio.file.Paths/get ^URI path)
-        (.toPath (io/file path)))))
-
-(defn- as-file
-  "Coerces a path into a file if it isn't already one."
-  ^java.io.File [path]
-  (if (instance? Path path) (.toFile ^Path path)
-      (io/file path)))
-
-(defn- get-env [k]
-  (System/getenv k))
+  #?(:clj (if (instance? FileVisitResult x) x
+              (or (fvr-lookup x)
+                  (throw (Exception. "Expected: one of :continue, :skip-subtree, :skip-siblings, :terminate."))))
+     :default (if (#{:continue :skip-subtree :skip-siblings :terminate} x)
+                x
+                (throw (ex-info "Expected: one of :continue, :skip-subtree, :skip-siblings, :terminate." {})))))
 
 (defn path
   "Coerces `path`(s) into a `Path`, combining multiple paths into one.
   Multiple-arg versions treat the first argument as parent and subsequent
   args as children relative to the parent."
-  (^Path [path]
-   (as-path path))
-  (^Path [parent child]
-   (if parent
-     (if (string? child)
-       (.resolve ^Path (as-path parent) ^String child)
-       (.resolve ^Path (as-path parent) (as-path child)))
-     (as-path child)))
-  (^Path [parent child & more]
+  #?(:clj (^Path [path] (as-path path))
+     :default ([path] (str path)))
+  #?(:clj (^Path [parent child]
+           (if parent
+             (if (string? child)
+               (.resolve ^Path (as-path parent) ^String child)
+               (.resolve ^Path (as-path parent) (as-path child)))
+             (as-path child)))
+     :default ([parent child]
+               (if parent
+                 (let [c (str child)]
+                   (if (.isAbsolute node-path c)
+                     c
+                     (.join node-path (str parent) c)))
+                 (str child))))
+  ([parent child & more]
    (reduce path (path parent child) more)))
 
-(def ^:private path* "synonym to avoid path arg-name to path fn shadowing conflicts" path)
+(def ^:private path* path)
 
 (defn file
   "Coerces `path`(s) into a `File`, combining multiple paths into one.
   Multiple-arg versions treat the first argument as parent and subsequent args
   as children relative to the parent."
-  (^File [path] (as-file path))
-  (^File [path & paths]
-   (apply io/file (map as-file (cons path paths)))))
+  #?(:clj (^File [path] (as-file path))
+     :default ([path] (str path)))
+  ([path & paths]
+   #?(:clj (apply io/file (map as-file (cons path paths)))
+      :default (reduce path* (path* path) paths))))
 
-(defn- ->link-opts ^"[Ljava.nio.file.LinkOption;"
-  [nofollow-links]
-  (into-array LinkOption
-              (cond-> []
-                nofollow-links
-                (conj LinkOption/NOFOLLOW_LINKS))))
+(defn- ->link-opts
+  #?(:clj ^"[Ljava.nio.file.LinkOption;" [nofollow-links]
+     :default [_nofollow-links])
+  #?(:clj (into-array LinkOption
+                       (cond-> []
+                         nofollow-links
+                         (conj LinkOption/NOFOLLOW_LINKS)))
+     :default nil))
 
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)"
-  (^Path [path] (real-path path nil))
-  (^Path [path {:keys [:nofollow-links]}]
-   (.toRealPath (as-path path) (->link-opts nofollow-links))))
+  ([path] (real-path path nil))
+  ([path {:keys [:nofollow-links]}]
+   #?(:clj (.toRealPath (as-path path) (->link-opts nofollow-links))
+      :default (if nofollow-links
+                 (.resolve node-path (.cwd js/process) (str path))
+                 (.realpathSync node-fs (str path))))))
 
 (defn owner
   "Returns the owner of `path` via [Files/getOwner](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getOwner(java.nio.file.Path,java.nio.file.LinkOption...)).
@@ -97,7 +129,8 @@
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([path] (owner path nil))
   ([path {:keys [:nofollow-links]}]
-   (Files/getOwner (as-path path) (->link-opts nofollow-links))))
+   #?(:clj (Files/getOwner (as-path path) (->link-opts nofollow-links))
+      :default (throw (ex-info "owner not supported on Node.js" {})))))
 
 ;;;; Predicates
 
@@ -108,8 +141,12 @@
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([path] (regular-file? path nil))
   ([path {:keys [:nofollow-links]}]
-   (Files/isRegularFile (as-path path)
-                        (->link-opts nofollow-links))))
+   #?(:clj (Files/isRegularFile (as-path path) (->link-opts nofollow-links))
+      :default (try
+                 (.isFile (if nofollow-links
+                            (.lstatSync node-fs (str path))
+                            (.statSync node-fs (str path))))
+                 (catch :default _ false)))))
 
 (defn directory?
   "Returns `true` if `path` is a directory via [Files/isDirectory](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isDirectory(java.nio.file.Path,java.nio.file.LinkOption...)).
@@ -118,37 +155,61 @@
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([path] (directory? path nil))
   ([path {:keys [:nofollow-links]}]
-   (Files/isDirectory (as-path path)
-                      (->link-opts nofollow-links))))
+   #?(:clj (Files/isDirectory (as-path path) (->link-opts nofollow-links))
+      :default (try
+                 (.isDirectory (if nofollow-links
+                                 (.lstatSync node-fs (str path))
+                                 (.statSync node-fs (str path))))
+                 (catch :default _ false)))))
 
-(def ^:private simple-link-opts
-  (into-array LinkOption []))
+#?(:clj (def ^:private simple-link-opts (into-array LinkOption [])))
 
 (defn- directory-simple?
-  [^Path path] (Files/isDirectory path simple-link-opts))
+  [path]
+  #?(:clj (Files/isDirectory (as-path path) simple-link-opts)
+     :default (directory? path)))
 
 (defn hidden?
   "Returns `true` if `path` is hidden via [Files/isHidden](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isHidden(java.nio.file.Path)).
 
   TIP: some older JDKs can throw on empty-string path `(hidden \"\")`.
   Consider instead checking cwd via `(hidden \".\")`."
-  [path] (Files/isHidden (as-path path)))
+  [path]
+  #?(:clj (Files/isHidden (as-path path))
+     :default (str/starts-with? (.basename node-path (str path)) ".")))
 
 (defn absolute?
   "Returns `true` if `path` is absolute via [Path#isAbsolute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#isAbsolute())."
-  [path] (.isAbsolute (as-path path)))
+  [path]
+  #?(:clj (.isAbsolute (as-path path))
+     :default (.isAbsolute node-path (str path))))
 
 (defn executable?
   "Returns `true` if `path` is executable via [Files/isExecutable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isExecutable(java.nio.file.Path))."
-  [path] (Files/isExecutable (as-path path)))
+  [path]
+  #?(:clj (Files/isExecutable (as-path path))
+     :default (try
+                (.accessSync node-fs (str path) (.-X_OK (.-constants node-fs)))
+                true
+                (catch :default _ false))))
 
 (defn readable?
   "Returns `true` if `path` is readable via [Files/isReadable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isReadable(java.nio.file.Path))"
-  [path] (Files/isReadable (as-path path)))
+  [path]
+  #?(:clj (Files/isReadable (as-path path))
+     :default (try
+                (.accessSync node-fs (str path) (.-R_OK (.-constants node-fs)))
+                true
+                (catch :default _ false))))
 
 (defn writable?
   "Returns `true` if `path` is writable via [Files/isWritable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isWritable(java.nio.file.Path))"
-  [path] (Files/isWritable (as-path path)))
+  [path]
+  #?(:clj (Files/isWritable (as-path path))
+     :default (try
+                (.accessSync node-fs (str path) (.-W_OK (.-constants node-fs)))
+                true
+                (catch :default _ false))))
 
 (defn relative?
   "Returns `true` if `path` is relative (in other words, is not [[absolute?]])."
@@ -161,12 +222,15 @@
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([path] (exists? path nil))
   ([path {:keys [:nofollow-links]}]
-   (try
-     (Files/exists
-      (as-path path)
-      (->link-opts nofollow-links))
-     (catch Exception _e
-       false))))
+   #?(:clj (try
+             (Files/exists (as-path path) (->link-opts nofollow-links))
+             (catch Exception _e false))
+      :default (try
+                 (if nofollow-links
+                   (.lstatSync node-fs (str path))
+                   (.statSync node-fs (str path)))
+                 true
+                 (catch :default _ false)))))
 
 ;;;; End predicates
 
@@ -174,11 +238,15 @@
   "Returns a seq of paths for all components of `path`.
   i.e.: split on the [[file-separator]]."
   [path]
-  (seq (as-path path)))
+  #?(:clj (seq (as-path path))
+     :default (let [p (.normalize node-path (str path))]
+                (seq (remove str/blank? (.split p (.-sep node-path)))))))
 
 (defn absolutize
   "Converts `path` into an absolute path via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
-  [path] (.toAbsolutePath (as-path path)))
+  [path]
+  #?(:clj (.toAbsolutePath (as-path path))
+     :default (.resolve node-path (str path))))
 
 (defn relativize
   "Returns `other-path` relative to `base-path` via [Path#relativize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#relativize(java.nio.file.Path)).
@@ -186,13 +254,15 @@
   Examples:
   - `(fs/relativize \"a/b\" \"a/b/c/d\")` => `c/d`
   - `(fs/relativize \"a/b/c/d\" \"a/b\")` => `../..`"
-  ^Path [base-path other-path]
-  (.relativize (as-path base-path) (as-path other-path)))
+  [base-path other-path]
+  #?(:clj (.relativize (as-path base-path) (as-path other-path))
+     :default (.relative node-path (str base-path) (str other-path))))
 
 (defn normalize
   "Returns normalized path for `path` via [Path#normalize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#normalize())."
   [path]
-  (.normalize (as-path path)))
+  #?(:clj (.normalize (as-path path))
+     :default (.normalize node-path (str path))))
 
 (defn canonicalize
   "Returns the canonical path for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
@@ -201,11 +271,14 @@
   * [`:nofollow-links`](/README.md#nofollow-links) - when set, falls back on [[absolutize]] + [[normalize]].
 
   This function can be used as an alternative to [[real-path]] which requires files to exist."
-  (^Path [path] (canonicalize path nil))
-  (^Path [path {:keys [:nofollow-links]}]
-   (if nofollow-links
-     (-> path absolutize normalize)
-     (as-path (.getCanonicalPath (as-file path))))))
+  ([path] (canonicalize path nil))
+  ([path {:keys [:nofollow-links]}]
+   #?(:clj (if nofollow-links
+             (-> path absolutize normalize)
+             (as-path (.getCanonicalPath (as-file path))))
+      :default (if nofollow-links
+                 (-> path absolutize normalize)
+                 (.realpathSync node-fs (str path))))))
 
 (defn root
   "Returns root path for `path`, or `nil`, via [Path#getRoot](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getRoot()).
@@ -220,13 +293,16 @@
 
   On Linux and macOS, returns the leading `/` for anything that looks like an absolute path."
   [path]
-  (.getRoot (as-path path)))
+  #?(:clj (.getRoot (as-path path))
+     :default (let [r (.-root (.parse node-path (str path)))]
+                (when (seq r) r))))
 
 (defn file-name
   "Returns the name of the file or directory for `path` via [File#getName](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getName()).
   E.g. `(file-name \"foo/bar/baz\")` returns `\"baz\"`."
   [path]
-  (.getName (as-file path)))
+  #?(:clj (.getName (as-file path))
+     :default (.basename node-path (str path))))
 
 (def ^:private continue (constantly :continue))
 
@@ -251,31 +327,82 @@
    {:keys [:pre-visit-dir :post-visit-dir
            :visit-file :visit-file-failed
            :follow-links :max-depth]}]
-  (let [pre-visit-dir (or pre-visit-dir continue)
-        post-visit-dir (or post-visit-dir continue)
-        visit-file (or visit-file continue)
-        max-depth (or max-depth Integer/MAX_VALUE)
-        visit-opts (set (cond-> []
-                          follow-links (conj FileVisitOption/FOLLOW_LINKS)))
-        visit-file-failed (or visit-file-failed
-                              (fn [_path _attrs]
-                                :continue))]
-    (Files/walkFileTree (as-path path)
-                        visit-opts
-                        max-depth
-                        (reify FileVisitor
-                          (preVisitDirectory [_ dir attrs]
-                            (-> (pre-visit-dir dir attrs)
-                                file-visit-result))
-                          (postVisitDirectory [_ dir ex]
-                            (-> (post-visit-dir dir ex)
-                                file-visit-result))
-                          (visitFile [_ path attrs]
-                            (-> (visit-file path attrs)
-                                file-visit-result))
-                          (visitFileFailed [_ path ex]
-                            (-> (visit-file-failed path ex)
-                                file-visit-result))))))
+  #?(:clj
+     (let [pre-visit-dir (or pre-visit-dir continue)
+           post-visit-dir (or post-visit-dir continue)
+           visit-file (or visit-file continue)
+           max-depth (or max-depth Integer/MAX_VALUE)
+           visit-opts (set (cond-> []
+                             follow-links (conj FileVisitOption/FOLLOW_LINKS)))
+           visit-file-failed (or visit-file-failed
+                                 (fn [_path _attrs]
+                                   :continue))]
+       (Files/walkFileTree (as-path path)
+                           visit-opts
+                           max-depth
+                           (reify FileVisitor
+                             (preVisitDirectory [_ dir attrs]
+                               (-> (pre-visit-dir dir attrs)
+                                   file-visit-result))
+                             (postVisitDirectory [_ dir ex]
+                               (-> (post-visit-dir dir ex)
+                                   file-visit-result))
+                             (visitFile [_ path attrs]
+                               (-> (visit-file path attrs)
+                                   file-visit-result))
+                             (visitFileFailed [_ path ex]
+                               (-> (visit-file-failed path ex)
+                                   file-visit-result)))))
+     :default
+     (let [pre-visit-dir  (or pre-visit-dir continue)
+           post-visit-dir (or post-visit-dir continue)
+           visit-file     (or visit-file continue)
+           visit-file-failed (or visit-file-failed (constantly :continue))
+           max-depth      (or max-depth js/Infinity)
+           root           (str path)]
+       (letfn [(do-walk [dir depth]
+                 (let [result (file-visit-result (pre-visit-dir dir nil))]
+                   (cond
+                     (= result :terminate) :terminate
+                     (= result :skip-subtree)
+                     (file-visit-result (post-visit-dir dir nil))
+                     :else
+                     (let [term? (volatile! false)]
+                       (when (< depth max-depth)
+                         (try
+                           (let [entries (.readdirSync node-fs dir)]
+                             (loop [i 0 skip-sibs? false]
+                               (when (and (< i (.-length entries))
+                                          (not skip-sibs?)
+                                          (not @term?))
+                                 (let [entry    (aget entries i)
+                                       child    (.join node-path dir entry)
+                                       stat     (try (if follow-links
+                                                       (.statSync node-fs child)
+                                                       (.lstatSync node-fs child))
+                                                     (catch :default _ nil))
+                                       is-dir?  (and stat (.isDirectory stat))
+                                       result   (if is-dir?
+                                                  (do-walk child (inc depth))
+                                                  (if stat
+                                                    (try
+                                                      (file-visit-result (visit-file child nil))
+                                                      (catch :default e
+                                                        (file-visit-result (visit-file-failed child e))))
+                                                    (file-visit-result (visit-file-failed child nil))))]
+                                   (cond
+                                     (= result :terminate)
+                                     (vreset! term? true)
+                                     (= result :skip-siblings)
+                                     (recur (inc i) true)
+                                     :else
+                                     (recur (inc i) false))))))
+                           (catch :default _ nil)))
+                       (if @term?
+                         :terminate
+                         (file-visit-result (post-visit-dir dir nil)))))))]
+         (do-walk root 0)
+         root))))
 
 #?(:bb nil :clj
    (defn- directory-stream
@@ -294,38 +421,65 @@
                                       (accept [_ entry]
                                         (boolean (accept* entry))))))))))
 
-#?(:bb nil :clj
-   (defn list-dir
-     "Returns a vector of all paths in `dir`. For descending into subdirectories use [[glob]].
+(def ^:private win?
+  #?(:clj (-> (System/getProperty "os.name")
+              (str/lower-case)
+              (str/includes? "win"))
+     :default (= "win32" js/process.platform)))
+
+#?(:clj nil
+   :default
+   (defn- glob-match?
+     "Returns true if `name` matches glob `pattern`.
+  Handles `**` (any chars including separator), `*` (any chars except separator),
+  and `?` (single char except separator)."
+     [name pattern]
+     (let [sep-class (if win? "[^/\\\\]" "[^/]")
+           ;; split on ** to handle separately, then rejoin with .*
+           parts (.split pattern "**")
+           convert-segment (fn [seg]
+                             (-> seg
+                                 (.replace (js/RegExp. "[.+^${}()|[\\]\\\\]" "g") "\\$&")
+                                 (.replace (js/RegExp. "\\*" "g") (str sep-class "*"))
+                                 (.replace (js/RegExp. "\\?" "g") sep-class)))
+           regex-str (str/join ".*" (map convert-segment parts))]
+       (.test (js/RegExp. (str "^" regex-str "$")) name))))
+
+(defn list-dir
+  "Returns a vector of all paths in `dir`. For descending into subdirectories use [[glob]].
 
      - `glob-or-accept` - a [[glob]] string such as `\"*.edn\"` or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
-     ([dir]
-      (with-open [stream (directory-stream dir)]
-        (vec stream)))
-     ([dir glob-or-accept]
-      (with-open [stream (directory-stream dir glob-or-accept)]
-        (vec stream)))))
+  ([dir]
+   #?(:bb (throw (UnsupportedOperationException. "list-dir not supported in babashka, use glob"))
+      :clj (with-open [stream (directory-stream dir)]
+             (vec stream))
+      :default (let [d (str dir)]
+                 (mapv #(.join node-path d %) (.readdirSync node-fs d)))))
+  ([dir glob-or-accept]
+   #?(:bb (throw (UnsupportedOperationException. "list-dir not supported in babashka, use glob"))
+      :clj (with-open [stream (directory-stream dir glob-or-accept)]
+             (vec stream))
+      :default (let [entries (list-dir dir)]
+                 (if (string? glob-or-accept)
+                   (filterv #(glob-match? (file-name %) glob-or-accept) entries)
+                   (filterv glob-or-accept entries))))))
 
 (defn- path-seq
   [path]
   (tree-seq
-   (fn [^Path path] (directory? path))
-   (fn [^Path path] (seq (list-dir path)))
+   directory?
+   list-dir
    (as-path path)))
 
 (def file-separator
   "The system-dependent default path component separator character (as string) via [File/separator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#separator)."
-  File/separator)
+  #?(:clj File/separator
+     :default (.-sep node-path)))
 
 (def path-separator
   "The system-dependent path-separator character (as string) via [File/pathSeparator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#pathSeparator)."
-  File/pathSeparator)
-
-(def ^:private win?
-  "`true` if running on Windows Operating System"
-  (-> (System/getProperty "os.name")
-      (str/lower-case)
-      (str/includes? "win")))
+  #?(:clj File/pathSeparator
+     :default (.-delimiter node-path)))
 
 (defn- escape-glob-chars
   "Escapes special glob characters in the input string."
@@ -340,7 +494,8 @@
 (defn- escape-regex-chars
   "Escapes a string so it can be used literally in a regular expression."
   [s]
-  (java.util.regex.Pattern/quote s))
+  #?(:clj (java.util.regex.Pattern/quote s)
+     :default (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&")))
 
 (defn match
   "Returns a vector of paths matching `pattern` (on path and filename) relative to `root-dir`.
@@ -374,7 +529,6 @@
          results (atom (transient []))
          past-root? (volatile! nil)
          pattern (let [separator (when-not (str/ends-with? base-path file-separator)
-                                   ;; we need to escape the file separator on Windows
                                    (str (when win? "\\")
                                         file-separator))]
                    (str escaped-base-path
@@ -383,12 +537,27 @@
                           (str/replace pattern "/" "\\\\")
                           pattern)))
          pattern (str prefix ":" pattern)
-         matcher (.getPathMatcher
-                  (FileSystems/getDefault)
-                  pattern)
-         match (fn [^Path path]
-                 (when (.matches matcher path)
-                   (swap! results conj! path))
+         #?@(:clj [matcher (.getPathMatcher
+                            (FileSystems/getDefault)
+                            pattern)]
+             :default [matcher (case prefix
+                                 "glob"
+                                 (let [pat (subs pattern 5)]
+                                   (fn [p]
+                                     (glob-match? (if win?
+                                                    (.replace p (js/RegExp. "/" "g") "\\")
+                                                    p)
+                                                  (if win?
+                                                    (.replace pat (js/RegExp. "/" "g") "\\")
+                                                    pat))))
+                                 "regex"
+                                 (let [pat (subs pattern 6)
+                                       re  (js/RegExp. pat)]
+                                   (fn [p] (.test re p)))
+                                 (fn [_] false))])
+         match (fn [path]
+                 (when (#?(:clj .matches :default matcher) #?(:clj matcher) path)
+                   (swap! results conj! #?(:clj path :default (str path))))
                  nil)]
      (walk-file-tree
       base-path
@@ -410,9 +579,9 @@
                        (match path))
                      :continue)})
      (let [results (persistent! @results)
-           absolute-cwd (absolutize "")]
+           absolute-cwd (str (absolutize ""))]
        (if (relative? root-dir)
-         (mapv #(relativize absolute-cwd %)
+         (mapv #(str (relativize absolute-cwd %))
                results)
          results)))))
 
@@ -453,45 +622,59 @@
          hidden    (:hidden opts (str/starts-with? pattern "."))]
      (match root-dir (str "glob:" pattern) (assoc opts :recursive recursive :hidden hidden)))))
 
-(defn- ->copy-opts ^"[Ljava.nio.file.CopyOption;"
-  [replace-existing copy-attributes atomic-move nofollow-links]
-  (into-array CopyOption
-              (cond-> []
-                replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
-                copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
-                atomic-move      (conj StandardCopyOption/ATOMIC_MOVE)
-                nofollow-links   (conj LinkOption/NOFOLLOW_LINKS))))
+#?(:clj
+   (defn- ->copy-opts ^"[Ljava.nio.file.CopyOption;"
+     [replace-existing copy-attributes atomic-move nofollow-links]
+     (into-array CopyOption
+                 (cond-> []
+                   replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
+                   copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
+                   atomic-move      (conj StandardCopyOption/ATOMIC_MOVE)
+                   nofollow-links   (conj LinkOption/NOFOLLOW_LINKS)))))
 
 (defn copy
   "Copies `source` file or input-stream to `target-path` dir or file via [Files/copy](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#copy(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
-  
+
   Returns copied target file.
-  
+
   Options:
   * `:replace-existing`
   * `:copy-attributes`
   * [`:nofollow-links`](/README.md#nofollow-links) - used to determine to copy symbolic link itself or not."
   ([source target-path] (copy source target-path nil))
   ([source target-path {:keys [replace-existing
-                                    copy-attributes
-                                    nofollow-links]}]
-   (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
-         dest (as-path target-path)
-         dest (if (directory-simple? dest)
-                (path dest (file-name source))
-                dest)
-         input-stream? (instance? java.io.InputStream source)]
-     (if input-stream?
-       (do (Files/copy ^java.io.InputStream source dest copy-options)
-           dest)
-       (Files/copy (as-path source) dest copy-options)))))
+                                copy-attributes
+                                nofollow-links]}]
+   #?(:clj
+      (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
+            dest (as-path target-path)
+            dest (if (directory-simple? dest)
+                   (path dest (file-name source))
+                   dest)
+            input-stream? (instance? java.io.InputStream source)]
+        (if input-stream?
+          (do (Files/copy ^java.io.InputStream source dest copy-options)
+              dest)
+          (Files/copy (as-path source) dest copy-options)))
+      :default
+      (let [dest (str target-path)
+            dest (if (directory-simple? dest)
+                   (.join node-path dest (file-name source))
+                   dest)
+            mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
+        (.copyFileSync node-fs (str source) dest mode)
+        dest))))
 
 (defn posix->str
   "Converts a set of `PosixFilePermission` `p` to a string, like `\"rwx------\"` via [PosixFilePermissions/toString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#toString(java.util.Set)).
 
   See also: [[str->posix]]"
   [p]
-  (PosixFilePermissions/toString p))
+  #?(:clj (PosixFilePermissions/toString p)
+     :default (let [rwx ["r" "w" "x"]]
+                (apply str (for [shift [6 3 0]
+                                 [c bit] (map vector rwx [4 2 1])]
+                             (if (pos? (bit-and (unsigned-bit-shift-right p shift) bit)) c "-"))))))
 
 (defn str->posix
   "Converts string `s` to a set of `PosixFilePermission` via [PosixFilePermissions/fromString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#fromString(java.lang.String)).
@@ -500,28 +683,35 @@
 
   See also: [[posix->str]]"
   [s]
-  (PosixFilePermissions/fromString s))
+  #?(:clj (PosixFilePermissions/fromString s)
+     :default (let [parse-triple (fn [t]
+                                   (+ (if (= \r (nth t 0)) 4 0)
+                                      (if (= \w (nth t 1)) 2 0)
+                                      (if (= \x (nth t 2)) 1 0)))]
+                (+ (* 64 (parse-triple (subs s 0 3)))
+                   (* 8  (parse-triple (subs s 3 6)))
+                   (parse-triple (subs s 6 9))))))
 
 (defn- ->posix-file-permissions [s]
   (cond (string? s)
         (str->posix s)
-        ;; (set? s)
-        ;; (into #{} (map keyword->posix-file-permission) s)
         :else
         s))
 
-(defn- posix->file-attribute [x]
-  (PosixFilePermissions/asFileAttribute x))
+#?(:clj
+   (defn- posix->file-attribute [x]
+     (PosixFilePermissions/asFileAttribute x)))
 
-(defn- posix->attrs
-  ^"[Ljava.nio.file.attribute.FileAttribute;" [posix-file-permissions]
-  (let [attrs (if posix-file-permissions
-                (-> posix-file-permissions
-                    (->posix-file-permissions)
-                    (posix->file-attribute)
-                    vector)
-                [])]
-    (into-array FileAttribute attrs)))
+#?(:clj
+   (defn- posix->attrs
+     ^"[Ljava.nio.file.attribute.FileAttribute;" [posix-file-permissions]
+     (let [attrs (if posix-file-permissions
+                   (-> posix-file-permissions
+                       (->posix-file-permissions)
+                       (posix->file-attribute)
+                       vector)
+                   [])]
+       (into-array FileAttribute attrs))))
 
 (defn create-dir
   "Creates `dir` via [Files/createDirectory](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectory(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
@@ -535,8 +725,13 @@
   ([dir]
    (create-dir dir nil))
   ([dir {:keys [:posix-file-permissions]}]
-   (let [attrs (posix->attrs posix-file-permissions)]
-     (Files/createDirectory (as-path dir) attrs))))
+   #?(:clj (let [attrs (posix->attrs posix-file-permissions)]
+             (Files/createDirectory (as-path dir) attrs))
+      :default (do
+                 (.mkdirSync node-fs (str dir))
+                 (when posix-file-permissions
+                   (.chmodSync node-fs (str dir) (->posix-file-permissions posix-file-permissions)))
+                 (str dir)))))
 
 (defn create-dirs
   "Creates `dir` via [Files/createDirectories](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectories(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
@@ -550,10 +745,15 @@
   Affected by [umask](/README.md#umask)."
   ([dir] (create-dirs dir nil))
   ([dir {:keys [:posix-file-permissions]}]
-   (let [p (as-path dir)]
-     (if (directory? p) ;; compensate for JDK11 which does not follow symlinks in its createDirectories
-       p
-       (Files/createDirectories (as-path dir) (posix->attrs posix-file-permissions))))))
+   #?(:clj (let [p (as-path dir)]
+             (if (directory? p)
+               p
+               (Files/createDirectories (as-path dir) (posix->attrs posix-file-permissions))))
+      :default (do
+                 (.mkdirSync node-fs (str dir) #js {:recursive true})
+                 (when posix-file-permissions
+                   (.chmodSync node-fs (str dir) (->posix-file-permissions posix-file-permissions)))
+                 (str dir)))))
 
 (defn set-posix-file-permissions
   "Sets `posix-file-permissions` on `path` via [Files/setPosixFilePermissions](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#setPosixFilePermissions(java.nio.file.Path,java.util.Set)).
@@ -563,10 +763,14 @@
 
   See also: [[posix-file-permissions]]"
   [path posix-file-permissions]
-  (Files/setPosixFilePermissions (as-path path) (->posix-file-permissions posix-file-permissions)))
+  #?(:clj (Files/setPosixFilePermissions (as-path path) (->posix-file-permissions posix-file-permissions))
+     :default (do
+                (.chmodSync node-fs (str path) (->posix-file-permissions posix-file-permissions))
+                (str path))))
 
 (defn posix-file-permissions
-  "Returns a set of `PosixFilePermission` for `path` via [Files/getPosixFilePermissions](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getPosixFilePermissions(java.nio.file.Path,java.nio.file.LinkOption...)).
+  "Returns POSIX permissions for `path`. On JVM, returns a set of `PosixFilePermission`.
+  On Node.js, returns the permission bits as an octal integer (e.g. `0755`).
   Use [[posix->str]] to convert to a string.
 
   Options:
@@ -575,97 +779,140 @@
   See also: [[set-posix-file-permissions]]"
   ([path] (posix-file-permissions path nil))
   ([path {:keys [:nofollow-links]}]
-   (Files/getPosixFilePermissions (as-path path) (->link-opts nofollow-links))))
+   #?(:clj (Files/getPosixFilePermissions (as-path path) (->link-opts nofollow-links))
+      :default (let [stat (if nofollow-links
+                            (.lstatSync node-fs (str path))
+                            (.statSync node-fs (str path)))]
+                 (bit-and (.-mode stat) 511)))))
 
 (defn- u+wx
   [f]
-  (if win?
-    (.setWritable (file f) true)
-    (let [^java.util.Set perms (posix-file-permissions f)
-          p1 (.add perms PosixFilePermission/OWNER_WRITE)
-          p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
-      (when (or p1 p2)
-        (set-posix-file-permissions f perms)))))
+  #?(:clj (if win?
+            (.setWritable (file f) true)
+            (let [^java.util.Set perms (posix-file-permissions f)
+                  p1 (.add perms PosixFilePermission/OWNER_WRITE)
+                  p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
+              (when (or p1 p2)
+                (set-posix-file-permissions f perms))))
+     :default (let [mode (bit-and (.-mode (.statSync node-fs (str f))) 511)]
+                (.chmodSync node-fs (str f) (bit-or mode 192)))))
 
 (defn starts-with?
   "Returns `true` if `this-path` starts with `other-path` via [Path#startsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#startsWith(java.nio.file.Path)).
 
   See also: [[ends-with?]]"
   [this-path other-path]
-  (.startsWith (as-path this-path) (as-path other-path)))
+  #?(:clj (.startsWith (as-path this-path) (as-path other-path))
+     :default (let [a (str this-path)
+                    b (str other-path)
+                    sep file-separator]
+                (or (= a b)
+                    (str/starts-with? a (if (str/ends-with? b sep) b (str b sep)))))))
 
 (defn ends-with?
   "Returns `true` if `this-path` ends with `other-path` via [Path#endsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#endsWith(java.nio.file.Path)).
 
   See also: [[starts-with?]]"
   [this-path other-path]
-  (.endsWith (as-path this-path) (as-path other-path)))
+  #?(:clj (.endsWith (as-path this-path) (as-path other-path))
+     :default (let [a (str this-path)
+                    b (str other-path)
+                    sep file-separator]
+                (or (= a b)
+                    (str/ends-with? a (str sep b))))))
 
 (defn copy-tree
   "Copies entire file tree from `source-dir` to `target-dir`. Creates `target-dir` if needed.
 
   Returns `target-dir`.
-  
+
   Options:
   * same as [[copy]]
   * `:posix-file-permissions` - string format unix-like system permissions passed to [[create-dirs]] when creating `target-dir`."
   ([source-dir target-dir] (copy-tree source-dir target-dir nil))
   ([source-dir target-dir {:keys [:replace-existing
                                   :copy-attributes
-                                  :nofollow-links]
+                                  :nofollow-links
+                                  :follow-links]
                            :as opts}]
-   (let [target-dir (as-path target-dir)]
-     ;; cf. Python
-     (when-not (directory? source-dir opts)
-       (throw (IllegalArgumentException. (str "Not a directory: " source-dir))))
-     ;; cf. Python
-     (when (and (exists? target-dir opts)
-                (not (directory? target-dir opts)))
-       (throw (IllegalArgumentException. (str "Not a directory: " target-dir))))
-     ;; cf. Python
-     (let [csrc (canonicalize source-dir)
-           cdest (canonicalize target-dir)]
-       (when (and (not= csrc cdest)
-                  (starts-with? cdest csrc))
-         (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
-                                    (str source-dir) (str target-dir))))))
-     (create-dirs target-dir opts)
-     (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
-           link-options (->link-opts nofollow-links)
-           from (real-path source-dir {:nofollow-links nofollow-links})
-           ;; using canonicalize here because real-path requires the path to exist
-           to (canonicalize target-dir {:nofollow-links nofollow-links})]
-       (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
-                                              (let [rel (relativize from dir)
-                                                    to-dir (path to rel)]
-                                                (when-not (Files/exists to-dir link-options)
-                                                  (Files/copy ^Path dir to-dir
-                                                              ^"[Ljava.nio.file.CopyOption;"
-                                                              copy-options)
-                                                  (when-not win?
-                                                    (u+wx to-dir))))
-                                              :continue)
-                             :visit-file (fn [from-path _attrs]
-                                           (let [rel (relativize from from-path)
-                                                 to-file (path to rel)]
-                                             (Files/copy ^Path from-path to-file
-                                                         ^"[Ljava.nio.file.CopyOption;"
-                                                         copy-options)
+   #?(:clj
+      (let [target-dir (as-path target-dir)]
+        (when-not (directory? source-dir opts)
+          (throw (IllegalArgumentException. (str "Not a directory: " source-dir))))
+        (when (and (exists? target-dir opts)
+                   (not (directory? target-dir opts)))
+          (throw (IllegalArgumentException. (str "Not a directory: " target-dir))))
+        (let [csrc (canonicalize source-dir)
+              cdest (canonicalize target-dir)]
+          (when (and (not= csrc cdest)
+                     (starts-with? cdest csrc))
+            (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
+                                       (str source-dir) (str target-dir))))))
+        (create-dirs target-dir opts)
+        (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
+              link-options (->link-opts nofollow-links)
+              from (real-path source-dir {:nofollow-links nofollow-links})
+              to (canonicalize target-dir {:nofollow-links nofollow-links})]
+          (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+                                                 (let [rel (relativize from dir)
+                                                       to-dir (path to rel)]
+                                                   (when-not (Files/exists to-dir link-options)
+                                                     (Files/copy ^Path dir to-dir
+                                                                 ^"[Ljava.nio.file.CopyOption;"
+                                                                 copy-options)
+                                                     (when-not win?
+                                                       (u+wx to-dir))))
+                                                 :continue)
+                               :visit-file (fn [from-path _attrs]
+                                             (let [rel (relativize from from-path)
+                                                   to-file (path to rel)]
+                                               (Files/copy ^Path from-path to-file
+                                                           ^"[Ljava.nio.file.CopyOption;"
+                                                           copy-options)
+                                               :continue)
                                              :continue)
-                                           :continue)
-                             :post-visit-dir (fn [dir _ex]
-                                               (let [rel (relativize from dir)
-                                                     to-dir (path to rel)]
-                                                 (when-not win?
-                                                   (let [perms (posix-file-permissions (file dir))]
-                                                     (Files/setPosixFilePermissions to-dir perms)))
-                                                 :continue))})
-       target-dir))))
+                               :post-visit-dir (fn [dir _ex]
+                                                 (let [rel (relativize from dir)
+                                                       to-dir (path to rel)]
+                                                   (when-not win?
+                                                     (let [perms (posix-file-permissions (file dir))]
+                                                       (Files/setPosixFilePermissions to-dir perms)))
+                                                   :continue))})
+          target-dir))
+      :default
+      (let [src (str source-dir)
+            dst (str target-dir)]
+        (when-not (directory? src)
+          (throw (ex-info (str "Not a directory: " src) {})))
+        (create-dirs dst opts)
+        (walk-file-tree src
+                        {:follow-links follow-links
+                         :pre-visit-dir (fn [dir _]
+                                          (let [rel (relativize src dir)
+                                                to-dir (path dst rel)]
+                                            (when-not (exists? to-dir)
+                                              (create-dir to-dir)
+                                              (when (and (not win?) copy-attributes)
+                                                (u+wx to-dir)))
+                                            :continue))
+                         :visit-file (fn [f _]
+                                       (let [rel (relativize src f)
+                                             to-file (path dst rel)
+                                             mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
+                                         (.copyFileSync node-fs (str f) (str to-file) mode)
+                                         :continue))
+                         :post-visit-dir (fn [dir _]
+                                           (when (and (not win?) copy-attributes)
+                                             (let [mode (posix-file-permissions dir)]
+                                               (.chmodSync node-fs (path dst (relativize src dir)) mode)))
+                                           :continue)})
+        dst))))
 
 (defn temp-dir
   "Returns `java.io.tmpdir` property as path."
   []
-  (as-path (System/getProperty "java.io.tmpdir")))
+  #?(:clj (as-path (System/getProperty "java.io.tmpdir"))
+     :default (.tmpdir node-os)))
 
 (defn create-temp-dir
   "Returns path to directory created via [Files/createTempDirectory](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createTempDirectory(java.nio.file.Path,java.lang.String,java.nio.file.attribute.FileAttribute...)).
@@ -693,17 +940,18 @@
   "
   ([] (create-temp-dir {}))
   ([{:keys [:dir :prefix :posix-file-permissions] :as opts}]
-   (let [attrs (posix->attrs posix-file-permissions)
-         prefix (or prefix (str (java.util.UUID/randomUUID)))
-         dir (or dir (:path opts))]
-     (if dir
-       (Files/createTempDirectory
-        (as-path dir)
-        prefix
-        attrs)
-       (Files/createTempDirectory
-        prefix
-        attrs)))))
+   #?(:clj (let [attrs (posix->attrs posix-file-permissions)
+                 prefix (or prefix (str (java.util.UUID/randomUUID)))
+                 dir (or dir (:path opts))]
+             (if dir
+               (Files/createTempDirectory (as-path dir) prefix attrs)
+               (Files/createTempDirectory prefix attrs)))
+      :default (let [base (str (or dir (:path opts) (temp-dir)))
+                     pre  (or prefix "tmp")
+                     result (.mkdtempSync node-fs (.join node-path base pre))]
+                 (when posix-file-permissions
+                   (.chmodSync node-fs result (->posix-file-permissions posix-file-permissions)))
+                 result))))
 
 (defn create-temp-file
   "Returns path to empty file created via [Files/createTempFile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createTempFile(java.nio.file.Path,java.lang.String,java.lang.String,java.nio.file.attribute.FileAttribute...)).
@@ -734,22 +982,22 @@
   "
   ([] (create-temp-file {}))
   ([{:keys [:dir :prefix :suffix :posix-file-permissions] :as opts}]
-   (let [attrs (posix->attrs posix-file-permissions)
-         prefix (or prefix (str (java.util.UUID/randomUUID)))
-         suffix (or suffix (str (java.util.UUID/randomUUID)))
-         dir (or dir
-                 ;; backwards compat
-                 (:path opts))]
-     (if dir
-       (Files/createTempFile
-        (as-path dir)
-        prefix
-        suffix
-        attrs)
-       (Files/createTempFile
-        prefix
-        suffix
-        attrs)))))
+   #?(:clj (let [attrs (posix->attrs posix-file-permissions)
+                 prefix (or prefix (str (java.util.UUID/randomUUID)))
+                 suffix (or suffix (str (java.util.UUID/randomUUID)))
+                 dir (or dir (:path opts))]
+             (if dir
+               (Files/createTempFile (as-path dir) prefix suffix attrs)
+               (Files/createTempFile prefix suffix attrs)))
+      :default (let [base (str (or dir (:path opts) (temp-dir)))
+                     pre  (or prefix "tmp")
+                     suf  (or suffix "")
+                     tmp-dir (.mkdtempSync node-fs (.join node-path base pre))
+                     result (.join node-path tmp-dir (str "file" suf))]
+                 (.writeFileSync node-fs result "" #js {:flag "wx"})
+                 (when posix-file-permissions
+                   (.chmodSync node-fs result (->posix-file-permissions posix-file-permissions)))
+                 result))))
 
 (defn create-sym-link
   "Creates a symbolic `link` to `target-path` via [Files/createSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createSymbolicLink(java.nio.file.Path,java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
@@ -759,72 +1007,89 @@
   As of this writing, JDKs do not recognize empty-string `target-path` `\"\"` as the cwd.
   Consider instead using a `target-path` of `\".\"` to link to the cwd."
   [link target-path]
-  (Files/createSymbolicLink
-   (as-path link)
-   (as-path target-path)
-   (make-array FileAttribute 0)))
+  #?(:clj (Files/createSymbolicLink
+           (as-path link)
+           (as-path target-path)
+           (make-array FileAttribute 0))
+     :default (do
+                (.symlinkSync node-fs (str target-path) (str link))
+                (str link))))
 
 (defn create-link
   "Creates a new hard `link` (directory entry) for an `existing-file` via [Files/createLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createLink(java.nio.file.Path,java.nio.file.Path)).
 
   Returns `link`."
   [link existing-file]
-  (Files/createLink
-   (as-path link)
-   (as-path existing-file)))
+  #?(:clj (Files/createLink (as-path link) (as-path existing-file))
+     :default (do
+                (.linkSync node-fs (str existing-file) (str link))
+                (str link))))
 
 (defn read-link
   "Returns the immediate target of `sym-link-path` via [Files/readSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readSymbolicLink(java.nio.file.Path)).
   The target need not exist."
   [sym-link-path]
-  (java.nio.file.Files/readSymbolicLink (as-path sym-link-path)))
+  #?(:clj (java.nio.file.Files/readSymbolicLink (as-path sym-link-path))
+     :default (.readlinkSync node-fs (str sym-link-path))))
 
 (defn delete
   "Deletes `path` via [Files/delete](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#delete(java.nio.file.Path)).
   Returns `nil` if the delete was successful,
   throws otherwise. Does not follow symlinks."
-  ;; We don't follow symlinks, since the link can target a dir and you should be
-  ;; using delete-tree to delete that.
   [path]
-  (Files/delete (as-path path)))
+  #?(:clj (Files/delete (as-path path))
+     :default (let [p (str path)
+                    stat (.lstatSync node-fs p)]
+                (if (.isDirectory stat)
+                  (.rmdirSync node-fs p)
+                  (.unlinkSync node-fs p)))))
 
 (defn delete-if-exists
   "Deletes `path` if it exists via [Files/deleteIfExists](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#deleteIfExists(java.nio.file.Path)).
   Returns `true` if the delete was successful,
   `false` if `path` didn't exist. Does not follow symlinks."
   [path]
-  (Files/deleteIfExists (as-path path)))
+  #?(:clj (Files/deleteIfExists (as-path path))
+     :default (try
+                (delete path)
+                true
+                (catch :default e
+                  (if (= "ENOENT" (.-code e))
+                    false
+                    (throw e))))))
 
 (defn sym-link?
   "Returns `true` if `path` is a symbolic link via [Files/isSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isSymbolicLink(java.nio.file.Path))."
   [path]
-  (Files/isSymbolicLink (as-path path)))
+  #?(:clj (Files/isSymbolicLink (as-path path))
+     :default (try
+                (.isSymbolicLink (.lstatSync node-fs (str path)))
+                (catch :default _ false))))
 
 (defn delete-tree
   "Deletes the file tree at `root-path` using [[walk-file-tree]]. Similar to `rm -rf` shell command. Does not follow symlinks.
 
   Returns `root-path`, or `nil` if `root-path` not found.
-  
+
   Options:
   * `:force` - if `true` forces deletion of read-only files/directories. Similar to `chmod -R +wx` + `rm -rf` shell commands."
-  ;; See: delete-permissions-* tests
-  ;; Implementation with the force flag is based on assumptions in those tests
   ([root-path] (delete-tree root-path nil))
   ([root-path {:keys [force]}]
    (when (exists? root-path {:nofollow-links true})
-     (walk-file-tree root-path
-                     {:visit-file (fn [path _]
-                                    (when (and win? force)
-                                      (.setWritable (file path) true))
-                                    (delete path)
-                                    :continue)
-                      :pre-visit-dir (fn [path _]
-                                       (when force
-                                         (u+wx path))
-                                       :continue)
-                      :post-visit-dir (fn [path _]
-                                        (delete path)
-                                        :continue)}))))
+     #?(:clj (walk-file-tree root-path
+                              {:visit-file (fn [path _]
+                                             (when (and win? force)
+                                               (.setWritable (file path) true))
+                                             (delete path)
+                                             :continue)
+                               :pre-visit-dir (fn [path _]
+                                                (when force
+                                                  (u+wx path))
+                                                :continue)
+                               :post-visit-dir (fn [path _]
+                                                 (delete path)
+                                                 :continue)})
+       :default (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)})))))
 
 (defn create-file
   "Creates empty `file` via [Files/createFile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createFile(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
@@ -837,8 +1102,13 @@
   ([file]
    (create-file file nil))
   ([file {:keys [:posix-file-permissions]}]
-   (let [attrs (posix->attrs posix-file-permissions)]
-     (Files/createFile (as-path file) attrs))))
+   #?(:clj (let [attrs (posix->attrs posix-file-permissions)]
+             (Files/createFile (as-path file) attrs))
+      :default (do
+                 (.writeFileSync node-fs (str file) "" #js {:flag "wx"})
+                 (when posix-file-permissions
+                   (.chmodSync node-fs (str file) (->posix-file-permissions posix-file-permissions)))
+                 (str file)))))
 
 (defn move
   "Moves or renames dir or file at `source-path` to `target-path` dir or file via [Files/move](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#move(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
@@ -853,50 +1123,74 @@
   ([source-path target-path] (move source-path target-path nil))
   ([source-path target-path {:keys [:replace-existing
                                     :atomic-move]}]
-   (let [target (as-path target-path)
-         nofollow-links true
-         link-opts (->link-opts nofollow-links)]
-     (if (Files/isDirectory target link-opts)
-       (Files/move (as-path source-path)
-                   (path target (file-name source-path))
-                   (->copy-opts replace-existing false atomic-move nofollow-links))
-       (Files/move (as-path source-path)
-                   target
-                   (->copy-opts replace-existing false atomic-move nofollow-links))))))
+   #?(:clj (let [target (as-path target-path)
+                 nofollow-links true
+                 link-opts (->link-opts nofollow-links)]
+             (if (Files/isDirectory target link-opts)
+               (Files/move (as-path source-path)
+                           (path target (file-name source-path))
+                           (->copy-opts replace-existing false atomic-move nofollow-links))
+               (Files/move (as-path source-path)
+                           target
+                           (->copy-opts replace-existing false atomic-move nofollow-links))))
+      :default (let [dest (str target-path)
+                     dest (if (directory? dest {:nofollow-links true})
+                            (.join node-path dest (file-name source-path))
+                            dest)]
+                 (when (and (not replace-existing) (exists? dest))
+                   (throw (ex-info (str "Target already exists: " dest) {})))
+                 (.renameSync node-fs (str source-path) dest)
+                 dest))))
 
 (defn parent
   "Returns parent path of `path` via [Path#getParent](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getParent()).
   Akin to `dirname` in bash."
   [path]
-  (.getParent (as-path path)))
+  #?(:clj (.getParent (as-path path))
+     :default (let [p (str path)
+                    d (.dirname node-path p)]
+                (when (and (not= d ".") (not= d p))
+                  d))))
 
 (defn size
   "Returns the size of `path` in bytes."
   [path]
-  (Files/size (as-path path)))
+  #?(:clj (Files/size (as-path path))
+     :default (.-size (.statSync node-fs (str path)))))
 
 (defn delete-on-exit
   "Requests delete of `path` on exit via [File#deleteOnExit](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#deleteOnExit()).
   Returns `path`."
   [path]
-  (.deleteOnExit (as-file path))
-  path)
+  #?(:clj (do (.deleteOnExit (as-file path)) path)
+     :default (do
+                (.on js/process "exit"
+                     (fn [] (try (.rmSync node-fs (str path) #js {:recursive true :force true})
+                                 (catch :default _))))
+                (str path))))
 
 (defn same-file?
   "Returns `true` if `this-path` is the same file as `other-path` via [Files/isSamefile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isSameFile(java.nio.file.Path,java.nio.file.Path))."
   [this-path other-path]
-  (Files/isSameFile (as-path this-path) (as-path other-path)))
+  #?(:clj (Files/isSameFile (as-path this-path) (as-path other-path))
+     :default (try
+                (let [s1 (.statSync node-fs (str this-path))
+                      s2 (.statSync node-fs (str other-path))]
+                  (and (= (.-dev s1) (.-dev s2))
+                       (= (.-ino s1) (.-ino s2))))
+                (catch :default _ false))))
 
 (defn read-all-bytes
   "Returns contents of `file` as byte array via [Files/readAllBytes](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllBytes(java.nio.file.Path))."
-  ^bytes
   [file]
-  (Files/readAllBytes (as-path file)))
+  #?(:clj (Files/readAllBytes (as-path file))
+     :default (.readFileSync node-fs (str file))))
 
-(defn- ->charset ^Charset [charset]
-  (if (string? charset)
-    (Charset/forName charset)
-    charset))
+(defn- ->charset
+  #?(:clj ^Charset [charset]
+     :default [charset])
+  #?(:clj (if (string? charset) (Charset/forName charset) charset)
+     :default (or charset "utf-8")))
 
 (defn read-all-lines
   "Returns contents of `file` as a vector of lines via [Files/readAllLines](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllLines(java.nio.file.Path,java.nio.charset.Charset)).
@@ -904,14 +1198,15 @@
   Options:
   * `:charset` - defaults to `\"utf-8\"`"
   ([file]
-   (vec (Files/readAllLines (as-path file))))
+   #?(:clj (vec (Files/readAllLines (as-path file)))
+      :default (read-all-lines file nil)))
   ([file {:keys [charset]
           :or {charset "utf-8"}}]
-   (vec (Files/readAllLines
-         (as-path file)
-         (->charset charset)))))
+   #?(:clj (vec (Files/readAllLines (as-path file) (->charset charset)))
+      :default (let [content (.readFileSync node-fs (str file) #js {:encoding (->charset charset)})]
+                 (vec (str/split-lines content))))))
 
-;;;; Attributes, from github.com/corasaurus-hex/fs
+;;;; Attributes
 
 (defn get-attribute
   "Returns value of `attribute` for `path` via [Files/getAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getAttribute(java.nio.file.Path,java.lang.String,java.nio.file.LinkOption...)).
@@ -921,14 +1216,14 @@
   ([path attribute]
    (get-attribute path attribute nil))
   ([path attribute {:keys [:nofollow-links]}]
-   (Files/getAttribute (as-path path)
-                       attribute
-                       (->link-opts nofollow-links))))
+   #?(:clj (Files/getAttribute (as-path path) attribute (->link-opts nofollow-links))
+      :default (throw (ex-info "get-attribute not supported on Node.js" {})))))
 
 (defn- keyize
   [key-fn m]
   (let [f (fn [[k v]] (if (string? k) [(key-fn k) v] [k v]))]
-    (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
+    #?(:clj (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)
+       :default (into {} (map f m)))))
 
 (defn read-attributes*
   "Returns requested `attributes` for `path` via [Files/readAttributes](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAttributes(java.nio.file.Path,java.lang.Class,java.nio.file.LinkOption...)).
@@ -938,18 +1233,14 @@
   ([path attributes]
    (read-attributes* path attributes nil))
   ([path attributes {:keys [:nofollow-links]}]
-   (let [p (as-path path)
-         link-opts (->link-opts nofollow-links)
-         attrs
-         ;; prevent reflection warning
-         (if (instance? String attributes)
-           (Files/readAttributes p
-                                 ^String attributes
-                                 link-opts)
-           (Files/readAttributes p
-                                 ^Class attributes
-                                 link-opts))]
-     attrs)))
+   #?(:clj (let [p (as-path path)
+                 link-opts (->link-opts nofollow-links)
+                 attrs
+                 (if (instance? String attributes)
+                   (Files/readAttributes p ^String attributes link-opts)
+                   (Files/readAttributes p ^Class attributes link-opts))]
+             attrs)
+      :default (throw (ex-info "read-attributes* not supported on Node.js" {})))))
 
 (defn read-attributes
   "Same as [[read-attributes*]] but returns requested `attributes` for `path` as a map with keywordized attribute keys.
@@ -971,54 +1262,60 @@
   ([path attribute value]
    (set-attribute path attribute value nil))
   ([path attribute value {:keys [:nofollow-links]}]
-   (Files/setAttribute (as-path path)
-                       attribute
-                       value
-                       (->link-opts nofollow-links))))
+   #?(:clj (Files/setAttribute (as-path path) attribute value (->link-opts nofollow-links))
+      :default (throw (ex-info "set-attribute not supported on Node.js" {})))))
 
 (defn file-time->instant
-  "Converts `ft` [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)
-  to an [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html)."
-  [^FileTime ft]
-  (.toInstant ft))
+  "Converts a file time to an instant. On JVM: `FileTime` to `Instant`. On Node.js: returns the value as-is (JS Date)."
+  [ft]
+  #?(:clj (.toInstant ^FileTime ft)
+     :default ft))
 
 (defn instant->file-time
-  "Converts `instant` [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html)
-  to a [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)."
+  "Converts an instant to a file time. On JVM: `Instant` to `FileTime`. On Node.js: returns the value as-is (JS Date)."
   [instant]
-  (FileTime/from instant))
+  #?(:clj (FileTime/from instant)
+     :default instant))
 
 (defn file-time->millis
-  "Converts `ft` [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)
-  to epoch milliseconds (long)."
-  [^FileTime ft]
-  (.toMillis ft))
+  "Converts a file time to epoch milliseconds. On JVM: `FileTime` to long. On Node.js: `Date` to number."
+  [ft]
+  #?(:clj (.toMillis ^FileTime ft)
+     :default (.getTime ft)))
 
 (defn millis->file-time
-  "Converts epoch milliseconds (long) to a [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)."
+  "Converts epoch milliseconds to a file time. On JVM: long to `FileTime`. On Node.js: number to `Date`."
   [millis]
-  (FileTime/fromMillis millis))
+  #?(:clj (FileTime/fromMillis millis)
+     :default (js/Date. millis)))
 
 (defn- ->file-time [x]
-  (cond (int? x) (millis->file-time x)
-        (instance? java.time.Instant x) (instant->file-time x)
-        (instance? FileTime x) x
-        :else (throw (ex-info "Unrecognized time type" {}))))
+  #?(:clj (cond (int? x) (millis->file-time x)
+                (instance? java.time.Instant x) (instant->file-time x)
+                (instance? FileTime x) x
+                :else (throw (ex-info "Unrecognized time type" {})))
+     :default (cond (number? x) (millis->file-time x)
+                    (instance? js/Date x) x
+                    :else (throw (ex-info "Unrecognized time type" {})))))
 
 (defn last-modified-time
-  "Returns last modified time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html).
+  "Returns last modified time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) (JVM) or JS `Date` (Node.js).
 
   See also: [[set-last-modified-time]], [[creation-time]], [[file-time->instant]], [[file-time->millis]]"
   ([path]
    (last-modified-time path nil))
   ([path {:keys [nofollow-links] :as opts}]
-   (get-attribute path "basic:lastModifiedTime" opts)))
+   #?(:clj (get-attribute path "basic:lastModifiedTime" opts)
+      :default (.-mtime (if nofollow-links
+                          (.lstatSync node-fs (str path))
+                          (.statSync node-fs (str path)))))))
 
 (defn set-last-modified-time
   "Sets last modified `time` of `path`.
   `time` can be `epoch milliseconds` (long),
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
-  or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
+  or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html)
+  (on JVM), or JS `Date` / epoch ms (on Node.js).
 
   Returns `path`.
 
@@ -1026,10 +1323,13 @@
   ([path time]
    (set-last-modified-time path time nil))
   ([path time {:keys [nofollow-links] :as opts}]
-   (set-attribute path "basic:lastModifiedTime" (->file-time time) opts)))
+   #?(:clj (set-attribute path "basic:lastModifiedTime" (->file-time time) opts)
+      :default (let [t (->file-time time)]
+                 (.utimesSync node-fs (str path) t t)
+                 (str path)))))
 
 (defn creation-time
-  "Returns creation time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html).
+  "Returns creation time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) (JVM) or JS `Date` (Node.js).
 
   See [README notes](/README.md#creation-time) for some details on behaviour.
 
@@ -1037,26 +1337,24 @@
   ([path]
    (creation-time path nil))
   ([path {:keys [nofollow-links] :as opts}]
-   (get-attribute path "basic:creationTime" opts)))
+   #?(:clj (get-attribute path "basic:creationTime" opts)
+      :default (.-birthtime (if nofollow-links
+                              (.lstatSync node-fs (str path))
+                              (.statSync node-fs (str path)))))))
 
 (defn set-creation-time
   "Sets creation `time` of `path`.
-  `time` can be `epoch milliseconds` (long),
-  [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
-  or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
+
+  Not supported on Node.js.
 
   Returns `path`.
-  
-  Options:
-  * [`:nofollow-links`](/README.md#nofollow-links)
-
-  See [README notes](/README.md#set-creation-time) for some details on behaviour.
 
   See also: [[creation-time]]"
   ([path time]
    (set-creation-time path time nil))
   ([path time {:keys [nofollow-links] :as opts}]
-   (set-attribute path "basic:creationTime" (->file-time time) opts)))
+   #?(:clj (set-attribute path "basic:creationTime" (->file-time time) opts)
+      :default (throw (ex-info "set-creation-time not supported on Node.js" {})))))
 
 (defn touch
   "Updates last modified time of `path` to `:time`, creating `path` as a file if it does not exist.
@@ -1066,7 +1364,7 @@
   implement their own retry loop.
 
   Returns `path`.
-  
+
   Options:
   * `:time` - last modified time (epoch milliseconds (long), [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html),
   or [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html)), defaults to current time
@@ -1074,21 +1372,23 @@
   ([path]
    (touch path nil))
   ([path {:keys [time nofollow-links] :as opts}]
-   (let [time (when time (->file-time time)) ;; convert early to fail fast on invalid time value
-         path (as-path path)
-         time (or time (java.time.Instant/now))]
-     (try
-       ;; attempt touch on existing path
-       (set-last-modified-time path time opts)
-       (catch java.nio.file.NoSuchFileException _
-         ;; file/dir does not exist, attempt to create file
-         ;; create via FileChannel/open to allow for case where some other process/thread
-         ;; might have created path since exception was thrown and now
-         (with-open [_chan (-> (java.nio.channels.FileChannel/open
-                                path
-                                (into-array [java.nio.file.StandardOpenOption/CREATE
-                                             java.nio.file.StandardOpenOption/WRITE])))])
-         (set-last-modified-time path time opts))))))
+   #?(:clj (let [time (when time (->file-time time))
+                 path (as-path path)
+                 time (or time (java.time.Instant/now))]
+             (try
+               (set-last-modified-time path time opts)
+               (catch java.nio.file.NoSuchFileException _
+                 (with-open [_chan (-> (java.nio.channels.FileChannel/open
+                                        path
+                                        (into-array [java.nio.file.StandardOpenOption/CREATE
+                                                     java.nio.file.StandardOpenOption/WRITE])))])
+                 (set-last-modified-time path time opts))))
+      :default (let [p (str path)
+                     t (if time (->file-time time) (js/Date.))]
+                 (if (exists? p)
+                   (.utimesSync node-fs p t t)
+                   (.writeFileSync node-fs p "" #js {:flag "a"}))
+                 p))))
 
 (defn list-dirs
   "Similar to [[list-dir]] but accepts multiple roots in `dirs` and returns the concatenated results.
@@ -1138,20 +1438,22 @@
 (defn split-paths
   "Splits `joined-paths` string into a vector of paths by OS-specific [[path-separator]]."
   [^String joined-paths]
-  (mapv path (.split joined-paths path-separator)))
+  (mapv str (.split joined-paths path-separator)))
 
 (defn exec-paths
   "Returns a vector of command search paths (from the `PATH` environment variable). Same
   as `(split-paths (System/getenv \"PATH\"))`."
   []
-  (split-paths (System/getenv "PATH")))
+  #?(:clj (split-paths (System/getenv "PATH"))
+     :default (split-paths (or (aget (.-env js/process) "PATH") ""))))
 
 (defn- filename-only?
   "Returns `true` if `path` is exactly a file name (i.e. with no absolute or
   relative path information)."
   [path]
-  (let [f-as-path (as-path path)]
-    (= f-as-path (.getFileName f-as-path))))
+  #?(:clj (let [f-as-path (as-path path)]
+            (= f-as-path (.getFileName f-as-path)))
+     :default (= (str path) (file-name (str path)))))
 
 (defn which
   "Returns path to first executable `program` found in `:paths`, similar to the `which` Unix command.
@@ -1172,14 +1474,10 @@
                                ["com" "exe" "bat" "cmd"])
                       ext (extension program)]
                   (if (and ext (contains? (set exts) ext))
-                    ;; this program name already contains the expected extension so we
-                    ;; first search with that and then try the others to find e.g. foo.bat.cmd
                     (into [nil] exts)
                     exts))
                 [nil])
          paths (or (:paths opts) (exec-paths))
-         ;; if program is exactly a file name, then search all the path entries
-         ;; otherwise, only search relative to current directory (absolute paths will throw)
          candidate-paths (if (filename-only? program)
                            paths
                            [nil])]
@@ -1214,28 +1512,23 @@
   ([program opts]
    (which program (assoc opts :all true))))
 
-;; the above can be implemented using:
-
-;; user=> (first (filter fs/executable? (fs/list-dirs (filter fs/exists? (fs/exec-path)) "java")))
-;; #object[sun.nio.fs.UnixPath 0x1dd74143 "/Users/borkdude/.jenv/versions/11.0/bin/java"]
-;; although the which impl is faster
-
 ;;;; Modified since
 
 (defn- last-modified-1
-  "Returns max last-modified of regular `file`. Returns 0 if file does not exist."
-  ^FileTime [file]
+  [file]
   (if (exists? file)
     (last-modified-time file)
-    (FileTime/fromMillis 0)))
+    #?(:clj (FileTime/fromMillis 0)
+       :default (js/Date. 0))))
 
 (defn- max-filetime [filetimes]
-  (reduce #(if (pos? (.compareTo ^FileTime %1 ^FileTime %2))
-             %1 %2)
-          (FileTime/fromMillis 0) filetimes))
+  #?(:clj (reduce #(if (pos? (.compareTo ^FileTime %1 ^FileTime %2))
+                     %1 %2)
+                  (FileTime/fromMillis 0) filetimes)
+     :default (reduce #(if (> (.getTime %1) (.getTime %2)) %1 %2)
+                      (js/Date. 0) filetimes)))
 
 (defn- last-modified
-  "Returns max last-modified of `path` or of all files within `path`."
   [path]
   (if (exists? path)
     (if (regular-file? path)
@@ -1243,7 +1536,8 @@
       (max-filetime
        (map last-modified-1
             (filter regular-file? (path-seq path)))))
-    (FileTime/fromMillis 0)))
+    #?(:clj (FileTime/fromMillis 0)
+       :default (js/Date. 0))))
 
 (defn- expand-file-set
   [file-set]
@@ -1260,9 +1554,11 @@
   searched recursively."
   [anchor-path path-set]
   (let [lm (last-modified anchor-path)]
-    (map path (filter #(pos? (.compareTo (last-modified-1 %) lm)) (expand-file-set path-set)))))
-
-;;;; End modified since
+    (map str
+         (filter #(#?(:clj pos? :default (fn [x] (pos? x)))
+                   (#?(:clj .compareTo :default (fn [a b] (- (.getTime a) (.getTime b))))
+                    (last-modified-1 %) lm))
+                 (expand-file-set path-set)))))
 
 ;;;; Zip
 
@@ -1283,63 +1579,65 @@
   ([zip-file] (unzip zip-file "."))
   ([zip-file target-dir] (unzip zip-file target-dir nil))
   ([zip-file target-dir {:keys [replace-existing extract-fn]}]
-   (let [output-path (as-path target-dir)
-         _ (create-dirs target-dir)
-         cp-opts (->copy-opts replace-existing nil nil nil)]
-     (with-open
-      [^InputStream fis
-       (if (instance? InputStream zip-file) zip-file
-           (Files/newInputStream (as-path zip-file) (into-array java.nio.file.OpenOption [])))
-       zis (ZipInputStream. fis)]
-       (loop []
-         (let [entry (.getNextEntry zis)]
-           (when entry
-             (let [entry-name (.getName entry)
-                   new-path (.resolve output-path entry-name)]
-               (if (.isDirectory entry)
-                 (create-dirs new-path)
-                 (when (or (nil? extract-fn)
-                           (and (fn? extract-fn)
-                                (extract-fn {:entry entry :name entry-name})))
-                   (when-let [p (parent new-path)]
-                     (create-dirs p))
-                   (Files/copy ^java.io.InputStream zis
-                               new-path
-                               cp-opts))))
-             (recur)))))
-     output-path)))
+   #?(:clj
+      (let [output-path (as-path target-dir)
+            _ (create-dirs target-dir)
+            cp-opts (->copy-opts replace-existing nil nil nil)]
+        (with-open
+         [^InputStream fis
+          (if (instance? InputStream zip-file) zip-file
+              (Files/newInputStream (as-path zip-file) (into-array java.nio.file.OpenOption [])))
+          zis (ZipInputStream. fis)]
+          (loop []
+            (let [entry (.getNextEntry zis)]
+              (when entry
+                (let [entry-name (.getName entry)
+                      new-path (.resolve output-path entry-name)]
+                  (if (.isDirectory entry)
+                    (create-dirs new-path)
+                    (when (or (nil? extract-fn)
+                              (and (fn? extract-fn)
+                                   (extract-fn {:entry entry :name entry-name})))
+                      (when-let [p (parent new-path)]
+                        (create-dirs p))
+                      (Files/copy ^java.io.InputStream zis
+                                  new-path
+                                  cp-opts))))
+                (recur)))))
+        output-path)
+      :default
+      (throw (ex-info "unzip not supported on Node.js without an npm dependency" {})))))
 
-;; partially borrowed from tools.build
 (defn- add-zip-entry
-  [^ZipOutputStream output-stream ^Path path fpath]
-  (let [dir (directory? path)
-        attrs (Files/readAttributes path BasicFileAttributes
-                                    (->link-opts []))
-        entry (doto (ZipEntry. (str fpath))
-                (.setLastModifiedTime (.lastModifiedTime attrs)))]
-    (.putNextEntry output-stream entry)
-    (when-not dir
-      (with-open [fis (BufferedInputStream. (FileInputStream. (file path)))]
-        (io/copy fis output-stream)))
+  #?(:clj [^ZipOutputStream output-stream ^Path path fpath]
+     :default [output-stream path fpath])
+  #?(:clj (let [dir (directory? path)
+                attrs (Files/readAttributes path BasicFileAttributes
+                                            (->link-opts []))
+                entry (doto (ZipEntry. (str fpath))
+                        (.setLastModifiedTime (.lastModifiedTime attrs)))]
+            (.putNextEntry output-stream entry)
+            (when-not dir
+              (with-open [fis (BufferedInputStream. (FileInputStream. (file path)))]
+                (io/copy fis output-stream)))
+            (.closeEntry output-stream))
+     :default nil))
 
-    (.closeEntry output-stream)))
-
-;; partially borrowed from tools.build
 (defn- copy-to-zip
-  [^ZipOutputStream jos path path-fn]
-  (let [files (path-seq path)]
-    (run! (fn [^Path f]
-            (let [dir (directory? f)
-                  fpath (str f)
-                  fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
-                  ;; only use unix-style paths in jars
-                  fpath (str/replace fpath \\ \/)
-                  fpath (path-fn fpath)]
-              (when-not (str/blank? fpath)
-                (add-zip-entry jos f fpath))))
-          files)))
+  #?(:clj [^ZipOutputStream jos path path-fn]
+     :default [jos path path-fn])
+  #?(:clj (let [files (path-seq path)]
+            (run! (fn [^Path f]
+                    (let [dir (directory? f)
+                          fpath (str f)
+                          fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
+                          fpath (str/replace fpath \\ \/)
+                          fpath (path-fn fpath)]
+                      (when-not (str/blank? fpath)
+                        (add-zip-entry jos f fpath))))
+                  files))
+     :default nil))
 
-;; partially borrowed from tools.build
 (defn zip
   "Zips `path-or-paths` into `zip-file`. A path may be a file or
   directory. Directories are included recursively and their names are
@@ -1356,26 +1654,26 @@
   ([zip-file path-or-paths]
    (zip zip-file path-or-paths nil))
   ([zip-file path-or-paths opts]
-   (let [zip-file (as-path zip-file)
-         entries (if (or (string? path-or-paths)
-                         (instance? File path-or-paths)
-                         (instance? Path path-or-paths))
-                   [path-or-paths]
-                   path-or-paths)
-         path-fn (or (:path-fn opts)
-                     (when-let [root (:root opts)]
-                       #(str/replace % (re-pattern (str "^" (java.util.regex.Pattern/quote root) "/")) ""))
-                     identity)]
-     (assert (every? relative? entries)
-             "All entries must be relative")
-     (with-open [zos (ZipOutputStream.
-                      (FileOutputStream. (file zip-file)))]
-       (doseq [zpath entries]
-         (copy-to-zip zos zpath #(when-not (same-file? % zip-file)
-                                   (path-fn %)))))
-     zip-file)))
-
-;;;; End zip
+   #?(:clj (let [zip-file (as-path zip-file)
+                 entries (if (or (string? path-or-paths)
+                                 (instance? File path-or-paths)
+                                 (instance? Path path-or-paths))
+                           [path-or-paths]
+                           path-or-paths)
+                 path-fn (or (:path-fn opts)
+                             (when-let [root (:root opts)]
+                               #(str/replace % (re-pattern (str "^" (java.util.regex.Pattern/quote root) "/")) ""))
+                             identity)]
+             (assert (every? relative? entries)
+                     "All entries must be relative")
+             (with-open [zos (ZipOutputStream.
+                              (FileOutputStream. (file zip-file)))]
+               (doseq [zpath entries]
+                 (copy-to-zip zos zpath #(when-not (same-file? % zip-file)
+                                           (path-fn %)))))
+             zip-file)
+      :default
+      (throw (ex-info "zip not supported on Node.js without an npm dependency" {})))))
 
 ;;;; GZip
 
@@ -1398,20 +1696,33 @@
   ([gz-file] (gunzip gz-file nil))
   ([gz-file target-dir] (gunzip gz-file target-dir {}))
   ([gz-file target-dir {:keys [replace-existing]}]
-   (let [dest-dir (or target-dir (parent gz-file) "")
-         dest-filename (str/replace-first (file-name gz-file) #"\.gz$" "")
-         gz-file (as-path gz-file)
-         cp-opts (->copy-opts replace-existing nil nil nil)
-         output-file (path dest-dir dest-filename)] 
-     (with-open
-      [fis (Files/newInputStream gz-file (into-array java.nio.file.OpenOption []))
-       gzis (GZIPInputStream. fis)]
-       (when (parent output-file)
-         (create-dirs (parent output-file)))
-       (Files/copy ^java.io.InputStream gzis
-                   output-file
-                   cp-opts))
-     output-file)))
+   #?(:clj (let [dest-dir (or target-dir (parent gz-file) "")
+                 dest-filename (str/replace-first (file-name gz-file) #"\.gz$" "")
+                 gz-file (as-path gz-file)
+                 cp-opts (->copy-opts replace-existing nil nil nil)
+                 output-file (path dest-dir dest-filename)]
+             (with-open
+              [fis (Files/newInputStream gz-file (into-array java.nio.file.OpenOption []))
+               gzis (GZIPInputStream. fis)]
+               (when (parent output-file)
+                 (create-dirs (parent output-file)))
+               (Files/copy ^java.io.InputStream gzis
+                           output-file
+                           cp-opts))
+             output-file)
+      :default
+      (let [dest-dir (or target-dir (parent gz-file) "")
+            dest-filename (str/replace-first (file-name (str gz-file)) #"\.gz$" "")
+            output-file (if dest-dir
+                          (.join node-path (str dest-dir) dest-filename)
+                          dest-filename)]
+        (when (and (not replace-existing) (exists? output-file))
+          (throw (ex-info (str "File already exists: " output-file) {})))
+        (when dest-dir (create-dirs dest-dir))
+        (let [compressed (.readFileSync node-fs (str gz-file))
+              decompressed (.gunzipSync node-zlib compressed)]
+          (.writeFileSync node-fs output-file decompressed))
+        output-file))))
 
 (defn gzip
   "Gzips `source-file` to `:dir`/`:out-file`.
@@ -1431,19 +1742,30 @@
   ([source-file {:keys [dir out-file]}]
    (assert source-file "source-file must be specified")
    (assert (exists? source-file) "source-file does not exist")
-   (let [dest-dir (or dir (parent source-file) "")
-         dest-filename (if (not out-file)
-                         (str (file-name source-file) ".gz")
-                         (str out-file))
-         output-file (path dest-dir dest-filename)]
-     (when (parent output-file)
-       (create-dirs (parent output-file)))
-     (with-open [source-input-stream (io/input-stream (file source-file))
-                 gzos                (GZIPOutputStream.
-                                      (FileOutputStream. (file output-file)))]
-       (io/copy source-input-stream
-                gzos))
-     (str output-file))))
+   #?(:clj (let [dest-dir (or dir (parent source-file) "")
+                 dest-filename (if (not out-file)
+                                 (str (file-name source-file) ".gz")
+                                 (str out-file))
+                 output-file (path dest-dir dest-filename)]
+             (when (parent output-file)
+               (create-dirs (parent output-file)))
+             (with-open [source-input-stream (io/input-stream (file source-file))
+                         gzos                (GZIPOutputStream.
+                                              (FileOutputStream. (file output-file)))]
+               (io/copy source-input-stream gzos))
+             (str output-file))
+      :default
+      (let [dest-dir (or dir (parent source-file) "")
+            dest-filename (if out-file (str out-file)
+                              (str (file-name (str source-file)) ".gz"))
+            output-file (if dest-dir
+                          (.join node-path (str dest-dir) dest-filename)
+                          dest-filename)]
+        (when dest-dir (create-dirs dest-dir))
+        (let [content (.readFileSync node-fs (str source-file))
+              compressed (.gzipSync node-zlib content)]
+          (.writeFileSync node-fs output-file compressed))
+        output-file))))
 
 ;;;; End gzip
 
@@ -1479,7 +1801,8 @@
            (delete-tree ~temp-dir {:force true}))))))
 
 (def ^:private cached-home-dir
-  (delay (path (System/getProperty "user.home"))))
+  #?(:clj (delay (path (System/getProperty "user.home")))
+     :default (delay (.homedir node-os))))
 
 (def ^:private cached-users-dir
   (delay (parent @cached-home-dir)))
@@ -1490,9 +1813,9 @@
   With no arguments, returns the current value of the `user.home`
   system property. If a `user` is passed, returns that user's home
   directory as found in the parent of home with no args."
-  (^Path [] @cached-home-dir)
-  (^Path [user] (if (empty? user) @cached-home-dir
-                    (path @cached-users-dir user))))
+  ([] @cached-home-dir)
+  ([user] (if (empty? user) @cached-home-dir
+              (path @cached-users-dir user))))
 
 (defn expand-home
   "Returns `path` replacing `~` (tilde) with home dir.
@@ -1506,15 +1829,14 @@
   e.g., `~someuser/foo` -> `/home/someuser/foo`
 
   See also: [[home]]"
-  ^Path [path]
-  (let [p (as-path path)
-        path-str (str p)]
+  [path]
+  (let [path-str (str path)]
     (if (.startsWith path-str "~")
-      (let [sep (.indexOf path-str File/separator)]
+      (let [sep (.indexOf path-str file-separator)]
         (if (neg? sep)
           (home (subs path-str 1))
           (path* (home (subs path-str 1 sep)) (subs path-str (inc sep)))))
-      p)))
+      path-str)))
 
 (defn windows?
   "Returns `true` if OS is Windows."
@@ -1524,28 +1846,25 @@
 (defn cwd
   "Returns current working directory path."
   []
-  (as-path (System/getProperty "user.dir")))
+  #?(:clj (as-path (System/getProperty "user.dir"))
+     :default (.cwd js/process)))
 
-(defn- ->open-option [k]
-  (case k
-    :append
-    StandardOpenOption/APPEND
-    :create
-    StandardOpenOption/CREATE
-    :truncate-existing
-    StandardOpenOption/TRUNCATE_EXISTING
-    :write
-    StandardOpenOption/WRITE
-    ;; default
-    k))
+#?(:clj
+   (defn- ->open-option [k]
+     (case k
+       :append StandardOpenOption/APPEND
+       :create StandardOpenOption/CREATE
+       :truncate-existing StandardOpenOption/TRUNCATE_EXISTING
+       :write StandardOpenOption/WRITE
+       k)))
 
-(defn- ->open-options ^"[Ljava.nio.file.OpenOption;"
-  [opts]
-  (into-array java.nio.file.OpenOption
-              (reduce-kv (fn [acc k v]
-                           (if v
-                             (conj acc (->open-option k))
-                             acc)) [] opts)))
+#?(:clj
+   (defn- ->open-options ^"[Ljava.nio.file.OpenOption;" [opts]
+     (into-array java.nio.file.OpenOption
+                 (reduce-kv (fn [acc k v]
+                              (if v
+                                (conj acc (->open-option k))
+                                acc)) [] opts))))
 
 (defn write-bytes
   "Writes `bytes` to `file` via [Files/write](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#write(java.nio.file.Path,byte%5B%5D,java.nio.file.OpenOption...)).
@@ -1566,14 +1885,13 @@
   (fs/write-bytes f (.getBytes (String. \"foo\")) {:append true})
   ```"
   ([file bytes] (write-bytes file bytes nil))
-  ([file bytes {:keys [append
-                       ;; default when no options are given:
-                       create
-                       truncate-existing
-                       write] :as opts}]
-   (let [path (as-path file)
-         opts (->open-options opts)]
-     (java.nio.file.Files/write path ^bytes bytes opts))))
+  ([file bytes {:keys [append] :as opts}]
+   #?(:clj (let [path (as-path file)
+                 opts (->open-options opts)]
+             (java.nio.file.Files/write path ^bytes bytes opts))
+      :default (do
+                 (.writeFileSync node-fs (str file) bytes #js {:flag (if append "a" "w")})
+                 (str file)))))
 
 (defn write-lines
   "Writes `lines`, a seqable of strings, to `file` via [Files/write](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#write(java.nio.file.Path,java.lang.Iterable,java.nio.charset.Charset,java.nio.file.OpenOption...)).
@@ -1590,13 +1908,18 @@
   * `:append` - (default `false`)
   * or any `java.nio.file.StandardOption`."
   ([file lines] (write-lines file lines nil))
-  ([file lines {:keys [charset]
+  ([file lines {:keys [charset append]
                 :or {charset "utf-8"}
                 :as opts}]
-   (java.nio.file.Files/write (as-path file)
-                              lines
-                              (->charset charset)
-                              (->open-options (dissoc opts :charset)))))
+   #?(:clj (java.nio.file.Files/write (as-path file)
+                                       lines
+                                       (->charset charset)
+                                       (->open-options (dissoc opts :charset)))
+      :default (do
+                 (.writeFileSync node-fs (str file)
+                                 (str (str/join "\n" lines) "\n")
+                                 #js {:encoding (->charset charset) :flag (if append "a" "w")})
+                 (str file)))))
 
 (defn update-file
   "Updates the contents of text `file` with result of applying function `f` with old contents and args `xs`.
@@ -1610,40 +1933,46 @@
                        [f (first xs) (rest xs)]
                        [nil f xs])
          {:keys [charset]
-          :or {charset "utf-8"}} opts
-         opts [:encoding charset]
-         old-val (apply slurp (as-file file) opts)
-         new-val (apply f old-val xs)]
-     (apply spit (as-file file) new-val opts)
-     new-val)))
+          :or {charset "utf-8"}} opts]
+     #?(:clj (let [opts [:encoding charset]
+                   old-val (apply slurp (as-file file) opts)
+                   new-val (apply f old-val xs)]
+               (apply spit (as-file file) new-val opts)
+               new-val)
+        :default (let [old-val (.readFileSync node-fs (str file) #js {:encoding charset})
+                       new-val (apply f old-val xs)]
+                   (.writeFileSync node-fs (str file) new-val #js {:encoding charset})
+                   new-val)))))
 
 (defn unixify
   "Returns `path` as string with Unix-style file separators (`/`)."
   [path]
   (let [s (str path)]
     (if win?
-      (.replace s "\\" "/")
+      (.replace s #?(:clj "\\" :default (js/RegExp. "\\\\" "g")) "/")
       s)))
 
 (defn- xdg-path-from-env-var
-  "Yields value of environment variable `k` as path if it's an absolute
-  path. Else `nil`."
   [k]
   (some-> (get-env k)
           (#(when (absolute? %) %))
-          (path)))
+          (str)))
 
 (def ^:private xdg-type->env-var&default-path
-  (delay {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
-          :cache  ["XDG_CACHE_HOME" (path (home) ".cache")]
-          :data   ["XDG_DATA_HOME" (path (home) ".local" "share")]
-          :state  ["XDG_STATE_HOME" (path (home) ".local" "state")]}))
+  #?(:clj (delay {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
+                  :cache  ["XDG_CACHE_HOME" (path (home) ".cache")]
+                  :data   ["XDG_DATA_HOME" (path (home) ".local" "share")]
+                  :state  ["XDG_STATE_HOME" (path (home) ".local" "state")]})
+     :default {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
+               :cache  ["XDG_CACHE_HOME" (path (home) ".cache")]
+               :data   ["XDG_DATA_HOME" (path (home) ".local" "share")]
+               :state  ["XDG_STATE_HOME" (path (home) ".local" "state")]}))
 
 (defn- xdg-home-for [k]
-  (let [[env-var default-path] (@xdg-type->env-var&default-path k)]
-    (or
-     (xdg-path-from-env-var env-var)
-     default-path)))
+  (let [[env-var default-path] (#?(:clj @xdg-type->env-var&default-path
+                                   :default xdg-type->env-var&default-path) k)]
+    (or (xdg-path-from-env-var env-var)
+        default-path)))
 
 (defn xdg-config-home
   "Returns path to user-specific configuration files as described in the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html).
