@@ -579,9 +579,9 @@
                        (match path))
                      :continue)})
      (let [results (persistent! @results)
-           absolute-cwd (str (absolutize ""))]
+           absolute-cwd (absolutize "")]
        (if (relative? root-dir)
-         (mapv #(str (relativize absolute-cwd %))
+         (mapv #(relativize absolute-cwd %)
                results)
          results)))))
 
@@ -1836,7 +1836,7 @@
         (if (neg? sep)
           (home (subs path-str 1))
           (path* (home (subs path-str 1 sep)) (subs path-str (inc sep)))))
-      path-str)))
+      #?(:clj (as-path path) :default path-str))))
 
 (defn windows?
   "Returns `true` if OS is Windows."
@@ -1956,7 +1956,7 @@
   [k]
   (some-> (get-env k)
           (#(when (absolute? %) %))
-          (str)))
+          #?(:clj (path) :default (str))))
 
 (def ^:private xdg-type->env-var&default-path
   #?(:clj (delay {:config ["XDG_CONFIG_HOME" (path (home) ".config")]

@@ -10,7 +10,7 @@
                                       clj-kondo/clj-kondo {:mvn/version "2026.01.19"}
                                       nubank/matcher-combinators {:mvn/version "3.10.0"}}
                          :main-opts ["-m" "cognitect.test-runner"
-                                     "--dir" "../.."]}
+                                     "--dir" "../../test"]}
 
            :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.1"}
                                    org.clojure/clojurescript {:mvn/version "1.12.145"}}

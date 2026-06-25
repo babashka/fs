@@ -62,7 +62,7 @@
              (do
                (println (format "-[Running test for %s]-" alias))
                (from-scratch-cwd "tests" [alias :test-runner] args))))}
-  
+
   dev
   {:doc "Launch an nREPL server"
    :task (from-scratch-cwd "repl" [:test-runner :repl-runner] *command-line-args*)}
