@@ -15,6 +15,18 @@
   [p]
   (bytes->string (fs/read-all-bytes p)))
 
+(defn caught
+  "Invoke `thunk`, returning the exception it throws, or nil. Cross-platform
+  stand-in for `thrown?` which needs a literal class symbol in `catch`."
+  [thunk]
+  (try (thunk) nil
+       (catch #?(:clj Throwable :default :default) e e)))
+
+(defn ex-msg
+  "Message of exception `e`, cross-platform."
+  [e]
+  #?(:clj (ex-message e) :default (.-message e)))
+
 (defn files
   "Create files/dirs under `base`. A spec ending in `/` is a dir, otherwise a
   file whose content is the spec string."

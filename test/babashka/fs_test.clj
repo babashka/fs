@@ -178,44 +178,8 @@
 ;;
 ;; copy-tree
 ;;
-(deftest copy-tree-test
-  (files "src-dir/.foo"
-         "src-dir/a/a.txt"
-         "src-dir/a/b/b.txt"
-         "src-dir/a/b/c"
-         "src-dir/foo.txt")
-  (is (= "dest-dir" (str (fs/copy-tree "src-dir" "dest-dir"))))
-  (is (match? ["dest-dir/.foo"
-               "dest-dir/a/a.txt"
-               "dest-dir/a/b/b.txt"
-               "dest-dir/a/b/c"
-               "dest-dir/foo.txt"]
-              (list-tree "dest-dir"))))
-
-(deftest copy-tree-from-file-throws-test
-  (files "src-dir/dir/file.txt" "dest-dir/")
-  (let [before (util/fsnapshot)]
-    ;; cf. python3 -c 'import shutil; shutil.copytree("foo/bar1", "foo2")'
-    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
-                          (fs/copy-tree "src-dir/dir/file.txt" "dest-dir")))
-    (is (match? before (util/fsnapshot)))))
-
-(deftest copy-tree-to-file-throws-test
-  (files "src-dir/dir/file.txt" "dest-dir/file.txt")
-  (let [before (util/fsnapshot)]
-    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
-                          (fs/copy-tree "src-dir/dir" "dest-dir/file.txt")))
-    (is (match? before (util/fsnapshot)))))
-
-(deftest copy-tree-creates-missing-dest-dirs-test
-  (files "src-dir/foo/file.txt"
-         "dest-dir/")
-  ;; https://github.com/babashka/fs/issues/42
-  ;; foo2 doesn't exist
-  (is (= "dest-dir/foo2/foo" (fs/unixify (fs/copy-tree "src-dir/foo" "dest-dir/foo2/foo"))))
-  (is (match? ["dest-dir/foo2/foo/file.txt"
-               "src-dir/foo/file.txt"]
-              (list-tree "."))))
+;; copy-tree-test, copy-tree-from-file-throws-test, copy-tree-to-file-throws-test,
+;; copy-tree-creates-missing-dest-dirs-test -> fs_xplat_test.cljc
 
 (deftest copy-tree-nested-ro-dir-test
   (files "src-dir/foo/bar/")
@@ -230,21 +194,7 @@
     ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
     (is (not (fs/writable? "dest-dir/foo")))))
 
-(deftest copy-tree-fails-on-parent-to-child-test
-  (files "foo/bar/baz/somefile.txt")
-  (let [before (util/fsnapshot)]
-    (is (= "foo" (str (fs/copy-tree "foo" "foo")))
-        "copy to self is allowed and a no-op")
-    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo.new-dir"
-                          (fs/copy-tree "foo" "foo/new-dir"))
-        "copy to new dir under self throws")
-    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo.bar"
-                          (fs/copy-tree "foo" "foo/bar"))
-        "copy to existing dir under self throws")
-    (is (= before (util/fsnapshot))
-        "files/dirs are unchanged")
-    (is (= "foobar" (str (fs/copy-tree "foo" "foobar"))))
-    (is (fs/exists? "foobar/bar/baz/somefile.txt"))))
+;; copy-tree-fails-on-parent-to-child-test -> fs_xplat_test.cljc
 
 (deftest copy-tree-ok-on-child-to-existing-parent-test
   (files "foo/bar/baz/somefile.txt")

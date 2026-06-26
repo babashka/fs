@@ -6,7 +6,7 @@
   (:require [babashka.fs :as fs]
             [babashka.fs-test-utils :include-macros true
              :refer [with-tmp string->bytes bytes->string file-time?
-                     files list-tree rel-entries slurp-str]]
+                     files list-tree rel-entries slurp-str caught ex-msg]]
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
@@ -195,6 +195,51 @@
     (files d "file" "dest-dir/")
     (is (= "dest-dir/file" (fs/unixify (fs/relativize d (fs/copy (fs/path d "file") (fs/path d "dest-dir"))))))
     (is (= ["dest-dir/file" "file"] (list-tree d)))))
+
+(deftest copy-tree-test
+  (with-tmp [d]
+    (files d "src-dir/.foo" "src-dir/a/a.txt" "src-dir/a/b/b.txt"
+           "src-dir/a/b/c" "src-dir/foo.txt")
+    (fs/copy-tree (fs/path d "src-dir") (fs/path d "dest-dir"))
+    (is (= [".foo" "a/a.txt" "a/b/b.txt" "a/b/c" "foo.txt"]
+           (list-tree (fs/path d "dest-dir"))))))
+
+(deftest copy-tree-from-file-throws-test
+  (with-tmp [d]
+    (files d "src-dir/dir/file.txt" "dest-dir/")
+    (let [e (caught #(fs/copy-tree (fs/path d "src-dir/dir/file.txt") (fs/path d "dest-dir")))]
+      (is (some? e))
+      (is (re-find #"Not a directory" (ex-msg e))))
+    (is (= ["dest-dir/" "src-dir/dir/file.txt"] (list-tree d)) "filesystem unchanged")))
+
+(deftest copy-tree-to-file-throws-test
+  (with-tmp [d]
+    (files d "src-dir/dir/file.txt" "dest-dir/file.txt")
+    (let [e (caught #(fs/copy-tree (fs/path d "src-dir/dir") (fs/path d "dest-dir/file.txt")))]
+      (is (some? e))
+      (is (re-find #"Not a directory" (ex-msg e))))
+    (is (= ["dest-dir/file.txt" "src-dir/dir/file.txt"] (list-tree d)) "filesystem unchanged")))
+
+(deftest copy-tree-creates-missing-dest-dirs-test
+  (with-tmp [d]
+    (files d "src-dir/foo/file.txt" "dest-dir/")
+    (fs/copy-tree (fs/path d "src-dir/foo") (fs/path d "dest-dir/foo2/foo"))
+    (is (= ["dest-dir/foo2/foo/file.txt" "src-dir/foo/file.txt"] (list-tree d)))))
+
+(deftest copy-tree-fails-on-parent-to-child-test
+  (with-tmp [d]
+    (files d "foo/bar/baz/somefile.txt")
+    (is (= "foo" (fs/unixify (fs/relativize d (fs/copy-tree (fs/path d "foo") (fs/path d "foo")))))
+        "copy to self is allowed and a no-op")
+    (let [e (caught #(fs/copy-tree (fs/path d "foo") (fs/path d "foo/new-dir")))]
+      (is (re-find #"under itself" (ex-msg e)))
+      "copy to new dir under self throws")
+    (let [e (caught #(fs/copy-tree (fs/path d "foo") (fs/path d "foo/bar")))]
+      (is (re-find #"under itself" (ex-msg e)))
+      "copy to existing dir under self throws")
+    (is (= ["foo/bar/baz/somefile.txt"] (list-tree d)) "files/dirs are unchanged")
+    (fs/copy-tree (fs/path d "foo") (fs/path d "foobar"))
+    (is (fs/exists? (fs/path d "foobar/bar/baz/somefile.txt")))))
 
 (deftest move-to-file-test
   (with-tmp [d]

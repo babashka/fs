@@ -883,10 +883,18 @@
       :default
       (let [src (str source-dir)
             dst (str target-dir)]
-        (when-not (directory? src)
+        (when-not (directory? src opts)
           (throw (ex-info (str "Not a directory: " src) {})))
-        (create-dirs dst opts)
-        (walk-file-tree src
+        (when (and (exists? dst opts) (not (directory? dst opts)))
+          (throw (ex-info (str "Not a directory: " dst) {})))
+        (let [csrc (canonicalize src {:nofollow-links true})
+              cdest (canonicalize dst {:nofollow-links true})]
+          (when (not= csrc cdest)
+            (when (starts-with? cdest csrc)
+              (throw (ex-info (str "Cannot copy src directory: " src
+                                   ", under itself to dest: " dst) {})))
+            (create-dirs dst opts)
+            (walk-file-tree src
                         {:follow-links follow-links
                          :pre-visit-dir (fn [dir _]
                                           (let [rel (relativize src dir)
@@ -906,7 +914,7 @@
                                            (when (and (not win?) copy-attributes)
                                              (let [mode (posix-file-permissions dir)]
                                                (.chmodSync node-fs (path dst (relativize src dir)) mode)))
-                                           :continue)})
+                                           :continue)})))
         dst))))
 
 (defn temp-dir
