@@ -130,14 +130,16 @@
 
 (defn owner
   "Returns the owner of `path` via [Files/getOwner](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getOwner(java.nio.file.Path,java.nio.file.LinkOption...)).
-  Call `str` on return value to get the owner name as a string.
+  On the JVM, returns a `UserPrincipal`. Call `str` on it to get the owner name.
+  On Node.js, returns the numeric `uid` from `stat`. Node has no built-in way to
+  resolve a uid to a user name for an arbitrary path.
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)"
   ([path] (owner path nil))
   ([path {:keys [:nofollow-links]}]
    #?(:clj (Files/getOwner (as-path path) (->link-opts nofollow-links))
-      :default (throw (ex-info "owner not supported on Node.js" {})))))
+      :default (.-uid (stat path nofollow-links)))))
 
 ;;;; Predicates
 

@@ -509,6 +509,29 @@
       (fs/delete-tree (fs/path d "bad-link"))
       (is (= [] (list-tree d)) "bad link was deleted"))))
 
+;;;; Owner
+
+(deftest file-owner-test
+  (with-tmp [d]
+    (fs/write-bytes (fs/path d "file") (string->bytes "x"))
+    (is (= (str (fs/owner d)) (str (fs/owner (fs/path d "file")))))))
+
+(deftest file-owner-sym-link-test
+  ;; assumes the owner of "/" differs from the owner of a file in a temp dir
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/write-bytes (fs/path d "file") (string->bytes "x"))
+      (fs/create-sym-link (fs/path d "my-link") "/")
+      (is (not= (fs/owner (fs/path d "file")) (fs/owner "/"))
+          "sanity test: owners differ for root and a temp-dir file")
+      (is (= (fs/owner "/")
+             (fs/owner (fs/path d "my-link"))
+             (fs/owner (fs/path d "my-link") {:nofollow-links false}))
+          "following link")
+      (is (= (fs/owner (fs/path d "file"))
+             (fs/owner (fs/path d "my-link") {:nofollow-links true}))
+          "not following link"))))
+
 (deftest touch-test
   (with-tmp [d]
     (let [f (str (fs/path d "f.txt"))]

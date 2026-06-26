@@ -1231,20 +1231,7 @@
 ;;
 ;; owner
 ;;
-(deftest file-owner-test
-  (files "dir/file")
-  (is (= (str (fs/owner "dir")) (str (fs/owner "dir/file")))))
-
-(deftest file-owner-sym-link-test
-  ;; This test assumes that the owner of "/" will be different than the owner of a link created in the cwd
-  (files "file")
-  (fs/create-sym-link "my-link" "/")
-  (is (not= (fs/owner "file") (fs/owner "/"))
-      "sanity test: owners are different for root dir and file in cwd")
-  (is (= (fs/owner "/") (fs/owner "my-link") (fs/owner "my-link" {:nofollow-links false}))
-      "following link")
-  (is (= (fs/owner "file") (fs/owner "my-link" {:nofollow-links true}))
-      "not following link"))
+;; file-owner-test, file-owner-sym-link-test -> fs_test.cljc
 
 (deftest owner-empty-string-test
   (files "f1.ext")
