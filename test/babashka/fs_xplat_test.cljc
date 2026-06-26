@@ -23,11 +23,13 @@
     (is (= "a/b/c" (fs/unixify (fs/path "a" "b" "c"))))))
 
 (deftest file-name-test
-  (is (= "baz" (fs/file-name "foo/bar/baz")))
-  (is (= "baz" (fs/file-name "baz"))))
+  (let [f "some-dir/foo.ext"]
+    (is (= "foo.ext" (fs/file-name f)))
+    (is (= "foo.ext" (fs/file-name (fs/file f))))
+    (is (= "foo.ext" (fs/file-name (fs/path f))))))
 
 (deftest parent-test
-  (is (= "foo/bar" (fs/unixify (fs/parent "foo/bar/baz"))))
+  (is (= "dir" (fs/unixify (fs/parent "dir/foo"))))
   (is (nil? (fs/parent "foo"))))
 
 (deftest absolutize-test
@@ -35,26 +37,49 @@
   (is (fs/absolute? (fs/absolutize "."))))
 
 (deftest normalize-test
-  (is (= "a/b" (fs/unixify (fs/normalize "a/b/c/.."))))
-  (is (= "a/b/c" (fs/unixify (fs/normalize "a//b//c")))))
+  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "foo/bar/baz"))))
+  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "./foo/./bing/./boop/.././../bar/./baz/.")))))
 
 (deftest relativize-test
   (is (= "c/d" (fs/unixify (fs/relativize "a/b" "a/b/c/d"))))
   (is (= "../.." (fs/unixify (fs/relativize "a/b/c/d" "a/b")))))
 
 (deftest split-ext-test
-  (is (= ["foo.bar" "baz"] (fs/split-ext "foo.bar.baz")))
-  (is (= ["foo" "bar.baz"] (fs/split-ext "foo.bar.baz" {:ext "bar.baz"})))
-  (is (= ["foo.bar.baz" nil] (fs/split-ext "foo.bar.baz" {:ext "png"})))
-  (is (= ["foo" nil] (fs/split-ext "foo"))))
+  (testing "strings"
+    (is (= ["name" "clj"] (fs/split-ext "name.clj")))
+    (is (= ["/path/to/file" "ext"] (fs/split-ext "/path/to/file.ext")))
+    (is (= ["some/path/hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
+    (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
+    (is (= ["foo/.dotfile" nil] (fs/split-ext "foo/.dotfile")))
+    (is (= ["/home/.zshrc" nil] (fs/split-ext "/home/.zshrc")))
+    (is (= ["name" nil] (fs/split-ext "name"))))
+  (testing ":ext option"
+    (is (= ["foo" "bar.baz"] (fs/split-ext "foo.bar.baz" {:ext "bar.baz"})))
+    (is (= ["foo.bar.baz" nil] (fs/split-ext "foo.bar.baz" {:ext "png"}))))
+  (testing "coerces paths and files"
+    (is (= ["name" "clj"] (fs/split-ext (fs/file "name.clj"))))
+    (is (= ["name" "clj"] (fs/split-ext (fs/path "name.clj"))))))
 
 (deftest extension-test
-  (is (= "clj" (fs/extension "foo.clj")))
-  (is (nil? (fs/extension "foo"))))
+  (is (= "clj" (fs/extension "file-name.clj")))
+  (is (= "template" (fs/extension "file-name.html.template")))
+  (is (nil? (fs/extension ".dotfile")))
+  (is (nil? (fs/extension "foo/.dotfile")))
+  (is (nil? (fs/extension "/home/.zshrc")))
+  (is (nil? (fs/extension "bin/something"))))
 
 (deftest strip-ext-test
-  (is (= "foo" (fs/strip-ext "foo.clj")))
-  (is (= "foo.bar" (fs/strip-ext "foo.bar.baz"))))
+  (is (= "file-name" (fs/strip-ext "file-name.clj")))
+  (is (= "file-name.html" (fs/strip-ext "file-name.html.template")))
+  (is (= "file-name" (fs/strip-ext "file-name.html.template" {:ext "html.template"})))
+  (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" {:ext "html"})))
+  (is (= "/path/to/file-name.html" (fs/strip-ext "/path/to/file-name.html.template")))
+  (is (= "path/to/file-name" (fs/strip-ext "path/to/file-name.html.template" {:ext "html.template"})))
+  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" {:ext "html"})))
+  (is (= ".dotfile" (fs/strip-ext ".dotfile")))
+  (is (= ".dotfile" (fs/strip-ext ".dotfile" {:ext "dotfile"})))
+  (is (= "bin/something" (fs/strip-ext "bin/something")))
+  (is (= "test-resources/dir.dot/no-ext" (fs/strip-ext "test-resources/dir.dot/no-ext"))))
 
 (deftest starts-with-test
   (is (fs/starts-with? "foo/bar/baz" "foo/bar"))
@@ -62,16 +87,20 @@
   (is (not (fs/starts-with? "foo/bar" "foo/b"))))
 
 (deftest ends-with-test
-  (is (fs/ends-with? "foo/bar/baz" "bar/baz"))
-  (is (fs/ends-with? "foo/bar" "foo/bar"))
-  (is (not (fs/ends-with? "foo/bar" "oo/bar"))))
+  (is (= true (fs/ends-with? "one/two/three" "three")))
+  (is (= true (fs/ends-with? "one/two/three" "two/three")))
+  (is (= true (fs/ends-with? "one/two/three" "one/two/three")))
+  (is (= false (fs/ends-with? "one/two/three" "one/three"))))
 
 (deftest components-test
-  (is (= ["foo" "bar" "baz"] (map str (fs/components "foo/bar/baz"))))
-  (is (= ["foo"] (map str (fs/components "foo")))))
+  (is (= ["foo" "bar" "baz" "bop.txt"] (map str (fs/components "foo/bar/baz/bop.txt")))))
 
 (deftest unixify-test
-  (is (= "foo/bar" (fs/unixify "foo/bar"))))
+  (is (= "README.md" (fs/unixify "README.md")))
+  (let [file "C:\\Users\\Billy\\proj\\foobar\\README.md"]
+    (if (fs/windows?)
+      (is (= "C:/Users/Billy/proj/foobar/README.md" (fs/unixify file)))
+      (is (= file (fs/unixify file))))))
 
 ;;;; Predicates
 

@@ -144,9 +144,7 @@
 ;;
 ;; components
 ;;
-(deftest components-test
-  (is (match? ["foo" "bar" "baz" "bop.txt"]
-              (map str (fs/components "foo/bar/baz/bop.txt")))))
+;; components-test -> fs_xplat_test.cljc
 
 (deftest components-empty-string-test
   (is (= [""] (mapv util/path->str (fs/components "")))))
@@ -651,11 +649,7 @@
 ;;
 ;; ends-with?
 ;;
-(deftest ends-with?-test
-  (is (= true (fs/ends-with? "one/two/three" "three")))
-  (is (= true (fs/ends-with? "one/two/three" "two/three")))
-  (is (= true (fs/ends-with? "one/two/three" "one/two/three")))
-  (is (= false (fs/ends-with? "one/two/three" "one/three"))))
+;; ends-with?-test -> fs_xplat_test.cljc
 
 (deftest ends-with?-empty-string-test
   (is (= true (fs/ends-with? "" ""))))
@@ -742,13 +736,7 @@
 ;;
 ;; extension
 ;;
-(deftest extension-test
-  (is (= "clj" (fs/extension "file-name.clj")))
-  (is (= "template" (fs/extension "file-name.html.template")))
-  (is (nil? (fs/extension ".dotfile")))
-  (is (nil? (fs/extension "foo/.dotfile")))
-  (is (nil? (fs/extension "/home/.zshrc")))
-  (is (nil? (fs/extension "bin/something"))))
+;; extension-test -> fs_xplat_test.cljc
 
 (deftest extension-empty-string-test
   (is (nil? (fs/extension ""))))
@@ -767,11 +755,7 @@
 ;;
 ;; file-name
 ;;
-(deftest file-name-test
-  (let [f "some-dir/foo.ext"]
-    (is (= "foo.ext" (fs/file-name f)))
-    (is (= "foo.ext" (fs/file-name (fs/file f))))
-    (is (= "foo.ext" (fs/file-name (fs/path f))))))
+;; file-name-test -> fs_xplat_test.cljc
 
 (deftest file-name-empty-string-test
   (is (= "" (fs/file-name ""))))
@@ -1457,9 +1441,7 @@
 ;;
 ;; normalize
 ;;
-(deftest normalize-test
-  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "foo/bar/baz"))))
-  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "./foo/./bing/./boop/.././../bar/./baz/.")))))
+;; normalize-test -> fs_xplat_test.cljc
 
 (deftest normalize-empty-string-test
   (is (= "" (util/path->str (fs/normalize "")))))
@@ -1489,9 +1471,7 @@
 ;;
 ;; parent
 ;;
-(deftest parent-test
-  (is (= (fs/path "dir") (fs/parent "dir/foo")))
-  (is (= nil (fs/parent "foo"))))
+;; parent-test -> fs_xplat_test.cljc
 
 (deftest parent-empty-string-test
   ;; reminder: parent in path, not parent in filesystem
@@ -1991,19 +1971,7 @@
 ;;
 ;; split-ext
 ;;
-(deftest split-ext-test
-  (testing "strings"
-    (is (= ["name" "clj"] (fs/split-ext "name.clj")))
-    (is (= ["/path/to/file" "ext"] (fs/split-ext "/path/to/file.ext")))
-    (is (= ["some/path/hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
-    (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
-    (is (= ["foo/.dotfile" nil] (fs/split-ext "foo/.dotfile")))
-    (is (= ["/home/.zshrc" nil] (fs/split-ext "/home/.zshrc")))
-    (is (= ["name" nil] (fs/split-ext "name"))))
-
-  (testing "coerces paths and files"
-    (is (= ["name" "clj"] (fs/split-ext (fs/file "name.clj"))))
-    (is (= ["name" "clj"] (fs/split-ext (fs/path "name.clj"))))))
+;; split-ext-test -> fs_xplat_test.cljc
 
 (deftest split-ext-empty-string-test
   (is (= ["" nil] (fs/split-ext ""))))
@@ -2023,18 +1991,7 @@
 ;;
 ;; strip-ext
 ;;
-(deftest strip-ext-test
-  (is (= "file-name" (fs/strip-ext "file-name.clj")))
-  (is (= "file-name.html" (fs/strip-ext "file-name.html.template")))
-  (is (= "file-name" (fs/strip-ext "file-name.html.template" {:ext "html.template"})))
-  (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" {:ext "html"})))
-  (is (= "/path/to/file-name.html" (fs/strip-ext "/path/to/file-name.html.template")))
-  (is (= "path/to/file-name" (fs/strip-ext "path/to/file-name.html.template" {:ext "html.template"})))
-  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" {:ext "html"})))
-  (is (= ".dotfile" (fs/strip-ext ".dotfile")))
-  (is (= ".dotfile" (fs/strip-ext ".dotfile" {:ext "dotfile"})))
-  (is (= "bin/something" (fs/strip-ext "bin/something")))
-  (is (= "test-resources/dir.dot/no-ext" (fs/strip-ext "test-resources/dir.dot/no-ext"))))
+;; strip-ext-test -> fs_xplat_test.cljc
 
 (deftest strip-ext-empty-string-test
   (is (= "" (fs/strip-ext ""))))
@@ -2141,12 +2098,7 @@
 ;;
 ;; unixify
 ;;
-(deftest unixify-test
-  (is (= "README.md" (fs/unixify "README.md")))
-  (let [file "C:\\Users\\Billy\\proj\\foobar\\README.md"]
-    (if windows?
-      (is (= "C:/Users/Billy/proj/foobar/README.md" (fs/unixify file)))
-      (is (= file (fs/unixify file))))))
+;; unixify-test -> fs_xplat_test.cljc
 
 (deftest unixify-empty-string-test
   (is (= "" (fs/unixify ""))))
