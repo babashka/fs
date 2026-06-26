@@ -381,8 +381,7 @@
 ;; create-file
 ;;
 
-(deftest create-file-test
-  (is (= "new-file" (str (fs/create-file "new-file")))))
+;; create-file-test -> fs_xplat_test.cljc
 
 (deftest create-file-empty-string-test
   ;; NOTE:
@@ -1575,11 +1574,7 @@
 ;;
 ;; read-all-bytes
 ;;
-(deftest read-all-bytes-test
-  (spit "README.md" "some\ncontent\nhere")
-  (let [bs (fs/read-all-bytes "README.md")]
-    (is (bytes? bs))
-    (is (= (fs/size "README.md") (count bs)))))
+;; read-all-bytes-test -> fs_xplat_test.cljc
 
 (deftest read-all-bytes-empty-string-test
   (is (thrown? java.io.IOException (fs/read-all-bytes ""))))
@@ -1587,11 +1582,7 @@
 ;;
 ;; read-all-lines
 ;;
-(deftest read-all-lines-test
-  (spit "README.md" "some\ncontent\nhere")
-  (let [ls (with-open [rdr (io/reader (fs/file "README.md"))]
-             (doall (line-seq rdr)))]
-    (is (= ls (fs/read-all-lines "README.md")))))
+;; read-all-lines-test -> fs_xplat_test.cljc
 
 (deftest read-all-lines-8859-test
   (spit "iso-8859.txt" "áéíóú\nEspaña" :encoding "ISO-8859-1")
@@ -1956,12 +1947,7 @@
 ;;
 ;; size
 ;;
-(deftest size-test
-  (files "dir/")
-  (spit "file" "hello")
-  (is (= 5 (fs/size "file")))
-  (is (not (neg? (fs/size "dir")))
-      "size of dirs is unspecified by underlying API"))
+;; size-test -> fs_xplat_test.cljc
 
 (deftest size-empty-string-test
   ;; non-obvious, but size works on directories, per javadocs:
@@ -2403,15 +2389,7 @@
 ;;
 ;; write-bytes 
 ;;
-(deftest write-bytes-test
-  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "foo"))))))
-  (is (= "foo" (String. (fs/read-all-bytes "file.bin"))))
-  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "bar"))))))
-  (is (= "bar" (String. (fs/read-all-bytes "file.bin")))
-      "existing file overwritten")
-  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "baz")) {:append true}))))
-  (is (= "barbaz" (String. (fs/read-all-bytes "file.bin")))
-      "existing file appended to"))
+;; write-bytes-test -> fs_xplat_test.cljc
 
 (deftest write-bytes-empty-string-test
   (is (thrown? FileSystemException (fs/write-bytes "" (.getBytes (String. "foo"))))))
@@ -2419,16 +2397,7 @@
 ;;
 ;; write-lines
 ;;
-(deftest write-lines-test
-  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "foo")))))
-  (is (= (repeat 3 "foo") (fs/read-all-lines "file.txt")))
-  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "bar")))))
-  (is (= (repeat 3 "bar") (fs/read-all-lines "file.txt"))
-      "existing file overwritten")
-  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "baz") {:append true}))))
-  (is (= (into (vec (repeat 3 "bar")) (repeat 3 "baz"))
-         (fs/read-all-lines "file.txt"))
-      "existing file appended to"))
+;; write-lines-test -> fs_xplat_test.cljc
 
 (deftest write-lines-empty-string-test
   (is (thrown? FileSystemException (fs/write-lines "" ["foo"]))))

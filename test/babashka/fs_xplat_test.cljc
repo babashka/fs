@@ -136,6 +136,12 @@
 
 ;;;; File operations
 
+(deftest create-file-test
+  (with-tmp [d]
+    (let [f (fs/path d "new-file")]
+      (is (= (fs/unixify f) (fs/unixify (fs/create-file f))))
+      (is (fs/regular-file? f)))))
+
 (deftest create-delete-test
   (with-tmp [d]
     (let [f (fs/path d "f.txt")]
@@ -144,18 +150,39 @@
       (fs/delete f)
       (is (not (fs/exists? f))))))
 
-(deftest write-read-test
+(deftest write-bytes-test
   (with-tmp [d]
-    (let [f (str (fs/path d "f.txt"))]
-      (testing "write-bytes / read-all-bytes"
-        (fs/write-bytes f (string->bytes "hello"))
-        (is (= "hello" (bytes->string (fs/read-all-bytes f)))))
-      (testing "write-lines / read-all-lines"
-        (fs/write-lines f ["line1" "line2"])
-        (is (= ["line1" "line2"] (fs/read-all-lines f))))
-      (testing "append"
-        (fs/write-lines f ["line3"] {:append true})
-        (is (= ["line1" "line2" "line3"] (fs/read-all-lines f)))))))
+    (let [f (fs/path d "file.bin")]
+      (is (= (fs/unixify f) (fs/unixify (fs/write-bytes f (string->bytes "foo")))))
+      (is (= "foo" (slurp-str f)))
+      (fs/write-bytes f (string->bytes "bar"))
+      (is (= "bar" (slurp-str f)) "existing file overwritten")
+      (fs/write-bytes f (string->bytes "baz") {:append true})
+      (is (= "barbaz" (slurp-str f)) "existing file appended to"))))
+
+(deftest write-lines-test
+  (with-tmp [d]
+    (let [f (fs/path d "file.txt")]
+      (fs/write-lines f (repeat 3 "foo"))
+      (is (= (vec (repeat 3 "foo")) (fs/read-all-lines f)))
+      (fs/write-lines f (repeat 3 "bar"))
+      (is (= (vec (repeat 3 "bar")) (fs/read-all-lines f)) "existing file overwritten")
+      (fs/write-lines f (repeat 3 "baz") {:append true})
+      (is (= (into (vec (repeat 3 "bar")) (repeat 3 "baz")) (fs/read-all-lines f))
+          "existing file appended to"))))
+
+(deftest read-all-bytes-test
+  (with-tmp [d]
+    (let [f (fs/path d "f.txt")]
+      (fs/write-bytes f (string->bytes "some\ncontent\nhere"))
+      (is (= 17 (fs/size f)))
+      (is (= "some\ncontent\nhere" (slurp-str f))))))
+
+(deftest read-all-lines-test
+  (with-tmp [d]
+    (let [f (fs/path d "f.txt")]
+      (fs/write-bytes f (string->bytes "some\ncontent\nhere"))
+      (is (= ["some" "content" "here"] (fs/read-all-lines f))))))
 
 (deftest copy-to-file-test
   (with-tmp [d]
@@ -187,9 +214,11 @@
 
 (deftest size-test
   (with-tmp [d]
-    (let [f (str (fs/path d "f.txt"))]
-      (fs/write-bytes f (string->bytes "hello"))
-      (is (= 5 (fs/size f))))))
+    (fs/create-dir (fs/path d "dir"))
+    (fs/write-bytes (fs/path d "file") (string->bytes "hello"))
+    (is (= 5 (fs/size (fs/path d "file"))))
+    (is (not (neg? (fs/size (fs/path d "dir"))))
+        "size of dirs is unspecified by underlying API")))
 
 (deftest create-dir-test
   (with-tmp [d]
