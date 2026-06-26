@@ -424,6 +424,20 @@
       (is (= {:isDirectory true}  (fs/read-attributes d "basic:isDirectory")))
       (is (file-time? (fs/get-attribute f "basic:lastModifiedTime"))))))
 
+(deftest set-attribute-test
+  (with-tmp [d]
+    (let [f (fs/path d "afile")]
+      (fs/write-bytes f (string->bytes ""))
+      (is (= 100 (-> (fs/set-attribute f "basic:lastModifiedTime" (fs/millis->file-time 100))
+                     (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis))))))
+
+(deftest set-last-modified-time-test
+  (with-tmp [d]
+    (let [dir (fs/path d "dir")]
+      (fs/create-dir dir)
+      (is (= (fs/unixify dir) (fs/unixify (fs/set-last-modified-time dir 0))))
+      (is (= 0 (fs/file-time->millis (fs/last-modified-time dir)))))))
+
 ;;;; Gzip
 
 (deftest gzip-gunzip-test

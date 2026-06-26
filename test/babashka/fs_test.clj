@@ -1706,10 +1706,7 @@
 ;;
 ;; set-attribute
 ;;
-(deftest set-attribute-test
-  (files "afile")
-  (is (= 100 (-> (fs/set-attribute "afile" "basic:lastModifiedTime" (fs/millis->file-time 100))
-                 (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis))))
+;; set-attribute-test -> fs_xplat_test.cljc
 
 (deftest set-attribute-sym-link-test
   (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
@@ -1829,11 +1826,7 @@
 ;;
 ;; set-last-modified-time
 ;;
-(deftest set-last-modified-time-test
-  (files "dir/")
-  (is (= "dir" (str (fs/set-last-modified-time "dir" 0))))
-  (is (= 0 (-> (fs/last-modified-time "dir")
-               (fs/file-time->millis)))))
+;; set-last-modified-time-test -> fs_xplat_test.cljc
 
 (deftest set-last-modified-time-sym-link-test
   (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")

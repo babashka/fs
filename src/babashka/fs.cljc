@@ -1218,6 +1218,14 @@
 
 ;;;; Attributes
 
+#?(:clj nil
+   :default
+   (defn- attr-name
+     "Strips a `view:` prefix from an attribute spec, e.g. \"basic:size\" -> \"size\"."
+     [s]
+     (let [i (.indexOf s ":")]
+       (if (neg? i) s (subs s (inc i))))))
+
 (declare read-attributes*)
 
 (defn get-attribute
@@ -1229,9 +1237,8 @@
    (get-attribute path attribute nil))
   ([path attribute {:keys [:nofollow-links]}]
    #?(:clj (Files/getAttribute (as-path path) attribute (->link-opts nofollow-links))
-      :default (let [idx (.indexOf attribute ":")
-                     k (if (neg? idx) attribute (subs attribute (inc idx)))]
-                 (get (read-attributes* path attribute {:nofollow-links nofollow-links}) k)))))
+      :default (get (read-attributes* path attribute {:nofollow-links nofollow-links})
+                    (attr-name attribute)))))
 
 (defn- keyize
   [key-fn m]
@@ -1265,9 +1272,7 @@
                           "isOther"          (not (or (.isFile st) (.isDirectory st)
                                                       (.isSymbolicLink st)))
                           "fileKey"          nil}
-                     spec (if (string? attributes) attributes "*")
-                     idx (.indexOf spec ":")
-                     spec (if (neg? idx) spec (subs spec (inc idx)))]
+                     spec (attr-name (if (string? attributes) attributes "*"))]
                  (if (= "*" spec)
                    all
                    (select-keys all (vec (.split spec ","))))))))
@@ -1293,7 +1298,17 @@
    (set-attribute path attribute value nil))
   ([path attribute value {:keys [:nofollow-links]}]
    #?(:clj (Files/setAttribute (as-path path) attribute value (->link-opts nofollow-links))
-      :default (throw (ex-info "set-attribute not supported on Node.js" {})))))
+      :default (let [p (str path)
+                     k (attr-name attribute)
+                     st (stat path nofollow-links)
+                     [atime mtime] (case k
+                                     "lastModifiedTime" [(.-atime st) value]
+                                     "lastAccessTime"   [value (.-mtime st)]
+                                     (throw (ex-info (str "set-attribute not supported on Node.js for: " attribute) {})))]
+                 (if nofollow-links
+                   (.lutimesSync node-fs p atime mtime)
+                   (.utimesSync node-fs p atime mtime))
+                 path))))
 
 (defn file-time->instant
   "Converts a file time to an instant. On JVM: `FileTime` to `Instant`. On Node.js: returns the value as-is (JS Date)."
@@ -1349,11 +1364,8 @@
   See also: [[last-modified-time]]"
   ([path time]
    (set-last-modified-time path time nil))
-  ([path time {:keys [nofollow-links] :as opts}]
-   #?(:clj (set-attribute path "basic:lastModifiedTime" (->file-time time) opts)
-      :default (let [t (->file-time time)]
-                 (.utimesSync node-fs (str path) t t)
-                 (str path)))))
+  ([path time opts]
+   (set-attribute path "basic:lastModifiedTime" (->file-time time) opts)))
 
 (defn creation-time
   "Returns creation time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) (JVM) or JS `Date` (Node.js).
