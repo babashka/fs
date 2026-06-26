@@ -1,8 +1,9 @@
-(ns babashka.fs-xplat-test
+(ns babashka.fs-test
   "Cross-platform conformance suite. Runs on JVM, ClojureScript and squint.
   Tests use the isolated temp-dir model (no cwd mutation) and the platform
   abstractions in babashka.fs-test-utils. Path comparisons go through
-  `fs/unixify` so they hold on Windows too."
+  `fs/unixify` so they hold on Windows too. JVM-only tests live in
+  babashka.fs-jvm-test."
   (:require [babashka.fs :as fs]
             [babashka.fs-test-utils :include-macros true
              :refer [with-tmp string->bytes bytes->string file-time?

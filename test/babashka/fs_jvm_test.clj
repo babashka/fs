@@ -1,4 +1,4 @@
-(ns babashka.fs-test
+(ns babashka.fs-jvm-test
   (:require
    [babashka.fs :as fs]
    [babashka.fs-test-util :as util]
@@ -144,7 +144,7 @@
 ;;
 ;; components
 ;;
-;; components-test -> fs_xplat_test.cljc
+;; components-test -> fs_test.cljc
 
 (deftest components-empty-string-test
   (is (= [""] (mapv util/path->str (fs/components "")))))
@@ -152,7 +152,7 @@
 ;;
 ;; copy
 ;; 
-;; copy-to-file-test, copy-into-dir-test -> fs_xplat_test.cljc
+;; copy-to-file-test, copy-into-dir-test -> fs_test.cljc
 
 (deftest copy-input-stream-test
   (files "file" "dest-dir/")
@@ -179,7 +179,7 @@
 ;; copy-tree
 ;;
 ;; copy-tree-test, copy-tree-from-file-throws-test, copy-tree-to-file-throws-test,
-;; copy-tree-creates-missing-dest-dirs-test -> fs_xplat_test.cljc
+;; copy-tree-creates-missing-dest-dirs-test -> fs_test.cljc
 
 (deftest copy-tree-nested-ro-dir-test
   (files "src-dir/foo/bar/")
@@ -194,7 +194,7 @@
     ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
     (is (not (fs/writable? "dest-dir/foo")))))
 
-;; copy-tree-fails-on-parent-to-child-test -> fs_xplat_test.cljc
+;; copy-tree-fails-on-parent-to-child-test -> fs_test.cljc
 
 (deftest copy-tree-ok-on-child-to-existing-parent-test
   (files "foo/bar/baz/somefile.txt")
@@ -239,12 +239,12 @@
 
 ;; copy-tree-nofollow-src-link-throws / copy-tree-nofollow-dest-link-throws /
 ;; copy-tree-follow-src-dest-links / copy-tree-follow-src-link-new-dest sym-link
-;; -> fs_xplat_test.cljc
+;; -> fs_test.cljc
 
 ;;
 ;; create-dir
 ;;
-;; create-dir-test -> fs_xplat_test.cljc
+;; create-dir-test -> fs_test.cljc
 
 (deftest create-dir-empty-string-test
   (is (thrown? java.nio.file.FileAlreadyExistsException (fs/create-dir ""))))
@@ -301,7 +301,7 @@
 ;; create-file
 ;;
 
-;; create-file-test -> fs_xplat_test.cljc
+;; create-file-test -> fs_test.cljc
 
 (deftest create-file-empty-string-test
   ;; NOTE:
@@ -489,9 +489,9 @@
 ;; delete-tree
 ;;
 ;; delete-tree-test, delete-tree-nested-test, delete-tree-ok-if-dir-missing-test
-;; -> fs_xplat_test.cljc
+;; -> fs_test.cljc
 
-;; delete-tree-does-not-follow-symlink-test -> fs_xplat_test.cljc
+;; delete-tree-does-not-follow-symlink-test -> fs_test.cljc
 
 (deftest delete-tree-force-deletes-ro-dirs-and-files-test
   (files "dir1/file1.txt"
@@ -517,7 +517,7 @@
   (is (thrown? java.nio.file.FileSystemException (fs/delete-tree "")))
   (is (match? [] (list-tree "."))))
 
-;; delete-tree-good-sym-link-root / delete-tree-bad-sym-link-root -> fs_xplat_test.cljc
+;; delete-tree-good-sym-link-root / delete-tree-bad-sym-link-root -> fs_test.cljc
 
 ;;
 ;; directory?
@@ -529,7 +529,7 @@
   (is (= false (fs/directory? "idontexist")))
   (is (= false (fs/directory? (fs/path "dir" "idontexist")))))
 
-;; directory?-sym-link-test -> fs_xplat_test.cljc
+;; directory?-sym-link-test -> fs_test.cljc
 
 (deftest directory?-empty-string-test
   (is (= true (fs/directory? ""))))
@@ -537,7 +537,7 @@
 ;;
 ;; ends-with?
 ;;
-;; ends-with?-test -> fs_xplat_test.cljc
+;; ends-with?-test -> fs_test.cljc
 
 (deftest ends-with?-empty-string-test
   (is (= true (fs/ends-with? "" ""))))
@@ -558,7 +558,7 @@
     ;; throw.
     (is (false? (fs/exists? "c:/123:456")))))
 
-;; exists?-sym-link-test -> fs_xplat_test.cljc
+;; exists?-sym-link-test -> fs_test.cljc
 
 (deftest exists?-empty-string-test
   (is (= true (fs/exists? ""))))
@@ -619,7 +619,7 @@
 ;;
 ;; extension
 ;;
-;; extension-test -> fs_xplat_test.cljc
+;; extension-test -> fs_test.cljc
 
 (deftest extension-empty-string-test
   (is (nil? (fs/extension ""))))
@@ -638,7 +638,7 @@
 ;;
 ;; file-name
 ;;
-;; file-name-test -> fs_xplat_test.cljc
+;; file-name-test -> fs_test.cljc
 
 (deftest file-name-empty-string-test
   (is (= "" (fs/file-name ""))))
@@ -953,7 +953,7 @@
 ;;
 ;; last-modified-time
 ;;
-;; last-modified-time-sym-link-test -> fs_xplat_test.cljc
+;; last-modified-time-sym-link-test -> fs_test.cljc
 
 (deftest last-modified-time-empty-string-test
   (let [dir-last-modified-time (fs/last-modified-time ".")]
@@ -962,7 +962,7 @@
 ;;
 ;; list-dir 
 ;;
-;; list-dir-test -> fs_xplat_test.cljc
+;; list-dir-test -> fs_test.cljc
 
 (deftest list-dir-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
@@ -1192,7 +1192,7 @@
 ;;
 ;; move
 ;;
-;; move-to-file-test, move-to-dir-test -> fs_xplat_test.cljc
+;; move-to-file-test, move-to-dir-test -> fs_test.cljc
 
 (deftest move-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
@@ -1218,12 +1218,12 @@
                "f1.ext"]
               (list-tree "."))))
 
-;; move-*-sym-link / rename-good-link-sym-link tests -> fs_xplat_test.cljc
+;; move-*-sym-link / rename-good-link-sym-link tests -> fs_test.cljc
 
 ;;
 ;; normalize
 ;;
-;; normalize-test -> fs_xplat_test.cljc
+;; normalize-test -> fs_test.cljc
 
 (deftest normalize-empty-string-test
   (is (= "" (util/path->str (fs/normalize "")))))
@@ -1253,7 +1253,7 @@
 ;;
 ;; parent
 ;;
-;; parent-test -> fs_xplat_test.cljc
+;; parent-test -> fs_test.cljc
 
 (deftest parent-empty-string-test
   ;; reminder: parent in path, not parent in filesystem
@@ -1357,7 +1357,7 @@
 ;;
 ;; read-all-bytes
 ;;
-;; read-all-bytes-test -> fs_xplat_test.cljc
+;; read-all-bytes-test -> fs_test.cljc
 
 (deftest read-all-bytes-empty-string-test
   (is (thrown? java.io.IOException (fs/read-all-bytes ""))))
@@ -1365,7 +1365,7 @@
 ;;
 ;; read-all-lines
 ;;
-;; read-all-lines-test -> fs_xplat_test.cljc
+;; read-all-lines-test -> fs_test.cljc
 
 (deftest read-all-lines-8859-test
   (spit "iso-8859.txt" "áéíóú\nEspaña" :encoding "ISO-8859-1")
@@ -1486,7 +1486,7 @@
   (is (= false (fs/regular-file? "idontexist")))
   (is (= false (fs/regular-file? (fs/path "dir" "idontexist")))))
 
-;; regular-file?-sym-link-test -> fs_xplat_test.cljc
+;; regular-file?-sym-link-test -> fs_test.cljc
 
 (deftest regular-file?-empty-string-test
   (is (= false (fs/regular-file? ""))))
@@ -1548,7 +1548,7 @@
 ;;
 ;; set-attribute
 ;;
-;; set-attribute-test -> fs_xplat_test.cljc
+;; set-attribute-test -> fs_test.cljc
 
 (deftest set-attribute-sym-link-test
   (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
@@ -1668,7 +1668,7 @@
 ;;
 ;; set-last-modified-time
 ;;
-;; set-last-modified-time-test -> fs_xplat_test.cljc
+;; set-last-modified-time-test -> fs_test.cljc
 
 (deftest set-last-modified-time-sym-link-test
   (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
@@ -1714,7 +1714,7 @@
 ;;
 ;; size
 ;;
-;; size-test -> fs_xplat_test.cljc
+;; size-test -> fs_test.cljc
 
 (deftest size-empty-string-test
   ;; non-obvious, but size works on directories, per javadocs:
@@ -1724,7 +1724,7 @@
 ;;
 ;; split-ext
 ;;
-;; split-ext-test -> fs_xplat_test.cljc
+;; split-ext-test -> fs_test.cljc
 
 (deftest split-ext-empty-string-test
   (is (= ["" nil] (fs/split-ext ""))))
@@ -1744,7 +1744,7 @@
 ;;
 ;; strip-ext
 ;;
-;; strip-ext-test -> fs_xplat_test.cljc
+;; strip-ext-test -> fs_test.cljc
 
 (deftest strip-ext-empty-string-test
   (is (= "" (fs/strip-ext ""))))
@@ -1851,7 +1851,7 @@
 ;;
 ;; unixify
 ;;
-;; unixify-test -> fs_xplat_test.cljc
+;; unixify-test -> fs_test.cljc
 
 (deftest unixify-empty-string-test
   (is (= "" (fs/unixify ""))))
@@ -2156,7 +2156,7 @@
 ;;
 ;; write-bytes 
 ;;
-;; write-bytes-test -> fs_xplat_test.cljc
+;; write-bytes-test -> fs_test.cljc
 
 (deftest write-bytes-empty-string-test
   (is (thrown? FileSystemException (fs/write-bytes "" (.getBytes (String. "foo"))))))
@@ -2164,7 +2164,7 @@
 ;;
 ;; write-lines
 ;;
-;; write-lines-test -> fs_xplat_test.cljc
+;; write-lines-test -> fs_test.cljc
 
 (deftest write-lines-empty-string-test
   (is (thrown? FileSystemException (fs/write-lines "" ["foo"]))))

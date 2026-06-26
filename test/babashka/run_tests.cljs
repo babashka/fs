@@ -1,5 +1,5 @@
 (ns babashka.run-tests
-  (:require [babashka.fs-xplat-test]
+  (:require [babashka.fs-test]
             [clojure.test :as t]))
 
 (def ^:private old-fail (get-method t/report [:cljs.test/default :fail]))
@@ -12,4 +12,4 @@
   (set! (.-exitCode js/process) 1)
   (old-error m))
 
-(t/run-tests 'babashka.fs-xplat-test)
+(t/run-tests 'babashka.fs-test)
