@@ -5,7 +5,8 @@
   `fs/unixify` so they hold on Windows too."
   (:require [babashka.fs :as fs]
             [babashka.fs-test-utils :include-macros true
-             :refer [with-tmp string->bytes bytes->string file-time?]]
+             :refer [with-tmp string->bytes bytes->string file-time?
+                     files list-tree slurp-str]]
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
@@ -127,28 +128,45 @@
         (fs/write-lines f ["line3"] {:append true})
         (is (= ["line1" "line2" "line3"] (fs/read-all-lines f)))))))
 
-(deftest copy-test
+(deftest copy-to-file-test
   (with-tmp [d]
-    (let [src (str (fs/path d "src.txt"))
-          dst (str (fs/path d "dst.txt"))]
-      (fs/write-bytes src (string->bytes "data"))
-      (fs/copy src dst)
-      (is (= "data" (bytes->string (fs/read-all-bytes dst)))))))
+    (files d "file" "dest-dir/")
+    (is (= "dest-dir/file" (fs/unixify (fs/relativize d (fs/copy (fs/path d "file") (fs/path d "dest-dir/file"))))))
+    (is (= ["dest-dir/file" "file"] (list-tree d)))))
 
-(deftest move-test
+(deftest copy-into-dir-test
   (with-tmp [d]
-    (let [src (str (fs/path d "src.txt"))
-          dst (str (fs/path d "dst.txt"))]
-      (fs/write-bytes src (string->bytes "data"))
-      (fs/move src dst)
-      (is (not (fs/exists? src)))
-      (is (= "data" (bytes->string (fs/read-all-bytes dst)))))))
+    (files d "file" "dest-dir/")
+    (is (= "dest-dir/file" (fs/unixify (fs/relativize d (fs/copy (fs/path d "file") (fs/path d "dest-dir"))))))
+    (is (= ["dest-dir/file" "file"] (list-tree d)))))
+
+(deftest move-to-file-test
+  (with-tmp [d]
+    (files d "src-dir/foo.txt" "dest-dir/")
+    (let [content (slurp-str (fs/path d "src-dir/foo.txt"))]
+      (fs/move (fs/path d "src-dir/foo.txt") (fs/path d "dest-dir/foo.txt"))
+      (is (= ["dest-dir/foo.txt" "src-dir/"] (list-tree d)))
+      (is (= content (slurp-str (fs/path d "dest-dir/foo.txt")))))))
+
+(deftest move-to-dir-test
+  (with-tmp [d]
+    (files d "src-dir/foo.txt" "dest-dir/")
+    (let [content (slurp-str (fs/path d "src-dir/foo.txt"))]
+      (fs/move (fs/path d "src-dir/foo.txt") (fs/path d "dest-dir"))
+      (is (= ["dest-dir/foo.txt" "src-dir/"] (list-tree d)))
+      (is (= content (slurp-str (fs/path d "dest-dir/foo.txt")))))))
 
 (deftest size-test
   (with-tmp [d]
     (let [f (str (fs/path d "f.txt"))]
       (fs/write-bytes f (string->bytes "hello"))
       (is (= 5 (fs/size f))))))
+
+(deftest create-dir-test
+  (with-tmp [d]
+    (is (fs/create-dir (fs/path d "foo")))
+    (is (= ["foo/"] (list-tree d)))
+    (is (fs/directory? (fs/path d "foo")))))
 
 (deftest create-dirs-test
   (with-tmp [d]
@@ -158,11 +176,20 @@
 
 (deftest delete-tree-test
   (with-tmp [d]
-    (let [sub (fs/path d "sub")]
-      (fs/create-dirs (fs/path sub "deep"))
-      (fs/write-bytes (str (fs/path sub "f.txt")) (string->bytes "x"))
-      (fs/delete-tree sub)
-      (is (not (fs/exists? sub))))))
+    (files d "foo/bar/baz/file.txt")
+    (is (= "foo" (fs/unixify (fs/relativize d (fs/delete-tree (fs/path d "foo"))))))
+    (is (= [] (list-tree d)))))
+
+(deftest delete-tree-nested-test
+  (with-tmp [d]
+    (files d "foo/bar/baz/file.txt")
+    (is (= "foo/bar/baz" (fs/unixify (fs/relativize d (fs/delete-tree (fs/path d "foo/bar/baz"))))))
+    (is (= ["foo/bar/"] (list-tree d)))))
+
+(deftest delete-tree-ok-if-dir-missing-test
+  (with-tmp [d]
+    (is (nil? (fs/delete-tree (fs/path d "foo"))))
+    (is (nil? (fs/delete-tree (fs/path d "foo/bar/baz"))))))
 
 (deftest sym-link-test
   ;; symlink creation needs privileges on Windows

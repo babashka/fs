@@ -1089,7 +1089,8 @@
                                :post-visit-dir (fn [path _]
                                                  (delete path)
                                                  :continue)})
-       :default (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)})))))
+       :default (do (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)})
+                    root-path)))))
 
 (defn create-file
   "Creates empty `file` via [Files/createFile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createFile(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).

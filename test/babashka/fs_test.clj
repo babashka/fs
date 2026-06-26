@@ -154,19 +154,7 @@
 ;;
 ;; copy
 ;; 
-(deftest copy-to-file-test
-  (files "file" "dest-dir/")
-  (is (= "dest-dir/file" (fs/unixify (fs/copy "file" "dest-dir/file"))))
-  (is (match? ["dest-dir/file"
-               "file"]
-              (list-tree "."))))
-
-(deftest copy-into-dir-test
-  (files "file" "dest-dir/")
-  (is (= "dest-dir/file" (fs/unixify (fs/copy "file" "dest-dir"))))
-  (is (match? ["dest-dir/file"
-               "file"]
-              (list-tree "."))))
+;; copy-to-file-test, copy-into-dir-test -> fs_xplat_test.cljc
 
 (deftest copy-input-stream-test
   (files "file" "dest-dir/")
@@ -338,11 +326,7 @@
 ;;
 ;; create-dir
 ;;
-(deftest create-dir-test
-  (is (fs/create-dir "foo"))
-  (is (match? ["foo/"] (normalized
-                         (fs/glob "." "**"))))
-  (is (fs/directory? "foo")))
+;; create-dir-test -> fs_xplat_test.cljc
 
 (deftest create-dir-empty-string-test
   (is (thrown? java.nio.file.FileAlreadyExistsException (fs/create-dir ""))))
@@ -587,20 +571,8 @@
 ;;
 ;; delete-tree
 ;;
-(deftest delete-tree-test
-  (files "foo/bar/baz/file.txt")
-  (is (= "foo" (str (fs/delete-tree "foo"))))
-  (is (match? [] (fs/glob "." "**"))))
-
-(deftest delete-tree-nested-test
-  (files "foo/bar/baz/file.txt")
-  (is (= "foo/bar/baz" (fs/unixify (fs/delete-tree "foo/bar/baz"))))
-  (is (match? ["foo/bar/"]
-              (list-tree "."))))
-
-(deftest delete-tree-ok-if-dir-missing-test
-  (is (= nil (fs/delete-tree "foo")))
-  (is (= nil (fs/delete-tree "foo/bar/baz"))))
+;; delete-tree-test, delete-tree-nested-test, delete-tree-ok-if-dir-missing-test
+;; -> fs_xplat_test.cljc
 
 (deftest delete-tree-does-not-follow-symlink-test
   (files "dir1/"
@@ -1386,25 +1358,7 @@
 ;;
 ;; move
 ;;
-(deftest move-to-file-test
-  (files "src-dir/foo.txt"
-         "dest-dir/")
-  (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
-    (fs/move "src-dir/foo.txt" "dest-dir/foo.txt")
-    (is (match? ["dest-dir/foo.txt"
-                 "src-dir/"]
-                (list-tree ".")))
-    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt"))))))
-
-(deftest move-to-dir-test
-  (files "src-dir/foo.txt"
-         "dest-dir/")
-  (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
-    (fs/move "src-dir/foo.txt" "dest-dir")
-    (is (match? ["dest-dir/foo.txt"
-                 "src-dir/"]
-                (list-tree ".")))
-    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt"))))))
+;; move-to-file-test, move-to-dir-test -> fs_xplat_test.cljc
 
 (deftest move-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
