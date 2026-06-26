@@ -6,7 +6,7 @@
   (:require [babashka.fs :as fs]
             [babashka.fs-test-utils :include-macros true
              :refer [with-tmp string->bytes bytes->string file-time?
-                     files list-tree slurp-str]]
+                     files list-tree rel-entries slurp-str]]
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
@@ -279,15 +279,43 @@
 
 (deftest glob-test
   (with-tmp [d]
-    (fs/write-bytes (str (fs/path d "a.clj")) (string->bytes ""))
-    (fs/write-bytes (str (fs/path d "b.clj")) (string->bytes ""))
-    (fs/write-bytes (str (fs/path d "c.txt")) (string->bytes ""))
-    (fs/create-dir (fs/path d "sub"))
-    (fs/write-bytes (str (fs/path d "sub" "d.clj")) (string->bytes ""))
-    (let [results (set (map fs/file-name (fs/glob d "*.clj")))]
-      (is (= #{"a.clj" "b.clj"} results)))
-    (let [results (set (map fs/file-name (fs/glob d "**.clj")))]
-      (is (= #{"a.clj" "b.clj" "d.clj"} results)))))
+    (files d "README.md" "project.clj" ".gitignore"
+           "dira1/foo.txt"
+           "dira1/dirb1/README.md"
+           "dira1/dirb1/source.clj"
+           "dira1/dirb1/dirc1/"
+           "dira2/dirb1/test.cljc")
+    (testing "glob single"
+      (is (= ["README.md"] (rel-entries d (fs/glob d "README.md")))))
+    (testing "glob ** multiple with same filename auto-recursive"
+      (is (= ["README.md" "dira1/dirb1/README.md"]
+             (rel-entries d (fs/glob d "**README.md")))))
+    (testing "glob ** but disable recursion"
+      (is (= ["README.md"] (rel-entries d (fs/glob d "**README.md" {:recursive false})))))
+    (testing "glob recursive by extension"
+      (is (= ["dira1/dirb1/source.clj" "dira2/dirb1/test.cljc" "project.clj"]
+             (rel-entries d (fs/glob d "**.{clj,cljc}")))))
+    (testing "glob also matches directories and doesn't return the specified root directory"
+      (is (= ["dira1/dirb1/README.md" "dira1/dirb1/dirc1/" "dira1/dirb1/source.clj"]
+             (rel-entries d (fs/glob (fs/path d "dira1/dirb1") "**")))))
+    (when-not (fs/windows?)
+      (testing "hidden files are not matched by default"
+        (is (= [] (rel-entries d (fs/glob d "*git*")))))
+      (testing "hidden files matched when :hidden option specified"
+        (is (= [".gitignore"] (rel-entries d (fs/glob d "*git*" {:hidden true})))))
+      (testing "hidden files automatically matched when pattern starts with a dot"
+        (is (= [".gitignore"] (rel-entries d (fs/glob d ".gitig*"))))))))
+
+(deftest list-dir-test
+  (with-tmp [d]
+    (files d "dir1/" "dir2/foo.txt" "file.txt" "source1.clj" "source2.clj")
+    (is (= ["dir1/" "dir2/" "file.txt" "source1.clj" "source2.clj"]
+           (rel-entries d (fs/list-dir d))))
+    (is (= ["dir1/" "dir2/"]
+           (rel-entries d (fs/list-dir d (fn [x] (fs/directory? x))))))
+    (is (= [] (vec (fs/list-dir d (fn [_] false)))))
+    (is (= ["source1.clj" "source2.clj"]
+           (rel-entries d (fs/list-dir d "*.clj"))))))
 
 (deftest walk-file-tree-test
   (with-tmp [d]

@@ -439,9 +439,12 @@
            parts (.split pattern "**")
            convert-segment (fn [seg]
                              (-> seg
-                                 (.replace (js/RegExp. "[.+^${}()|[\\]\\\\]" "g") "\\$&")
+                                 (.replace (js/RegExp. "[.+^$()|[\\]\\\\]" "g") "\\$&")
                                  (.replace (js/RegExp. "\\*" "g") (str sep-class "*"))
-                                 (.replace (js/RegExp. "\\?" "g") sep-class)))
+                                 (.replace (js/RegExp. "\\?" "g") sep-class)
+                                 (.replace (js/RegExp. "\\{([^}]*)\\}" "g")
+                                           (fn [_ inner]
+                                             (str "(" (.replace inner (js/RegExp. "," "g") "|") ")")))))
            regex-str (str/join ".*" (map convert-segment parts))]
        (.test (js/RegExp. (str "^" regex-str "$")) name))))
 

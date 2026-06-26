@@ -1093,25 +1093,7 @@
 ;;
 ;; list-dir 
 ;;
-(deftest list-dir-test
-  (files "dir1/"
-         "dir2/foo.txt"
-         "file.txt"
-         "source1.clj"
-         "source2.clj")
-  (is (match? ["./dir1/"
-               "./dir2/"
-               "./file.txt"
-               "./source1.clj"
-               "./source2.clj"]
-              (normalized (fs/list-dir "."))))
-  (is (match? ["./dir1/"
-               "./dir2/"]
-              (normalized (fs/list-dir "." (fn accept [x] (fs/directory? x))))))
-  (is (match? [] (fs/list-dir "." (fn accept [_] false))))
-  (is (match? ["./source1.clj"
-               "./source2.clj"]
-              (normalized (fs/list-dir "." "*.clj")))))
+;; list-dir-test -> fs_xplat_test.cljc
 
 (deftest list-dir-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")

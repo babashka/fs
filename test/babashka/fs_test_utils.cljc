@@ -46,6 +46,12 @@
        sort
        vec))
 
+(defn rel-entries
+  "Sorted, dir-annotated `entries` relative to `base`, no collapse.
+  Cross-platform port of the JVM suite's `normalized`."
+  [base entries]
+  (annotate-dirs base (map #(fs/unixify (fs/relativize base %)) entries)))
+
 (defn list-tree
   "Sorted, collapsed, dir-annotated entries under `base`, relative to `base`.
   Cross-platform port of the JVM suite's `list-tree`."
