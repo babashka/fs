@@ -1237,7 +1237,7 @@
   (testing "symlink as root path"
     (let [sym-link (fs/create-sym-link "sym-link" "dira1")
           target (fs/read-link sym-link)]
-      (is (= (str target) "dira1"))
+      (is (= "dira1" (str target)))
       (is (match? [] (fs/match sym-link "regex:.*")))
       (is (match? ["sym-link/foo.txt"]
                   (normalized (fs/match sym-link "regex:.*" {:follow-links true}))))
