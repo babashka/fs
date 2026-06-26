@@ -362,6 +362,23 @@
         (is (file-time? t))
         (is (pos? (fs/file-time->millis t)))))))
 
+;;;; Attributes
+
+(deftest read-attributes-test
+  (with-tmp [d]
+    (let [f (fs/path d "f.txt")]
+      (fs/write-bytes f (string->bytes "hello"))
+      (let [m (fs/read-attributes f "*")]
+        (is (file-time? (:lastModifiedTime m)))
+        (is (file-time? (:creationTime m)))
+        (is (= 5 (:size m)))
+        (is (true? (:isRegularFile m)))
+        (is (false? (:isDirectory m)))
+        (is (false? (:isSymbolicLink m))))
+      (is (= {:isDirectory false} (fs/read-attributes f "basic:isDirectory")))
+      (is (= {:isDirectory true}  (fs/read-attributes d "basic:isDirectory")))
+      (is (file-time? (fs/get-attribute f "basic:lastModifiedTime"))))))
+
 ;;;; Gzip
 
 (deftest gzip-gunzip-test

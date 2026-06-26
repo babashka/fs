@@ -109,6 +109,13 @@
                          (conj LinkOption/NOFOLLOW_LINKS)))
      :default nil))
 
+#?(:clj nil
+   :default
+   (defn- stat [path nofollow-links]
+     (if nofollow-links
+       (.lstatSync node-fs (str path))
+       (.statSync node-fs (str path)))))
+
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
 
@@ -143,9 +150,7 @@
   ([path {:keys [:nofollow-links]}]
    #?(:clj (Files/isRegularFile (as-path path) (->link-opts nofollow-links))
       :default (try
-                 (.isFile (if nofollow-links
-                            (.lstatSync node-fs (str path))
-                            (.statSync node-fs (str path))))
+                 (.isFile (stat path nofollow-links))
                  (catch :default _ false)))))
 
 (defn directory?
@@ -157,9 +162,7 @@
   ([path {:keys [:nofollow-links]}]
    #?(:clj (Files/isDirectory (as-path path) (->link-opts nofollow-links))
       :default (try
-                 (.isDirectory (if nofollow-links
-                                 (.lstatSync node-fs (str path))
-                                 (.statSync node-fs (str path))))
+                 (.isDirectory (stat path nofollow-links))
                  (catch :default _ false)))))
 
 #?(:clj (def ^:private simple-link-opts (into-array LinkOption [])))
@@ -226,9 +229,7 @@
              (Files/exists (as-path path) (->link-opts nofollow-links))
              (catch Exception _e false))
       :default (try
-                 (if nofollow-links
-                   (.lstatSync node-fs (str path))
-                   (.statSync node-fs (str path)))
+                 (stat path nofollow-links)
                  true
                  (catch :default _ false)))))
 
@@ -783,10 +784,7 @@
   ([path] (posix-file-permissions path nil))
   ([path {:keys [:nofollow-links]}]
    #?(:clj (Files/getPosixFilePermissions (as-path path) (->link-opts nofollow-links))
-      :default (let [stat (if nofollow-links
-                            (.lstatSync node-fs (str path))
-                            (.statSync node-fs (str path)))]
-                 (bit-and (.-mode stat) 511)))))
+      :default (bit-and (.-mode (stat path nofollow-links)) 511))))
 
 (defn- u+wx
   [f]
@@ -1212,6 +1210,8 @@
 
 ;;;; Attributes
 
+(declare read-attributes*)
+
 (defn get-attribute
   "Returns value of `attribute` for `path` via [Files/getAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getAttribute(java.nio.file.Path,java.lang.String,java.nio.file.LinkOption...)).
 
@@ -1221,7 +1221,9 @@
    (get-attribute path attribute nil))
   ([path attribute {:keys [:nofollow-links]}]
    #?(:clj (Files/getAttribute (as-path path) attribute (->link-opts nofollow-links))
-      :default (throw (ex-info "get-attribute not supported on Node.js" {})))))
+      :default (let [idx (.indexOf attribute ":")
+                     k (if (neg? idx) attribute (subs attribute (inc idx)))]
+                 (get (read-attributes* path attribute {:nofollow-links nofollow-links}) k)))))
 
 (defn- keyize
   [key-fn m]
@@ -1244,7 +1246,23 @@
                    (Files/readAttributes p ^String attributes link-opts)
                    (Files/readAttributes p ^Class attributes link-opts))]
              attrs)
-      :default (throw (ex-info "read-attributes* not supported on Node.js" {})))))
+      :default (let [st (stat path nofollow-links)
+                     all {"lastModifiedTime" (.-mtime st)
+                          "lastAccessTime"   (.-atime st)
+                          "creationTime"     (.-birthtime st)
+                          "size"             (.-size st)
+                          "isRegularFile"    (.isFile st)
+                          "isDirectory"      (.isDirectory st)
+                          "isSymbolicLink"   (.isSymbolicLink st)
+                          "isOther"          (not (or (.isFile st) (.isDirectory st)
+                                                      (.isSymbolicLink st)))
+                          "fileKey"          nil}
+                     spec (if (string? attributes) attributes "*")
+                     idx (.indexOf spec ":")
+                     spec (if (neg? idx) spec (subs spec (inc idx)))]
+                 (if (= "*" spec)
+                   all
+                   (select-keys all (vec (.split spec ","))))))))
 
 (defn read-attributes
   "Same as [[read-attributes*]] but returns requested `attributes` for `path` as a map with keywordized attribute keys.
@@ -1308,11 +1326,8 @@
   See also: [[set-last-modified-time]], [[creation-time]], [[file-time->instant]], [[file-time->millis]]"
   ([path]
    (last-modified-time path nil))
-  ([path {:keys [nofollow-links] :as opts}]
-   #?(:clj (get-attribute path "basic:lastModifiedTime" opts)
-      :default (.-mtime (if nofollow-links
-                          (.lstatSync node-fs (str path))
-                          (.statSync node-fs (str path)))))))
+  ([path opts]
+   (get-attribute path "basic:lastModifiedTime" opts)))
 
 (defn set-last-modified-time
   "Sets last modified `time` of `path`.
@@ -1340,11 +1355,8 @@
   See also: [[set-creation-time]], [[last-modified-time]], [[file-time->instant]], [[file-time->millis]]"
   ([path]
    (creation-time path nil))
-  ([path {:keys [nofollow-links] :as opts}]
-   #?(:clj (get-attribute path "basic:creationTime" opts)
-      :default (.-birthtime (if nofollow-links
-                              (.lstatSync node-fs (str path))
-                              (.statSync node-fs (str path)))))))
+  ([path opts]
+   (get-attribute path "basic:creationTime" opts)))
 
 (defn set-creation-time
   "Sets creation `time` of `path`.
