@@ -6,7 +6,8 @@
   (:require [babashka.fs :as fs]
             [babashka.fs-test-utils :include-macros true
              :refer [with-tmp string->bytes bytes->string file-time?
-                     files list-tree rel-entries slurp-str caught ex-msg]]
+                     files list-tree rel-entries slurp-str caught ex-msg
+                     fsnapshot set-sym-link-mtime!]]
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
@@ -207,18 +208,20 @@
 (deftest copy-tree-from-file-throws-test
   (with-tmp [d]
     (files d "src-dir/dir/file.txt" "dest-dir/")
-    (let [e (caught #(fs/copy-tree (fs/path d "src-dir/dir/file.txt") (fs/path d "dest-dir")))]
+    (let [before (fsnapshot d)
+          e (caught #(fs/copy-tree (fs/path d "src-dir/dir/file.txt") (fs/path d "dest-dir")))]
       (is (some? e))
-      (is (re-find #"Not a directory" (ex-msg e))))
-    (is (= ["dest-dir/" "src-dir/dir/file.txt"] (list-tree d)) "filesystem unchanged")))
+      (is (re-find #"Not a directory" (ex-msg e)))
+      (is (= before (fsnapshot d)) "filesystem unchanged"))))
 
 (deftest copy-tree-to-file-throws-test
   (with-tmp [d]
     (files d "src-dir/dir/file.txt" "dest-dir/file.txt")
-    (let [e (caught #(fs/copy-tree (fs/path d "src-dir/dir") (fs/path d "dest-dir/file.txt")))]
+    (let [before (fsnapshot d)
+          e (caught #(fs/copy-tree (fs/path d "src-dir/dir") (fs/path d "dest-dir/file.txt")))]
       (is (some? e))
-      (is (re-find #"Not a directory" (ex-msg e))))
-    (is (= ["dest-dir/file.txt" "src-dir/dir/file.txt"] (list-tree d)) "filesystem unchanged")))
+      (is (re-find #"Not a directory" (ex-msg e)))
+      (is (= before (fsnapshot d)) "filesystem unchanged"))))
 
 (deftest copy-tree-creates-missing-dest-dirs-test
   (with-tmp [d]
@@ -305,6 +308,55 @@
         (is (fs/sym-link? link))
         (is (fs/exists? link))
         (is (= target (str (fs/read-link link))))))))
+
+(deftest directory?-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dir (fs/path d "dir"))
+      (let [link (fs/path d "dir-link")]
+        (fs/create-sym-link link (fs/path d "dir"))
+        (is (= true (fs/directory? link) (fs/directory? link {:nofollow-links false}))
+            "following links")
+        (is (= false (fs/directory? link {:nofollow-links true}))
+            "not following links: the link itself is not a directory")))))
+
+(deftest regular-file?-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (let [target (fs/path d "file")
+            link (fs/path d "file-link")]
+        (fs/write-bytes target (string->bytes "x"))
+        (fs/create-sym-link link target)
+        (is (= true (fs/regular-file? link) (fs/regular-file? link {:nofollow-links false}))
+            "following links")
+        (is (= false (fs/regular-file? link {:nofollow-links true}))
+            "not following links: the link itself is not a regular file")))))
+
+(deftest exists?-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (let [link (fs/path d "link")]
+        (fs/create-sym-link link (fs/path d "non-existent-target"))
+        (is (= false (fs/exists? link)) "following link to non-existent target")
+        (is (= false (fs/exists? link {:nofollow-links false})) "following")
+        (is (= true (fs/exists? link {:nofollow-links true})) "not following: the link exists")))))
+
+(deftest last-modified-time-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (let [target (fs/path d "file")
+            link (fs/path d "link")
+            t-target (fs/millis->file-time 1577836800000)
+            t-link (fs/millis->file-time 1609459200000)]
+        (fs/write-bytes target (string->bytes "x"))
+        (fs/create-sym-link link target)
+        (fs/set-last-modified-time target t-target)
+        (testing "following the link reads the target's time"
+          (is (= 1577836800000 (fs/file-time->millis (fs/last-modified-time link))))
+          (is (= 1577836800000 (fs/file-time->millis (fs/last-modified-time link {:nofollow-links false})))))
+        (testing "not following reads the link's own time, where settable"
+          (when (set-sym-link-mtime! link t-link)
+            (is (= 1609459200000 (fs/file-time->millis (fs/last-modified-time link {:nofollow-links true}))))))))))
 
 (deftest touch-test
   (with-tmp [d]

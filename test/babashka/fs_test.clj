@@ -581,16 +581,7 @@
   (is (= false (fs/directory? "idontexist")))
   (is (= false (fs/directory? (fs/path "dir" "idontexist")))))
 
-(deftest directory?-sym-link-test
-  (files "dir/")
-  (fs/create-sym-link "dir-link" "dir")
-  (is (= true
-         (fs/directory? "dir-link")
-         (fs/directory? "dir-link" {:nofollow-links false}))
-      "following links")
-  (is (= false
-         (fs/directory? "file-link" {:nofollow-links true}))
-      "not following links"))
+;; directory?-sym-link-test -> fs_xplat_test.cljc
 
 (deftest directory?-empty-string-test
   (is (= true (fs/directory? ""))))
@@ -619,12 +610,7 @@
     ;; throw.
     (is (false? (fs/exists? "c:/123:456")))))
 
-(deftest exists?-sym-link-test
-  (fs/create-sym-link "link" "non-existent-target")
-  (is (= false (fs/exists? "link") (fs/exists? {:nofollow-links false}))
-      "following link (to non existent target)")
-  (is (= true (fs/exists? "link" {:nofollow-links true}))
-      "not following link (link exists)"))
+;; exists?-sym-link-test -> fs_xplat_test.cljc
 
 (deftest exists?-empty-string-test
   (is (= true (fs/exists? ""))))
@@ -1019,22 +1005,7 @@
 ;;
 ;; last-modified-time
 ;;
-(deftest last-modified-time-sym-link-test
-  (files "file")
-  (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
-        lmt-link (file-time "2025-01-01T00:00:00.00Z")
-        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (fs/create-sym-link "link" "file")
-    ;; use JVM API to set precondition (when we can)
-    (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
-    (if cant-set-last-modified-time-on-sym-link?
-      (process/shell "touch -h -d" (str lmt-link) "link")
-      (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
-    (is (= lmt-file
-           (fs/last-modified-time "link")
-           (fs/last-modified-time "link" {:nofollow-links false})))
-    (is (= lmt-link
-           (fs/last-modified-time "link" {:nofollow-links true})))))
+;; last-modified-time-sym-link-test -> fs_xplat_test.cljc
 
 (deftest last-modified-time-empty-string-test
   (let [dir-last-modified-time (fs/last-modified-time ".")]
@@ -1635,16 +1606,7 @@
   (is (= false (fs/regular-file? "idontexist")))
   (is (= false (fs/regular-file? (fs/path "dir" "idontexist")))))
 
-(deftest regular-file?-sym-link-test
-  (files "file")
-  (fs/create-sym-link "file-link" "file")
-  (is (= true
-         (fs/regular-file? "file-link")
-         (fs/regular-file? "file-link" {:nofollow-links false}))
-      "following links (file is a regular file)")
-  (is (= false
-         (fs/regular-file? "file-link" {:nofollow-links true}))
-      "not following links (file-link is not a regular file)"))
+;; regular-file?-sym-link-test -> fs_xplat_test.cljc
 
 (deftest regular-file?-empty-string-test
   (is (= false (fs/regular-file? ""))))

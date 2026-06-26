@@ -27,6 +27,33 @@
   [e]
   #?(:clj (ex-message e) :default (.-message e)))
 
+(defn fsnapshot
+  "Snapshot of the tree under `base` for before/after equality checks: each
+  entry's relative path, content (regular files) and stable attributes. Time
+  attributes are normalized to epoch millis so the snapshot compares equal
+  across platforms (JS `Date` equality is by reference, not value)."
+  [base]
+  (->> (fs/glob base "**" {:hidden true})
+       (map (fn [p]
+              {:path (fs/unixify (fs/relativize base p))
+               :content (when (fs/regular-file? p) (slurp-str p))
+               :attr (-> (fs/read-attributes p "*")
+                         (dissoc :lastAccessTime :fileKey)
+                         (update :lastModifiedTime fs/file-time->millis)
+                         (update :creationTime fs/file-time->millis))}))
+       (sort-by :path)
+       (into [])))
+
+(defn set-sym-link-mtime!
+  "Set the symlink's own last-modified `t` (a file-time). Returns true if it
+  stuck. Some JDK/OS combos silently cannot set a symlink's own time."
+  [link t]
+  (try
+    (fs/set-last-modified-time link t {:nofollow-links true})
+    (= (fs/file-time->millis t)
+       (fs/file-time->millis (fs/last-modified-time link {:nofollow-links true})))
+    (catch #?(:clj Throwable :default :default) _ false)))
+
 (defn files
   "Create files/dirs under `base`. A spec ending in `/` is a dir, otherwise a
   file whose content is the spec string."
