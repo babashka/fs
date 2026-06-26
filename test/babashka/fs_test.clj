@@ -237,39 +237,9 @@
   (is (thrown-with-msg? java.lang.IllegalArgumentException #"Not a directory.*" (fs/copy-tree "" "f1.ext")))
   (is (thrown-with-msg? Exception #"Cannot copy.*under itself" (fs/copy-tree "" "da1"))))
 
-(deftest copy-tree-nofollow-src-link-throws-sym-link-test
-  (files "src-dir/bar/baz/somefile.txt")
-  (fs/create-sym-link "link-src-dir" "src-dir")
-  (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-src-dir"
-                        (fs/copy-tree "link-src-dir" "dest-dir" {:nofollow-links true}))))
-
-(deftest copy-tree-nofollow-dest-link-throws-sym-link-test
-  (files "src-dir/bar/baz/somefile.txt")
-  (fs/create-sym-link "link-dest-dir" "dest-dir")
-  (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-dest-dir"
-                        (fs/copy-tree "src-dir" "link-dest-dir" {:nofollow-links true}))))
-
-(deftest copy-tree-follow-src-dest-links-sym-link-test
-  (files "src-dir/src-bar/src-baz/src-file.txt"
-         "dest-dir/dest-bar/dest-baz/dest-file.txt")
-  (fs/create-sym-link "link-src-dir" "src-dir")
-  (fs/create-sym-link "link-dest-dir" "dest-dir")
-  (is (= "link-dest-dir" (fs/unixify (fs/copy-tree "link-src-dir" "link-dest-dir"))))
-  (is (match? ["dest-dir/dest-bar/dest-baz/dest-file.txt"
-               "dest-dir/src-bar/src-baz/src-file.txt"
-               "link-dest-dir/"
-               "link-src-dir/"
-               "src-dir/src-bar/src-baz/src-file.txt"]
-              (list-tree "."))))
-
-(deftest copy-tree-follow-src-link-new-dest-sym-link-test
-  (files "src-dir/bar/baz/somefile.txt")
-  (fs/create-sym-link "link-src-dir" "src-dir")
-  (is (= "new-dest-dir" (str (fs/copy-tree "link-src-dir" "new-dest-dir"))))
-  (is (match? ["link-src-dir/"
-               "new-dest-dir/bar/baz/somefile.txt"
-               "src-dir/bar/baz/somefile.txt"]
-              (list-tree "."))))
+;; copy-tree-nofollow-src-link-throws / copy-tree-nofollow-dest-link-throws /
+;; copy-tree-follow-src-dest-links / copy-tree-follow-src-link-new-dest sym-link
+;; -> fs_xplat_test.cljc
 
 ;;
 ;; create-dir
@@ -521,17 +491,7 @@
 ;; delete-tree-test, delete-tree-nested-test, delete-tree-ok-if-dir-missing-test
 ;; -> fs_xplat_test.cljc
 
-(deftest delete-tree-does-not-follow-symlink-test
-  (files "dir1/"
-         "dir2/foo")
-  (fs/create-sym-link "dir1/link-to-dir2" "../dir2")
-  (is (= true (fs/same-file? "dir1/link-to-dir2" "dir2")) "precondition: link")
-  (is (match? ["dir1/link-to-dir2/"
-               "dir2/foo"]
-              (list-tree ".")) "precondition: files")
-  (is (= "dir1" (str (fs/delete-tree "dir1"))))
-  (is (match? ["dir2/foo"]
-              (list-tree "."))))
+;; delete-tree-does-not-follow-symlink-test -> fs_xplat_test.cljc
 
 (deftest delete-tree-force-deletes-ro-dirs-and-files-test
   (files "dir1/file1.txt"
@@ -557,19 +517,7 @@
   (is (thrown? java.nio.file.FileSystemException (fs/delete-tree "")))
   (is (match? [] (list-tree "."))))
 
-(deftest delete-tree-good-sym-link-root-sym-link-test
-  (files "foo/bar/baz/")
-  (fs/create-sym-link "good-link" "foo")
-  (is (= "good-link" (str (fs/delete-tree "good-link"))))
-  (is (match? ["foo/bar/baz/"]
-              (list-tree "."))
-      "link was deleted, dir was not"))
-
-(deftest delete-tree-bad-sym-link-root-sym-link-test
-  (fs/create-sym-link "bad-link" "bad-target")
-  (is (= "bad-link" (str (fs/delete-tree "bad-link"))))
-  (is (match? [] (list-tree "."))
-      "bad link was deleted"))
+;; delete-tree-good-sym-link-root / delete-tree-bad-sym-link-root -> fs_xplat_test.cljc
 
 ;;
 ;; directory?
@@ -1270,75 +1218,7 @@
                "f1.ext"]
               (list-tree "."))))
 
-(deftest move-bad-link-to-bad-link-sym-link-test
-  (fs/create-sym-link "bad-link1" "bad-target1")
-  (fs/create-sym-link "bad-link2" "bad-target2")
-  (fs/move "bad-link1" "bad-link2" {:replace-existing true})
-  (is (match? ["bad-link2"] (list-tree ".")))
-  (is (= (fs/path "bad-target1") (fs/read-link "bad-link2"))))
-
-(deftest move-good-link-to-good-link-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/create-sym-link "good-link2" "dir2")
-  (fs/move "good-link1" "good-link2" {:replace-existing true})
-  (is (match? ["dir1/"
-               "dir2/"
-               "good-link2/"]
-              (list-tree ".")))
-  (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
-
-(deftest move-good-link-to-good-link-no-replace-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/create-sym-link "good-link2" "dir2")
-  (is (thrown? FileAlreadyExistsException
-               (fs/move "good-link1" "good-link2" {:replace-existing false}))))
-
-(deftest move-good-link-under-dir-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "good-link1" "dir2")
-  (is (match? ["dir1/"
-               "dir2/good-link1"] ;; notice link is not a dir anymore, it is broken
-              (list-tree ".")))
-  (is (= (fs/path "dir1") (fs/read-link (fs/path "dir2" "good-link1")))))
-
-(deftest move-file-to-to-good-link-sym-link-test
-  (files "file1.txt" "dir1/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "file1.txt" "good-link1" {:replace-existing true})
-  (is (match? ["dir1/"
-               "good-link1"]
-              (list-tree ".")))
-  (is (= false (fs/sym-link? "good-link1"))))
-
-(deftest move-good-link-to-file-sym-link-test
-  (files "file1.txt" "dir1/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "good-link1" "file1.txt" {:replace-existing true})
-  (is (match? ["dir1/"
-               "file1.txt/"]
-              (list-tree ".")))
-  (is (= true (fs/sym-link? "file1.txt"))))
-
-(deftest rename-good-link-sym-link-test
-  (files "dir1/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "good-link1" "good-link2")
-  (is (match? ["dir1/"
-               "good-link2/"]
-              (list-tree ".")))
-  (is (= true (fs/sym-link? "good-link2")))
-  (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
-
-(deftest move-link-without-replace-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/create-sym-link "good-link2" "dir2")
-
-  (is (thrown-with-msg? FileAlreadyExistsException #"good-link2"
-                        (fs/move "good-link1" "good-link2"))))
+;; move-*-sym-link / rename-good-link-sym-link tests -> fs_xplat_test.cljc
 
 ;;
 ;; normalize

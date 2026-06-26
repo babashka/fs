@@ -244,6 +244,50 @@
     (fs/copy-tree (fs/path d "foo") (fs/path d "foobar"))
     (is (fs/exists? (fs/path d "foobar/bar/baz/somefile.txt")))))
 
+(deftest copy-tree-nofollow-src-link-throws-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (files d "src-dir/bar/baz/somefile.txt")
+      (fs/create-sym-link (fs/path d "link-src-dir") "src-dir")
+      (let [e (caught #(fs/copy-tree (fs/path d "link-src-dir") (fs/path d "dest-dir") {:nofollow-links true}))]
+        (is (some? e))
+        (is (re-find #"Not a directory" (ex-msg e)))))))
+
+(deftest copy-tree-nofollow-dest-link-throws-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (files d "src-dir/bar/baz/somefile.txt")
+      (fs/create-sym-link (fs/path d "link-dest-dir") "dest-dir")
+      (let [e (caught #(fs/copy-tree (fs/path d "src-dir") (fs/path d "link-dest-dir") {:nofollow-links true}))]
+        (is (some? e))
+        (is (re-find #"Not a directory" (ex-msg e)))))))
+
+(deftest copy-tree-follow-src-dest-links-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (files d "src-dir/src-bar/src-baz/src-file.txt"
+             "dest-dir/dest-bar/dest-baz/dest-file.txt")
+      (fs/create-sym-link (fs/path d "link-src-dir") "src-dir")
+      (fs/create-sym-link (fs/path d "link-dest-dir") "dest-dir")
+      (fs/copy-tree (fs/path d "link-src-dir") (fs/path d "link-dest-dir"))
+      (is (= ["dest-dir/dest-bar/dest-baz/dest-file.txt"
+              "dest-dir/src-bar/src-baz/src-file.txt"
+              "link-dest-dir/"
+              "link-src-dir/"
+              "src-dir/src-bar/src-baz/src-file.txt"]
+             (list-tree d))))))
+
+(deftest copy-tree-follow-src-link-new-dest-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (files d "src-dir/bar/baz/somefile.txt")
+      (fs/create-sym-link (fs/path d "link-src-dir") "src-dir")
+      (fs/copy-tree (fs/path d "link-src-dir") (fs/path d "new-dest-dir"))
+      (is (= ["link-src-dir/"
+              "new-dest-dir/bar/baz/somefile.txt"
+              "src-dir/bar/baz/somefile.txt"]
+             (list-tree d))))))
+
 (deftest move-to-file-test
   (with-tmp [d]
     (files d "src-dir/foo.txt" "dest-dir/")
@@ -357,6 +401,112 @@
         (testing "not following reads the link's own time, where settable"
           (when (set-sym-link-mtime! link t-link)
             (is (= 1609459200000 (fs/file-time->millis (fs/last-modified-time link {:nofollow-links true}))))))))))
+
+;;;; Symlink move / delete-tree
+
+(deftest move-bad-link-to-bad-link-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-sym-link (fs/path d "bad-link1") "bad-target1")
+      (fs/create-sym-link (fs/path d "bad-link2") "bad-target2")
+      (fs/move (fs/path d "bad-link1") (fs/path d "bad-link2") {:replace-existing true})
+      (is (= ["bad-link2"] (list-tree d)))
+      (is (= "bad-target1" (fs/unixify (fs/read-link (fs/path d "bad-link2"))))))))
+
+(deftest move-good-link-to-good-link-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-dir (fs/path d "dir2"))
+      (fs/create-sym-link (fs/path d "good-link1") "dir1")
+      (fs/create-sym-link (fs/path d "good-link2") "dir2")
+      (fs/move (fs/path d "good-link1") (fs/path d "good-link2") {:replace-existing true})
+      (is (= ["dir1/" "dir2/" "good-link2/"] (list-tree d)))
+      (is (= "dir1" (fs/unixify (fs/read-link (fs/path d "good-link2"))))))))
+
+(deftest move-good-link-to-good-link-no-replace-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-dir (fs/path d "dir2"))
+      (fs/create-sym-link (fs/path d "good-link1") "dir1")
+      (fs/create-sym-link (fs/path d "good-link2") "dir2")
+      (is (some? (caught #(fs/move (fs/path d "good-link1") (fs/path d "good-link2") {:replace-existing false})))))))
+
+(deftest move-good-link-under-dir-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-dir (fs/path d "dir2"))
+      (fs/create-sym-link (fs/path d "good-link1") "dir1")
+      (fs/move (fs/path d "good-link1") (fs/path d "dir2"))
+      (is (= ["dir1/" "dir2/good-link1"] (list-tree d)))
+      (is (= "dir1" (fs/unixify (fs/read-link (fs/path d "dir2/good-link1"))))))))
+
+(deftest move-file-to-good-link-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/write-bytes (fs/path d "file1.txt") (string->bytes "x"))
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-sym-link (fs/path d "good-link1") "dir1")
+      (fs/move (fs/path d "file1.txt") (fs/path d "good-link1") {:replace-existing true})
+      (is (= ["dir1/" "good-link1"] (list-tree d)))
+      (is (= false (fs/sym-link? (fs/path d "good-link1")))))))
+
+(deftest move-good-link-to-file-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/write-bytes (fs/path d "file1.txt") (string->bytes "x"))
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-sym-link (fs/path d "good-link1") "dir1")
+      (fs/move (fs/path d "good-link1") (fs/path d "file1.txt") {:replace-existing true})
+      (is (= ["dir1/" "file1.txt/"] (list-tree d)))
+      (is (= true (fs/sym-link? (fs/path d "file1.txt")))))))
+
+(deftest rename-good-link-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-sym-link (fs/path d "good-link1") "dir1")
+      (fs/move (fs/path d "good-link1") (fs/path d "good-link2"))
+      (is (= ["dir1/" "good-link2/"] (list-tree d)))
+      (is (= true (fs/sym-link? (fs/path d "good-link2"))))
+      (is (= "dir1" (fs/unixify (fs/read-link (fs/path d "good-link2"))))))))
+
+(deftest move-link-without-replace-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-dir (fs/path d "dir2"))
+      (fs/create-sym-link (fs/path d "good-link1") "dir1")
+      (fs/create-sym-link (fs/path d "good-link2") "dir2")
+      (is (some? (caught #(fs/move (fs/path d "good-link1") (fs/path d "good-link2"))))))))
+
+(deftest delete-tree-does-not-follow-symlink-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dir (fs/path d "dir1"))
+      (fs/create-dir (fs/path d "dir2"))
+      (fs/write-bytes (fs/path d "dir2/foo") (string->bytes "x"))
+      (fs/create-sym-link (fs/path d "dir1/link-to-dir2") "../dir2")
+      (is (= true (fs/same-file? (fs/path d "dir1/link-to-dir2") (fs/path d "dir2"))) "precondition: link")
+      (fs/delete-tree (fs/path d "dir1"))
+      (is (= ["dir2/foo"] (list-tree d))))))
+
+(deftest delete-tree-good-sym-link-root-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dirs (fs/path d "foo/bar/baz"))
+      (fs/create-sym-link (fs/path d "good-link") "foo")
+      (fs/delete-tree (fs/path d "good-link"))
+      (is (= ["foo/bar/baz/"] (list-tree d)) "link was deleted, dir was not"))))
+
+(deftest delete-tree-bad-sym-link-root-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-sym-link (fs/path d "bad-link") "bad-target")
+      (fs/delete-tree (fs/path d "bad-link"))
+      (is (= [] (list-tree d)) "bad link was deleted"))))
 
 (deftest touch-test
   (with-tmp [d]
