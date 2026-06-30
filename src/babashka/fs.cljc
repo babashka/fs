@@ -381,7 +381,7 @@
      (let [pre-visit-dir (or pre-visit-dir continue)
            post-visit-dir (or post-visit-dir continue)
            visit-file (or visit-file continue)
-           visit-file-failed (or visit-file-failed (constantly :continue))
+           visit-file-failed (or visit-file-failed continue)
            max-depth (or max-depth js/Infinity)
            nofollow (not follow-links)
            root (str path)
@@ -406,7 +406,6 @@
                                  (= :terminate pre) :terminate
                                  (= :skip-subtree pre) :continue
                                  (= :skip-siblings pre) :skip-siblings
-                                 (not (< depth max-depth)) (file-visit-result (post-visit-dir dir nil))
                                  :else
                                  (loop [cs entries]
                                    (if (empty? cs)
@@ -2020,9 +2019,9 @@
                                       lines
                                       (->charset charset)
                                       (->open-options (dissoc opts :charset)))
-      :cljs (do
+      :cljs (let [eol (.-EOL node-os)]
               (.writeFileSync node-fs (str file)
-                              (str (str/join "\n" lines) "\n")
+                              (str (str/join eol lines) eol)
                               #js {:encoding (->charset charset) :flag (if append "a" "w")})
               (str file)))))
 
