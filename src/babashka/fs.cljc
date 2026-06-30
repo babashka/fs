@@ -991,7 +991,12 @@
                                                (if (and nofollow-links (sym-link? f))
                                                  (do (when replace-existing (delete-if-exists to-file))
                                                      (create-sym-link to-file (read-link f)))
-                                                 (copy-file f to-file replace-existing))
+                                                 (do
+                                                   (copy-file f to-file replace-existing)
+                                                   (when copy-attributes
+                                                     (let [st (stat f nofollow-links)]
+                                                       (chmod to-file (bit-and (.-mode st) 8r7777))
+                                                       (.utimesSync node-fs to-file (.-atime st) (.-mtime st))))))
                                                :continue))
                                :post-visit-dir (fn [dir _]
                                                  (when (and (not win?) copy-attributes)

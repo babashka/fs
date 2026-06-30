@@ -262,6 +262,16 @@
                (fs/posix->str (fs/posix-file-permissions
                                (fs/copy src (fs/path d "dst.txt") {:copy-attributes true})))))))))
 
+(deftest copy-tree-attributes-test
+  (testing ":copy-attributes preserves file modification time"
+    (fs/with-temp-dir [d]
+      (let [src (fs/path d "src/f.txt")]
+        (fs/create-dirs (fs/parent src))
+        (fs/write-bytes src (string->bytes "hi"))
+        (fs/touch src {:time 1000})
+        (fs/copy-tree (fs/path d "src") (fs/path d "dst") {:copy-attributes true})
+        (is (= 1000 (fs/file-time->millis (fs/last-modified-time (fs/path d "dst/f.txt")))))))))
+
 (deftest copy-tree-test
   (fs/with-temp-dir [d]
     (files d "src-dir/.foo" "src-dir/a/a.txt" "src-dir/a/b/b.txt"
