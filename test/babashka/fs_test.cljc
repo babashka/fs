@@ -40,7 +40,9 @@
 
 (deftest absolutize-test
   (is (fs/absolute? (fs/absolutize "foo")))
-  (is (fs/absolute? (fs/absolutize "."))))
+  (is (fs/absolute? (fs/absolutize ".")))
+  (testing "does not normalize, keeps .. verbatim"
+    (is (fs/ends-with? (fs/absolutize "a/../b") "a/../b"))))
 
 (deftest normalize-test
   (is (= "foo/bar/baz" (fs/unixify (fs/normalize "foo/bar/baz"))))

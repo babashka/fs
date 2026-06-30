@@ -143,7 +143,7 @@
 
 #?(:cljs (def ^:private ns-per-ms (js/BigInt 1000000)))
 
-(declare absolutize parent file-name)
+(declare absolutize normalize parent file-name win?)
 
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
@@ -154,7 +154,7 @@
   ([path {:keys [:nofollow-links]}]
    #?(:clj (.toRealPath (as-path path) (->link-opts nofollow-links))
       :cljs (if nofollow-links
-              (absolutize path)
+              (normalize (absolutize path))
               (.realpathSync node-fs (str path))))))
 
 (defn owner
@@ -262,14 +262,22 @@
   i.e.: split on the [[file-separator]]."
   [path]
   #?(:clj (seq (as-path path))
-     :cljs (let [p (.normalize node-path (str path))]
-             (seq (remove str/blank? (.split p (.-sep node-path)))))))
+     :cljs (let [sep (.-sep node-path)
+                 p (cond-> (str path)
+                     win? (str/replace "/" sep))]
+             (seq (remove str/blank? (.split p sep))))))
 
 (defn absolutize
   "Converts `path` into an absolute path via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
   [path]
   #?(:clj (.toAbsolutePath (as-path path))
-     :cljs (.resolve node-path (str path))))
+     :cljs (let [sep (.-sep node-path)
+                 p (cond-> (str path)
+                     win? (str/replace "/" sep))]
+             (cond
+               (= "" p) (.cwd js/process)
+               (.isAbsolute node-path p) p
+               :else (str (.cwd js/process) sep p)))))
 
 (defn relativize
   "Returns `other-path` relative to `base-path` via [Path#relativize](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#relativize(java.nio.file.Path)).
@@ -1239,7 +1247,7 @@
   #?(:clj (Files/size (as-path path))
      :cljs (.-size (stat path false))))
 
-#?(:cljs (def ^:private delete-on-exit-paths (atom #{})))
+#?(:cljs (def ^:private delete-on-exit-paths (atom [])))
 
 (defn delete-on-exit
   "Requests delete of `path` on exit via [File#deleteOnExit](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#deleteOnExit()).
@@ -1249,9 +1257,12 @@
      :cljs (do
              (when (empty? @delete-on-exit-paths)
                (.on js/process "exit"
-                    (fn [] (doseq [p @delete-on-exit-paths]
-                             (try (.rmSync node-fs (str p) #js {:recursive true :force true})
-                                  (catch :default _))))))
+                    (fn [] (doseq [p (reverse @delete-on-exit-paths)]
+                             (try
+                               (if (directory? p)
+                                 (.rmdirSync node-fs (str p))
+                                 (.rmSync node-fs (str p) #js {:force true}))
+                               (catch :default _))))))
              (swap! delete-on-exit-paths conj (str path))
              (str path))))
 
