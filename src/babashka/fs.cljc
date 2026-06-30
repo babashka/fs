@@ -586,22 +586,20 @@
                         (if win?
                           (str/replace pattern "/" "\\\\")
                           pattern)))
-         pattern (str prefix ":" pattern)
          #?@(:clj [matcher (.getPathMatcher
                             (FileSystems/getDefault)
-                            pattern)]
-             :cljs [pat (subs pattern (inc (count prefix)))
-                    matcher (case prefix
+                            (str prefix ":" pattern))]
+             :cljs [matcher (case prefix
                               "glob"
                               (let [re (glob->regex (if win?
-                                                      (str/replace pat "/" "\\")
-                                                      pat))]
+                                                      (str/replace pattern "/" "\\")
+                                                      pattern))]
                                 (fn [p]
                                   (.test re (if win?
                                               (str/replace p "/" "\\")
                                               p))))
                               "regex"
-                              (let [re (js/RegExp. (str "^(?:" pat ")$"))]
+                              (let [re (js/RegExp. (str "^(?:" pattern ")$"))]
                                 (fn [p] (.test re p)))
                               (fn [_] false))])
          match (fn [path]
@@ -848,8 +846,7 @@
                   p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
               (when (or p1 p2)
                 (set-posix-file-permissions f perms))))
-     :cljs (let [mode (bit-and (.-mode (stat f false)) 511)]
-             (chmod f (bit-or mode 192)))))
+     :cljs (chmod f (bit-or (posix-file-permissions f) 192))))
 
 (defn starts-with?
   "Returns `true` if `this-path` starts with `other-path` via [Path#startsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#startsWith(java.nio.file.Path)).
