@@ -669,6 +669,36 @@
     (is (some? (caught #(fs/glob d "{a,{b,c}}"))))
     (is (nil? (caught #(fs/glob d "*.{clj,cljs}"))))))
 
+#?(:cljs
+   (deftest glob->regex-test
+     (let [m? (fn [pat s] (.test (fs/glob->regex pat) s))]
+       (testing "* and ** separator handling"
+         (is (m? "*.txt" "b.txt"))
+         (is (not (m? "*.txt" "a/b.txt")))
+         (is (m? "**.txt" "a/b/c.txt")))
+       (testing "? single non-separator char"
+         (is (m? "?.clj" "a.clj"))
+         (is (not (m? "?.clj" "ab.clj")))
+         (is (not (m? "?" "/"))))
+       (testing "char classes"
+         (is (m? "[ab].clj" "a.clj"))
+         (is (not (m? "[ab].clj" "c.clj")))
+         (is (m? "[!a].clj" "b.clj"))
+         (is (not (m? "[!a].clj" "a.clj")))
+         (is (m? "[^a]" "^"))
+         (is (m? "[^a]" "a")))
+       (testing "braces"
+         (is (m? "{a,b}.clj" "a.clj"))
+         (is (m? "{a,b}.clj" "b.clj"))
+         (is (not (m? "{a,b}.clj" "c.clj"))))
+       (testing "escaped metachars are literal"
+         (is (m? "foo\\[.txt" "foo[.txt"))
+         (is (not (m? "foo\\[.txt" "fooX.txt"))))
+       (testing "invalid syntax throws"
+         (is (some? (caught #(fs/glob->regex "foo["))))
+         (is (some? (caught #(fs/glob->regex "foo{a"))))
+         (is (some? (caught #(fs/glob->regex "{a,{b,c}}"))))))))
+
 (deftest glob-special-chars-test
   (testing "char class pattern"
     (with-tmp [d]

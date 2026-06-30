@@ -453,7 +453,7 @@
 
 #?(:clj nil
    :cljs
-   (defn- glob->regex
+   (defn ^:no-doc glob->regex
      "Compiles glob `pattern` to a RegExp matching JVM `getPathMatcher` semantics.
   Handles `**` (any chars including separator), `*` (any chars except separator),
   `?` (single char except separator), `[abc]`/`[!abc]` char classes, `{a,b}` braces
