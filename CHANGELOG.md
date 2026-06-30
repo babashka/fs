@@ -9,6 +9,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 - Add ClojureScript and squint (Node.js) support
   - File times are BigInt nanoseconds, preserving sub-millisecond filesystem precision for `modified-since`
   - `glob` and `match` handle `[` `]` `{` `}` in the base path and char-class patterns; `regex:` patterns match the full path
+  - `glob` and `match` follow Java `getPathMatcher` semantics on Node.js (e.g. `**` crosses path separators), not Node's bash-style glob
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: define/document undefined return values: 
   - `copy` returns copied target file (and fixed for case when `source` is input stream)
