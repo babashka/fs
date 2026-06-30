@@ -671,6 +671,8 @@
                    atomic-move (conj StandardCopyOption/ATOMIC_MOVE)
                    nofollow-links (conj LinkOption/NOFOLLOW_LINKS)))))
 
+(declare sym-link? read-link create-sym-link delete-if-exists)
+
 (defn copy
   "Copies `source` file or input-stream to `target-path` dir or file via [Files/copy](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#copy(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
 
@@ -699,9 +701,16 @@
       (let [dest (str target-path)
             dest (if (directory-simple? dest)
                    (path dest (file-name source))
-                   dest)
-            mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
-        (.copyFileSync node-fs (str source) dest mode)
+                   dest)]
+        (if (and nofollow-links (sym-link? source))
+          (do (when replace-existing (delete-if-exists dest))
+              (create-sym-link dest (read-link source)))
+          (let [mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
+            (.copyFileSync node-fs (str source) dest mode)
+            (when copy-attributes
+              (let [st (stat source nofollow-links)]
+                (.chmodSync node-fs dest (.-mode st))
+                (.utimesSync node-fs dest (.-atime st) (.-mtime st))))))
         dest))))
 
 (defn posix->str

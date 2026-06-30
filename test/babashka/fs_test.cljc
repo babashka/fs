@@ -198,6 +198,28 @@
     (is (= "dest-dir/file" (fs/unixify (fs/relativize d (fs/copy (fs/path d "file") (fs/path d "dest-dir"))))))
     (is (= ["dest-dir/file" "file"] (list-tree d)))))
 
+(deftest copy-nofollow-sym-link-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (let [real (fs/path d "real.txt")
+            lnk (fs/path d "lnk.txt")]
+        (fs/write-bytes real (string->bytes "hi"))
+        (fs/create-sym-link lnk real)
+        (testing ":nofollow-links copies the link itself"
+          (is (fs/sym-link? (fs/copy lnk (fs/path d "c1") {:nofollow-links true}))))
+        (testing "default follows the link"
+          (is (not (fs/sym-link? (fs/copy lnk (fs/path d "c2"))))))))))
+
+(deftest copy-attributes-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (let [src (fs/path d "src.txt")]
+        (fs/write-bytes src (string->bytes "hi"))
+        (fs/set-posix-file-permissions src "rwxr-xr-x")
+        (is (= "rwxr-xr-x"
+               (fs/posix->str (fs/posix-file-permissions
+                               (fs/copy src (fs/path d "dst.txt") {:copy-attributes true})))))))))
+
 (deftest copy-tree-test
   (with-tmp [d]
     (files d "src-dir/.foo" "src-dir/a/a.txt" "src-dir/a/b/b.txt"
