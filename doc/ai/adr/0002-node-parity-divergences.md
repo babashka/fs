@@ -52,6 +52,27 @@ On the JVM these pass arbitrary `StandardOpenOption` values through to
 ignored. Node's `writeFileSync` has no equivalent for the full option set. The
 common `:append` case is covered; the rest is an accepted port limitation.
 
+## walk-file-tree stats each entry - accepted tradeoff
+
+The Node `walk-file-tree` lists a directory with `readdirSync` (via `list-dir`),
+then stats each child: `directory?` to decide recursion, and `visit-child` calls
+`exists?` for non-directory entries. That is two-plus `statSync` calls per entry,
+versus the JVM walker which carries `BasicFileAttributes` from the directory
+read.
+
+`readdirSync(dir, {withFileTypes: true})` returns `Dirent` objects with
+`isDirectory`/`isSymbolicLink`, which would remove most child stats and speed up
+`glob`/`copy-tree`/`delete-tree` on large trees. It is deliberately not done:
+
+- it would bypass the `list-dir` reuse the walk currently builds on, reintroducing
+  raw `readdir` interop into the walker.
+- `Dirent` type flags follow or not-follow links by how the entry was read, so
+  the `:follow-links` and symlink-cycle handling would need careful rework to stay
+  correct.
+
+The correctness is right and the walk is synchronous scripting code, so the extra
+stats are accepted. Revisit only if a real workload shows walk time is a problem.
+
 ## Consequences
 
 - These items are settled. New reviews should consult this ADR before flagging
