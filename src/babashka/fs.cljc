@@ -31,8 +31,7 @@
 ;;;; Private helpers
 
 (defn- as-path
-  #?(:clj ^Path [path]
-     :cljs [path])
+  ^Path [path]
   #?(:clj (if (instance? Path path) path
               (if (instance? URI path)
                 (java.nio.file.Paths/get ^URI path)
@@ -40,8 +39,7 @@
      :cljs (str path)))
 
 (defn- as-file
-  #?(:clj ^java.io.File [path]
-     :cljs [path])
+  ^java.io.File [path]
   #?(:clj (if (instance? Path path) (.toFile ^Path path)
               (io/file path))
      :cljs (str path)))
@@ -1271,8 +1269,7 @@
      :cljs (.readFileSync node-fs (str file))))
 
 (defn- ->charset
-  #?(:clj ^Charset [charset]
-     :cljs [charset])
+  ^Charset [charset]
   #?(:clj (if (string? charset) (Charset/forName charset) charset)
      :cljs (or charset "utf-8")))
 
