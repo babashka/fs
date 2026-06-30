@@ -543,12 +543,26 @@
                      (filterv #(.test re (file-name %)) entries))
                    (filterv glob-or-accept entries)))))))
 
+#?(:cljs
+   (defn- path-seq-children
+     ;; entry kinds come from the directory listing, so only a symlink costs a stat
+     [dir]
+     (mapcat (fn [d]
+               (let [child (.join node-path (str dir) (.-name d))]
+                 (if (if (.isSymbolicLink d) (directory? child) (.isDirectory d))
+                   (cons child (lazy-seq (path-seq-children child)))
+                   (list child))))
+             (.readdirSync node-fs (str dir) #js {:withFileTypes true}))))
+
 (defn- path-seq
   [path]
-  (tree-seq
-   directory?
-   list-dir
-   (as-path path)))
+  #?(:clj (tree-seq
+           directory?
+           list-dir
+           (as-path path))
+     :cljs (cons (str path)
+                 (when (directory? path)
+                   (path-seq-children path)))))
 
 (def file-separator
   "The system-dependent default path component separator character (as string) via [File/separator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#separator)."
