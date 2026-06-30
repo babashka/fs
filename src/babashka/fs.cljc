@@ -519,7 +519,8 @@
                 (vec stream))
          :cljs (let [entries (list-dir dir)]
                  (if (string? glob-or-accept)
-                   (filterv #(glob-match? (file-name %) glob-or-accept) entries)
+                   (let [re (glob->regex glob-or-accept)]
+                     (filterv #(.test re (file-name %)) entries))
                    (filterv glob-or-accept entries)))))))
 
 (defn- path-seq
@@ -1020,7 +1021,7 @@
                (Files/createTempDirectory (as-path dir) prefix attrs)
                (Files/createTempDirectory prefix attrs)))
       :cljs (let [base (str (or dir (:path opts) (temp-dir)))
-                  pre (or prefix "tmp")
+                  pre (or prefix (.randomUUID node-crypto))
                   result (mkdtemp base pre)]
               (when posix-file-permissions
                 (chmod result (->posix-file-permissions posix-file-permissions)))
@@ -1063,8 +1064,8 @@
                (Files/createTempFile (as-path dir) prefix suffix attrs)
                (Files/createTempFile prefix suffix attrs)))
       :cljs (let [base (str (or dir (:path opts) (temp-dir)))
-                  pre (or prefix "tmp")
-                  suf (or suffix "")]
+                  pre (or prefix (.randomUUID node-crypto))
+                  suf (or suffix (.randomUUID node-crypto))]
               (loop [tries 0]
                 (let [rand (.toString (.randomBytes node-crypto 8) "hex")
                       result (.join node-path base (str pre rand suf))
