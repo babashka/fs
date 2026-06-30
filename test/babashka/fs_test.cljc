@@ -618,6 +618,37 @@
       (testing "hidden files automatically matched when pattern starts with a dot"
         (is (= [".gitignore"] (rel-entries d (fs/glob d ".gitig*"))))))))
 
+(deftest walk-file-tree-semantics-test
+  (testing "a file root is visited via visit-file, no dir callbacks"
+    (with-tmp [d]
+      (let [f (fs/path d "f.txt")
+            log (atom [])]
+        (fs/write-bytes f (string->bytes "x"))
+        (fs/walk-file-tree f {:visit-file (fn [p _] (swap! log conj [:file (fs/file-name p)]) :continue)
+                              :pre-visit-dir (fn [_ _] (swap! log conj :pre) :continue)
+                              :post-visit-dir (fn [_ _] (swap! log conj :post) :continue)})
+        (is (= [[:file "f.txt"]] @log)))))
+  (testing ":skip-subtree skips the subtree and its post-visit-dir, not siblings"
+    (with-tmp [d]
+      (files d "sub/child.txt" "top.txt")
+      (let [posts (atom #{}) files-seen (atom #{})]
+        (fs/walk-file-tree d {:pre-visit-dir (fn [p _] (if (= "sub" (fs/file-name p)) :skip-subtree :continue))
+                              :post-visit-dir (fn [p _] (swap! posts conj (fs/file-name p)) :continue)
+                              :visit-file (fn [p _] (swap! files-seen conj (fs/file-name p)) :continue)})
+        (is (not (contains? @posts "sub")))
+        (is (not (contains? @files-seen "child.txt")))
+        (is (contains? @files-seen "top.txt")))))
+  (testing ":max-depth boundary visits a directory as a file"
+    (with-tmp [d]
+      (files d "sub/child.txt")
+      (let [dirs (atom #{}) files-seen (atom #{})]
+        (fs/walk-file-tree d {:max-depth 1
+                              :pre-visit-dir (fn [p _] (swap! dirs conj (fs/file-name p)) :continue)
+                              :visit-file (fn [p _] (swap! files-seen conj (fs/file-name p)) :continue)})
+        (is (contains? @files-seen "sub"))
+        (is (not (contains? @dirs "sub")))
+        (is (not (contains? @files-seen "child.txt")))))))
+
 (deftest glob-special-chars-test
   (testing "char class pattern"
     (with-tmp [d]

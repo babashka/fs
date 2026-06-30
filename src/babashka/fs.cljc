@@ -381,44 +381,47 @@
            visit-file (or visit-file continue)
            visit-file-failed (or visit-file-failed (constantly :continue))
            max-depth (or max-depth js/Infinity)
-           root (str path)]
-       (let [do-walk (fn do-walk [dir depth]
-                       (let [result (file-visit-result (pre-visit-dir dir nil))]
-                         (cond
-                           (= :terminate result) :terminate
-                           (= :skip-subtree result)
-                           (file-visit-result (post-visit-dir dir nil))
-                           :else
-                           (let [term? (volatile! false)]
-                             (when (< depth max-depth)
-                               (try
-                                 (loop [cs (list-dir dir) skip-sibs? false]
-                                   (when (and (seq cs) (not skip-sibs?) (not @term?))
-                                     (let [child (first cs)
-                                           nofollow (not follow-links)
-                                           result (cond
-                                                    (directory? child {:nofollow-links nofollow})
-                                                    (do-walk child (inc depth))
-                                                    (exists? child {:nofollow-links nofollow})
-                                                    (try
-                                                      (file-visit-result (visit-file child nil))
-                                                      (catch :default e
-                                                        (file-visit-result (visit-file-failed child e))))
-                                                    :else
-                                                    (file-visit-result (visit-file-failed child nil)))]
-                                       (cond
-                                         (= :terminate result)
-                                         (vreset! term? true)
-                                         (= :skip-siblings result)
-                                         (recur (rest cs) true)
-                                         :else
-                                         (recur (rest cs) false)))))
-                                 (catch :default _ nil)))
-                             (if @term?
-                               :terminate
-                               (file-visit-result (post-visit-dir dir nil)))))))]
-         (do-walk root 0)
-         root))))
+           nofollow (not follow-links)
+           root (str path)
+           visit-child (fn visit-child [child]
+                         (if (exists? child {:nofollow-links nofollow})
+                           (try (file-visit-result (visit-file child nil))
+                                (catch :default e
+                                  (file-visit-result (visit-file-failed child e))))
+                           (file-visit-result (visit-file-failed child nil))))
+           do-walk (fn do-walk [dir depth]
+                     (let [[entries err] (try [(list-dir dir) nil]
+                                              (catch :default e [nil e]))]
+                       (if (nil? entries)
+                         (file-visit-result (visit-file-failed dir err))
+                         (let [pre (file-visit-result (pre-visit-dir dir nil))]
+                           (cond
+                             (= :terminate pre) :terminate
+                             (= :skip-subtree pre) :continue
+                             (= :skip-siblings pre) :skip-siblings
+                             (not (< depth max-depth)) (file-visit-result (post-visit-dir dir nil))
+                             :else
+                             (loop [cs entries]
+                               (if (empty? cs)
+                                 (file-visit-result (post-visit-dir dir nil))
+                                 (let [child (first cs)
+                                       cd (inc depth)
+                                       cr (cond
+                                            (and (directory? child {:nofollow-links nofollow})
+                                                 (< cd max-depth))
+                                            (do-walk child cd)
+                                            (directory? child {:nofollow-links nofollow})
+                                            (file-visit-result (visit-file child nil))
+                                            :else (visit-child child))]
+                                   (cond
+                                     (= :terminate cr) :terminate
+                                     (= :skip-siblings cr) (file-visit-result (post-visit-dir dir nil))
+                                     :else (recur (rest cs)))))))))))]
+       (cond
+         (directory? root {:nofollow-links nofollow}) (do-walk root 0)
+         (exists? root {:nofollow-links nofollow}) (visit-child root)
+         :else (file-visit-result (visit-file-failed root nil)))
+       root)))
 
 #?(:bb nil :clj
    (defn- directory-stream
@@ -932,16 +935,17 @@
         (when (and (exists? dst opts) (not (directory? dst opts)))
           (throw (ex-info (str "Not a directory: " dst) {})))
         (let [csrc (canonicalize src {:nofollow-links true})
-              cdest (canonicalize dst {:nofollow-links true})]
+              cdest (canonicalize dst {:nofollow-links true})
+              from (real-path src {:nofollow-links nofollow-links})]
           (when (not= csrc cdest)
             (when (starts-with? cdest csrc)
               (throw (ex-info (str "Cannot copy src directory: " src
                                    ", under itself to dest: " dst) {})))
             (create-dirs dst opts)
-            (walk-file-tree src
+            (walk-file-tree from
                             {:follow-links follow-links
                              :pre-visit-dir (fn [dir _]
-                                              (let [rel (relativize src dir)
+                                              (let [rel (relativize from dir)
                                                     to-dir (path dst rel)]
                                                 (when-not (exists? to-dir)
                                                   (create-dir to-dir)
@@ -949,7 +953,7 @@
                                                     (u+wx to-dir)))
                                                 :continue))
                              :visit-file (fn [f _]
-                                           (let [rel (relativize src f)
+                                           (let [rel (relativize from f)
                                                  to-file (path dst rel)
                                                  mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
                                              (.copyFileSync node-fs (str f) (str to-file) mode)
@@ -957,7 +961,7 @@
                              :post-visit-dir (fn [dir _]
                                                (when (and (not win?) copy-attributes)
                                                  (let [mode (posix-file-permissions dir)]
-                                                   (.chmodSync node-fs (path dst (relativize src dir)) mode)))
+                                                   (.chmodSync node-fs (path dst (relativize from dir)) mode)))
                                                :continue)})))
         dst))))
 
