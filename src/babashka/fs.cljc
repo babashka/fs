@@ -122,7 +122,7 @@
 #?(:clj nil
    :cljs
    (defn- bigint? [x]
-     (identical? js/BigInt (.-constructor x))))
+     (and x (identical? js/BigInt (.-constructor x)))))
 
 #?(:clj nil
    :cljs
@@ -1492,9 +1492,11 @@
                  (set-last-modified-time path time opts))))
       :cljs (let [p (str path)
                   t (if time (js/Date. (file-time->millis (->file-time time))) (js/Date.))]
-              (when-not (exists? p)
+              (when-not (exists? p {:nofollow-links nofollow-links})
                 (.writeFileSync node-fs p "" #js {:flag "a"}))
-              (.utimesSync node-fs p t t)
+              (if nofollow-links
+                (.lutimesSync node-fs p t t)
+                (.utimesSync node-fs p t t))
               p))))
 
 (defn list-dirs

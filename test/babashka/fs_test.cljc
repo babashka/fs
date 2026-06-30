@@ -571,7 +571,21 @@
       (let [f (fs/path d "new.txt")]
         (fs/touch f {:time 1000})
         (is (fs/exists? f))
-        (is (= 1000 (fs/file-time->millis (fs/last-modified-time f))))))))
+        (is (= 1000 (fs/file-time->millis (fs/last-modified-time f)))))))
+  (testing ":nofollow-links on a symlink"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (let [f (fs/path d "file.txt")
+              lnk (fs/path d "link.txt")
+              t-file (fs/millis->file-time 1000)
+              t-link (fs/millis->file-time 2000)]
+          (fs/write-bytes f (string->bytes "x"))
+          (fs/create-sym-link lnk f)
+          (fs/touch f {:time t-file})
+          (when (set-sym-link-mtime! lnk t-link)
+            (fs/touch lnk {:time (fs/millis->file-time 3000) :nofollow-links true})
+            (is (= 1000 (fs/file-time->millis (fs/last-modified-time f))))
+            (is (= 3000 (fs/file-time->millis (fs/last-modified-time lnk {:nofollow-links true}))))))))))
 
 (deftest canonicalize-missing-test
   (fs/with-temp-dir [d]
