@@ -649,6 +649,26 @@
         (is (not (contains? @dirs "sub")))
         (is (not (contains? @files-seen "child.txt")))))))
 
+(deftest walk-symlink-cycle-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (fs/create-dirs (fs/path d "a"))
+      (fs/create-sym-link (fs/path d "a" "loop") (str (fs/path d "a")))
+      (let [failed (atom #{})]
+        (fs/walk-file-tree (fs/path d "a")
+                           {:follow-links true
+                            :visit-file (fn [_ _] :continue)
+                            :visit-file-failed (fn [p _] (swap! failed conj (fs/file-name p)) :continue)})
+        (is (contains? @failed "loop"))))))
+
+(deftest glob-syntax-error-test
+  (with-tmp [d]
+    (files d "a.clj")
+    (is (some? (caught #(fs/glob d "foo["))))
+    (is (some? (caught #(fs/glob d "foo{a"))))
+    (is (some? (caught #(fs/glob d "{a,{b,c}}"))))
+    (is (nil? (caught #(fs/glob d "*.{clj,cljs}"))))))
+
 (deftest glob-special-chars-test
   (testing "char class pattern"
     (with-tmp [d]
@@ -667,6 +687,42 @@
     (with-tmp [d]
       (files d "a" "b" "^")
       (is (= ["^" "a"] (rel-entries d (fs/glob d "[^a]")))))))
+
+(deftest list-dirs-test
+  (with-tmp [d]
+    (files d "d1/a.clj" "d2/b.clj")
+    (is (= ["a.clj" "b.clj"]
+           (sort (mapv fs/file-name (fs/list-dirs [(fs/path d "d1") (fs/path d "d2")] "*.clj")))))))
+
+(deftest split-paths-test
+  (is (= ["a" "b" "c"] (fs/split-paths (str/join fs/path-separator ["a" "b" "c"])))))
+
+(deftest delete-if-exists-test
+  (with-tmp [d]
+    (let [f (fs/path d "f.txt")]
+      (fs/write-bytes f (string->bytes "x"))
+      (is (fs/delete-if-exists f))
+      (is (not (fs/exists? f)))
+      (is (not (fs/delete-if-exists f))))))
+
+(deftest real-path-test
+  (when-not (fs/windows?)
+    (with-tmp [d]
+      (let [real (fs/path d "real.txt")
+            lnk (fs/path d "lnk.txt")]
+        (fs/write-bytes real (string->bytes "x"))
+        (fs/create-sym-link lnk real)
+        (is (= (fs/unixify (fs/real-path real))
+               (fs/unixify (fs/real-path lnk))))))))
+
+(deftest create-link-test
+  (with-tmp [d]
+    (let [f (fs/path d "f.txt")
+          l (fs/path d "l.txt")]
+      (fs/write-bytes f (string->bytes "hi"))
+      (fs/create-link l f)
+      (is (fs/exists? l))
+      (is (fs/same-file? f l)))))
 
 (deftest list-dir-test
   (with-tmp [d]
@@ -788,7 +844,7 @@
 ;;;; XDG
 
 (deftest xdg-test
-  (is (string? (str (fs/xdg-config-home))))
-  (is (string? (str (fs/xdg-cache-home))))
-  (is (string? (str (fs/xdg-data-home))))
-  (is (string? (str (fs/xdg-state-home)))))
+  (is (fs/absolute? (fs/xdg-config-home)))
+  (is (fs/absolute? (fs/xdg-cache-home)))
+  (is (fs/absolute? (fs/xdg-data-home)))
+  (is (fs/absolute? (fs/xdg-state-home))))

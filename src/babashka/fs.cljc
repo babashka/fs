@@ -389,36 +389,41 @@
                                 (catch :default e
                                   (file-visit-result (visit-file-failed child e))))
                            (file-visit-result (visit-file-failed child nil))))
-           do-walk (fn do-walk [dir depth]
-                     (let [[entries err] (try [(list-dir dir) nil]
-                                              (catch :default e [nil e]))]
-                       (if (nil? entries)
-                         (file-visit-result (visit-file-failed dir err))
-                         (let [pre (file-visit-result (pre-visit-dir dir nil))]
-                           (cond
-                             (= :terminate pre) :terminate
-                             (= :skip-subtree pre) :continue
-                             (= :skip-siblings pre) :skip-siblings
-                             (not (< depth max-depth)) (file-visit-result (post-visit-dir dir nil))
-                             :else
-                             (loop [cs entries]
-                               (if (empty? cs)
-                                 (file-visit-result (post-visit-dir dir nil))
-                                 (let [child (first cs)
-                                       cd (inc depth)
-                                       cr (cond
-                                            (and (directory? child {:nofollow-links nofollow})
-                                                 (< cd max-depth))
-                                            (do-walk child cd)
-                                            (directory? child {:nofollow-links nofollow})
-                                            (file-visit-result (visit-file child nil))
-                                            :else (visit-child child))]
-                                   (cond
-                                     (= :terminate cr) :terminate
-                                     (= :skip-siblings cr) (file-visit-result (post-visit-dir dir nil))
-                                     :else (recur (rest cs)))))))))))]
+           do-walk (fn do-walk [dir depth seen]
+                     (let [rp (when follow-links
+                                (try (.realpathSync node-fs (str dir)) (catch :default _ nil)))]
+                       (if (and rp (contains? seen rp))
+                         (file-visit-result (visit-file-failed dir nil))
+                         (let [seen (if rp (conj seen rp) seen)
+                               [entries err] (try [(list-dir dir) nil]
+                                                  (catch :default e [nil e]))]
+                           (if (nil? entries)
+                             (file-visit-result (visit-file-failed dir err))
+                             (let [pre (file-visit-result (pre-visit-dir dir nil))]
+                               (cond
+                                 (= :terminate pre) :terminate
+                                 (= :skip-subtree pre) :continue
+                                 (= :skip-siblings pre) :skip-siblings
+                                 (not (< depth max-depth)) (file-visit-result (post-visit-dir dir nil))
+                                 :else
+                                 (loop [cs entries]
+                                   (if (empty? cs)
+                                     (file-visit-result (post-visit-dir dir nil))
+                                     (let [child (first cs)
+                                           cd (inc depth)
+                                           cr (cond
+                                                (and (directory? child {:nofollow-links nofollow})
+                                                     (< cd max-depth))
+                                                (do-walk child cd seen)
+                                                (directory? child {:nofollow-links nofollow})
+                                                (file-visit-result (visit-file child nil))
+                                                :else (visit-child child))]
+                                       (cond
+                                         (= :terminate cr) :terminate
+                                         (= :skip-siblings cr) (file-visit-result (post-visit-dir dir nil))
+                                         :else (recur (rest cs)))))))))))))]
        (cond
-         (directory? root {:nofollow-links nofollow}) (do-walk root 0)
+         (directory? root {:nofollow-links nofollow}) (do-walk root 0 #{})
          (exists? root {:nofollow-links nofollow}) (visit-child root)
          :else (file-visit-result (visit-file-failed root nil)))
        root)))
@@ -448,11 +453,12 @@
 
 #?(:clj nil
    :cljs
-   (defn- glob-match?
-     "Returns true if `name` matches glob `pattern`.
+   (defn- glob->regex
+     "Compiles glob `pattern` to a RegExp matching JVM `getPathMatcher` semantics.
   Handles `**` (any chars including separator), `*` (any chars except separator),
-  and `?` (single char except separator)."
-     [name pattern]
+  `?` (single char except separator), `[abc]`/`[!abc]` char classes, `{a,b}` braces
+  and `\\`-escaped metachars. Throws on invalid glob syntax."
+     [pattern]
      (let [sep-class (if win? "[^/\\\\]" "[^/]")
            esc (fn [s] (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&"))
            convert-segment
@@ -467,24 +473,31 @@
                        (= "*" c) (recur (inc i) (str out sep-class "*"))
                        (= "?" c) (recur (inc i) (str out sep-class))
                        (= "[" c) (let [end (.indexOf seg "]" (inc i))]
-                                   (if (neg? end)
-                                     (recur (inc i) (str out "\\["))
-                                     (let [body (subs seg (inc i) end)
-                                           body (cond
-                                                  (str/starts-with? body "!") (str "^" (subs body 1))
-                                                  (str/starts-with? body "^") (str "\\^" (subs body 1))
-                                                  :else body)]
-                                       (recur (inc end) (str out "[" body "]")))))
+                                   (when (neg? end)
+                                     (throw (ex-info (str "Missing ']' in glob pattern: " pattern) {})))
+                                   (let [body (subs seg (inc i) end)
+                                         body (cond
+                                                (str/starts-with? body "!") (str "^" (subs body 1))
+                                                (str/starts-with? body "^") (str "\\^" (subs body 1))
+                                                :else body)]
+                                     (recur (inc end) (str out "[" body "]"))))
                        (= "{" c) (let [end (.indexOf seg "}" (inc i))]
-                                   (if (neg? end)
-                                     (recur (inc i) (str out "\\{"))
-                                     (let [alts (.split (subs seg (inc i) end) ",")]
-                                       (recur (inc end) (str out "(" (str/join "|" (map convert-segment alts)) ")")))))
+                                   (when (neg? end)
+                                     (throw (ex-info (str "Missing '}' in glob pattern: " pattern) {})))
+                                   (let [body (subs seg (inc i) end)]
+                                     (when (str/includes? body "{")
+                                       (throw (ex-info (str "Cannot nest groups in glob pattern: " pattern) {})))
+                                     (recur (inc end) (str out "(" (str/join "|" (map convert-segment (.split body ","))) ")"))))
                        :else (recur (inc i) (str out (esc c)))))))))
            ;; split on ** to handle separately, then rejoin with .*
            parts (.split pattern "**")
            regex-str (str/join ".*" (map convert-segment parts))]
-       (.test (js/RegExp. (str "^" regex-str "$")) name))))
+       (js/RegExp. (str "^" regex-str "$")))))
+
+#?(:clj nil
+   :cljs
+   (defn- glob-match? [name pattern]
+     (.test (glob->regex pattern) name)))
 
 ;; Not defined in babashka so reload keeps its built-in list-dir: the source impl needs java.nio DirectoryStream, which babashka does not expose to interpreted code.
 #?(:bb nil
@@ -584,14 +597,14 @@
                             pattern)]
              :cljs [matcher (case prefix
                               "glob"
-                              (let [pat (subs pattern 5)]
+                              (let [pat (subs pattern 5)
+                                    re (glob->regex (if win?
+                                                      (.replace pat (js/RegExp. "/" "g") "\\")
+                                                      pat))]
                                 (fn [p]
-                                  (glob-match? (if win?
-                                                 (.replace p (js/RegExp. "/" "g") "\\")
-                                                 p)
-                                               (if win?
-                                                 (.replace pat (js/RegExp. "/" "g") "\\")
-                                                 pat))))
+                                  (.test re (if win?
+                                              (.replace p (js/RegExp. "/" "g") "\\")
+                                              p))))
                               "regex"
                               (let [pat (subs pattern 6)
                                     re (js/RegExp. (str "^(?:" pat ")$"))]
