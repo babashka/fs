@@ -4,9 +4,9 @@
   abstractions in babashka.fs-test-utils. Path comparisons go through
   `fs/unixify` so they hold on Windows too. JVM-only tests live in
   babashka.fs-jvm-test."
-  (:require [babashka.fs :as fs]
+  (:require [babashka.fs :as fs :include-macros true]
             [babashka.fs-test-utils :include-macros true
-             :refer [with-tmp string->bytes bytes->string file-time?
+             :refer [string->bytes bytes->string file-time?
                      files list-tree rel-entries slurp-str caught ex-msg
                      fsnapshot set-sym-link-mtime!]]
             [clojure.string :as str]
@@ -107,7 +107,7 @@
 ;;;; Predicates
 
 (deftest predicates-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (str (fs/path d "file.txt"))]
       (fs/write-bytes f (string->bytes "hello"))
       (testing "exists?"
@@ -139,13 +139,13 @@
 ;;;; File operations
 
 (deftest create-file-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "new-file")]
       (is (= (fs/unixify f) (fs/unixify (fs/create-file f))))
       (is (fs/regular-file? f)))))
 
 (deftest create-delete-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")]
       (fs/create-file f)
       (is (fs/exists? f))
@@ -153,7 +153,7 @@
       (is (not (fs/exists? f))))))
 
 (deftest write-bytes-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "file.bin")]
       (is (= (fs/unixify f) (fs/unixify (fs/write-bytes f (string->bytes "foo")))))
       (is (= "foo" (slurp-str f)))
@@ -163,7 +163,7 @@
       (is (= "barbaz" (slurp-str f)) "existing file appended to"))))
 
 (deftest write-lines-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "file.txt")]
       (fs/write-lines f (repeat 3 "foo"))
       (is (= (vec (repeat 3 "foo")) (fs/read-all-lines f)))
@@ -174,33 +174,33 @@
           "existing file appended to"))))
 
 (deftest read-all-bytes-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")]
       (fs/write-bytes f (string->bytes "some\ncontent\nhere"))
       (is (= 17 (fs/size f)))
       (is (= "some\ncontent\nhere" (slurp-str f))))))
 
 (deftest read-all-lines-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")]
       (fs/write-bytes f (string->bytes "some\ncontent\nhere"))
       (is (= ["some" "content" "here"] (fs/read-all-lines f))))))
 
 (deftest copy-to-file-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "file" "dest-dir/")
     (is (= "dest-dir/file" (fs/unixify (fs/relativize d (fs/copy (fs/path d "file") (fs/path d "dest-dir/file"))))))
     (is (= ["dest-dir/file" "file"] (list-tree d)))))
 
 (deftest copy-into-dir-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "file" "dest-dir/")
     (is (= "dest-dir/file" (fs/unixify (fs/relativize d (fs/copy (fs/path d "file") (fs/path d "dest-dir"))))))
     (is (= ["dest-dir/file" "file"] (list-tree d)))))
 
 (deftest copy-nofollow-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [real (fs/path d "real.txt")
             lnk (fs/path d "lnk.txt")]
         (fs/write-bytes real (string->bytes "hi"))
@@ -212,7 +212,7 @@
 
 (deftest copy-attributes-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [src (fs/path d "src.txt")]
         (fs/write-bytes src (string->bytes "hi"))
         (fs/set-posix-file-permissions src "rwxr-xr-x")
@@ -221,7 +221,7 @@
                                (fs/copy src (fs/path d "dst.txt") {:copy-attributes true})))))))))
 
 (deftest copy-tree-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "src-dir/.foo" "src-dir/a/a.txt" "src-dir/a/b/b.txt"
            "src-dir/a/b/c" "src-dir/foo.txt")
     (fs/copy-tree (fs/path d "src-dir") (fs/path d "dest-dir"))
@@ -229,7 +229,7 @@
            (list-tree (fs/path d "dest-dir"))))))
 
 (deftest copy-tree-from-file-throws-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "src-dir/dir/file.txt" "dest-dir/")
     (let [before (fsnapshot d)
           e (caught #(fs/copy-tree (fs/path d "src-dir/dir/file.txt") (fs/path d "dest-dir")))]
@@ -238,7 +238,7 @@
       (is (= before (fsnapshot d)) "filesystem unchanged"))))
 
 (deftest copy-tree-to-file-throws-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "src-dir/dir/file.txt" "dest-dir/file.txt")
     (let [before (fsnapshot d)
           e (caught #(fs/copy-tree (fs/path d "src-dir/dir") (fs/path d "dest-dir/file.txt")))]
@@ -247,13 +247,13 @@
       (is (= before (fsnapshot d)) "filesystem unchanged"))))
 
 (deftest copy-tree-creates-missing-dest-dirs-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "src-dir/foo/file.txt" "dest-dir/")
     (fs/copy-tree (fs/path d "src-dir/foo") (fs/path d "dest-dir/foo2/foo"))
     (is (= ["dest-dir/foo2/foo/file.txt" "src-dir/foo/file.txt"] (list-tree d)))))
 
 (deftest copy-tree-fails-on-parent-to-child-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "foo/bar/baz/somefile.txt")
     (is (= "foo" (fs/unixify (fs/relativize d (fs/copy-tree (fs/path d "foo") (fs/path d "foo")))))
         "copy to self is allowed and a no-op")
@@ -269,7 +269,7 @@
 
 (deftest copy-tree-nofollow-src-link-throws-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "src-dir/bar/baz/somefile.txt")
       (fs/create-sym-link (fs/path d "link-src-dir") "src-dir")
       (let [e (caught #(fs/copy-tree (fs/path d "link-src-dir") (fs/path d "dest-dir") {:nofollow-links true}))]
@@ -278,7 +278,7 @@
 
 (deftest copy-tree-nofollow-dest-link-throws-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "src-dir/bar/baz/somefile.txt")
       (fs/create-sym-link (fs/path d "link-dest-dir") "dest-dir")
       (let [e (caught #(fs/copy-tree (fs/path d "src-dir") (fs/path d "link-dest-dir") {:nofollow-links true}))]
@@ -287,7 +287,7 @@
 
 (deftest copy-tree-follow-src-dest-links-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "src-dir/src-bar/src-baz/src-file.txt"
              "dest-dir/dest-bar/dest-baz/dest-file.txt")
       (fs/create-sym-link (fs/path d "link-src-dir") "src-dir")
@@ -302,7 +302,7 @@
 
 (deftest copy-tree-follow-src-link-new-dest-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "src-dir/bar/baz/somefile.txt")
       (fs/create-sym-link (fs/path d "link-src-dir") "src-dir")
       (fs/copy-tree (fs/path d "link-src-dir") (fs/path d "new-dest-dir"))
@@ -312,7 +312,7 @@
              (list-tree d))))))
 
 (deftest move-to-file-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "src-dir/foo.txt" "dest-dir/")
     (let [content (slurp-str (fs/path d "src-dir/foo.txt"))]
       (fs/move (fs/path d "src-dir/foo.txt") (fs/path d "dest-dir/foo.txt"))
@@ -320,7 +320,7 @@
       (is (= content (slurp-str (fs/path d "dest-dir/foo.txt")))))))
 
 (deftest move-to-dir-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "src-dir/foo.txt" "dest-dir/")
     (let [content (slurp-str (fs/path d "src-dir/foo.txt"))]
       (fs/move (fs/path d "src-dir/foo.txt") (fs/path d "dest-dir"))
@@ -328,7 +328,7 @@
       (is (= content (slurp-str (fs/path d "dest-dir/foo.txt")))))))
 
 (deftest size-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (fs/create-dir (fs/path d "dir"))
     (fs/write-bytes (fs/path d "file") (string->bytes "hello"))
     (is (= 5 (fs/size (fs/path d "file"))))
@@ -336,38 +336,38 @@
         "size of dirs is unspecified by underlying API")))
 
 (deftest create-dir-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (is (fs/create-dir (fs/path d "foo")))
     (is (= ["foo/"] (list-tree d)))
     (is (fs/directory? (fs/path d "foo")))))
 
 (deftest create-dirs-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [nested (fs/path d "a" "b" "c")]
       (fs/create-dirs nested)
       (is (fs/directory? nested)))))
 
 (deftest delete-tree-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "foo/bar/baz/file.txt")
     (is (= "foo" (fs/unixify (fs/relativize d (fs/delete-tree (fs/path d "foo"))))))
     (is (= [] (list-tree d)))))
 
 (deftest delete-tree-nested-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "foo/bar/baz/file.txt")
     (is (= "foo/bar/baz" (fs/unixify (fs/relativize d (fs/delete-tree (fs/path d "foo/bar/baz"))))))
     (is (= ["foo/bar/"] (list-tree d)))))
 
 (deftest delete-tree-ok-if-dir-missing-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (is (nil? (fs/delete-tree (fs/path d "foo"))))
     (is (nil? (fs/delete-tree (fs/path d "foo/bar/baz"))))))
 
 (deftest sym-link-test
   ;; symlink creation needs privileges on Windows
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [target (str (fs/path d "target.txt"))
             link (str (fs/path d "link.txt"))]
         (fs/write-bytes target (string->bytes "hi"))
@@ -378,7 +378,7 @@
 
 (deftest directory?-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dir (fs/path d "dir"))
       (let [link (fs/path d "dir-link")]
         (fs/create-sym-link link (fs/path d "dir"))
@@ -389,7 +389,7 @@
 
 (deftest regular-file?-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [target (fs/path d "file")
             link (fs/path d "file-link")]
         (fs/write-bytes target (string->bytes "x"))
@@ -401,7 +401,7 @@
 
 (deftest exists?-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [link (fs/path d "link")]
         (fs/create-sym-link link (fs/path d "non-existent-target"))
         (is (= false (fs/exists? link)) "following link to non-existent target")
@@ -410,7 +410,7 @@
 
 (deftest last-modified-time-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [target (fs/path d "file")
             link (fs/path d "link")
             t-target (fs/millis->file-time 1577836800000)
@@ -429,7 +429,7 @@
 
 (deftest move-bad-link-to-bad-link-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-sym-link (fs/path d "bad-link1") "bad-target1")
       (fs/create-sym-link (fs/path d "bad-link2") "bad-target2")
       (fs/move (fs/path d "bad-link1") (fs/path d "bad-link2") {:replace-existing true})
@@ -438,7 +438,7 @@
 
 (deftest move-good-link-to-good-link-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-dir (fs/path d "dir2"))
       (fs/create-sym-link (fs/path d "good-link1") "dir1")
@@ -449,7 +449,7 @@
 
 (deftest move-good-link-to-good-link-no-replace-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-dir (fs/path d "dir2"))
       (fs/create-sym-link (fs/path d "good-link1") "dir1")
@@ -458,7 +458,7 @@
 
 (deftest move-good-link-under-dir-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-dir (fs/path d "dir2"))
       (fs/create-sym-link (fs/path d "good-link1") "dir1")
@@ -468,7 +468,7 @@
 
 (deftest move-file-to-good-link-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/write-bytes (fs/path d "file1.txt") (string->bytes "x"))
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-sym-link (fs/path d "good-link1") "dir1")
@@ -478,7 +478,7 @@
 
 (deftest move-good-link-to-file-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/write-bytes (fs/path d "file1.txt") (string->bytes "x"))
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-sym-link (fs/path d "good-link1") "dir1")
@@ -488,7 +488,7 @@
 
 (deftest rename-good-link-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-sym-link (fs/path d "good-link1") "dir1")
       (fs/move (fs/path d "good-link1") (fs/path d "good-link2"))
@@ -498,7 +498,7 @@
 
 (deftest move-link-without-replace-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-dir (fs/path d "dir2"))
       (fs/create-sym-link (fs/path d "good-link1") "dir1")
@@ -507,7 +507,7 @@
 
 (deftest delete-tree-does-not-follow-symlink-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dir (fs/path d "dir1"))
       (fs/create-dir (fs/path d "dir2"))
       (fs/write-bytes (fs/path d "dir2/foo") (string->bytes "x"))
@@ -518,7 +518,7 @@
 
 (deftest delete-tree-good-sym-link-root-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dirs (fs/path d "foo/bar/baz"))
       (fs/create-sym-link (fs/path d "good-link") "foo")
       (fs/delete-tree (fs/path d "good-link"))
@@ -526,7 +526,7 @@
 
 (deftest delete-tree-bad-sym-link-root-sym-link-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-sym-link (fs/path d "bad-link") "bad-target")
       (fs/delete-tree (fs/path d "bad-link"))
       (is (= [] (list-tree d)) "bad link was deleted"))))
@@ -534,14 +534,14 @@
 ;;;; Owner
 
 (deftest file-owner-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (fs/write-bytes (fs/path d "file") (string->bytes "x"))
     (is (= (str (fs/owner d)) (str (fs/owner (fs/path d "file")))))))
 
 (deftest file-owner-sym-link-test
   ;; assumes the owner of "/" differs from the owner of a file in a temp dir
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/write-bytes (fs/path d "file") (string->bytes "x"))
       (fs/create-sym-link (fs/path d "my-link") "/")
       (is (not= (fs/owner (fs/path d "file")) (fs/owner "/"))
@@ -555,33 +555,33 @@
           "not following link"))))
 
 (deftest touch-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (str (fs/path d "f.txt"))]
       (is (not (fs/exists? f)))
       (fs/touch f)
       (is (fs/exists? f))))
   (testing ":time on an existing file"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [f (fs/path d "f.txt")]
         (fs/write-bytes f (string->bytes "x"))
         (fs/touch f {:time 1000})
         (is (= 1000 (fs/file-time->millis (fs/last-modified-time f)))))))
   (testing ":time creates the file and sets the time"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [f (fs/path d "new.txt")]
         (fs/touch f {:time 1000})
         (is (fs/exists? f))
         (is (= 1000 (fs/file-time->millis (fs/last-modified-time f))))))))
 
 (deftest canonicalize-missing-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [missing (fs/path d "does-not-exist")]
       (is (= (fs/unixify (fs/canonicalize d))
              (fs/unixify (fs/parent (fs/canonicalize missing)))))
       (is (= "does-not-exist" (fs/file-name (fs/canonicalize missing)))))))
 
 (deftest update-file-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (str (fs/path d "f.txt"))]
       (fs/write-lines f ["hello"])
       (fs/update-file f str/upper-case)
@@ -590,7 +590,7 @@
 ;;;; Glob / walk
 
 (deftest glob-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "README.md" "project.clj" ".gitignore"
            "dira1/foo.txt"
            "dira1/dirb1/README.md"
@@ -620,7 +620,7 @@
 
 (deftest walk-file-tree-semantics-test
   (testing "a file root is visited via visit-file, no dir callbacks"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [f (fs/path d "f.txt")
             log (atom [])]
         (fs/write-bytes f (string->bytes "x"))
@@ -629,7 +629,7 @@
                               :post-visit-dir (fn [_ _] (swap! log conj :post) :continue)})
         (is (= [[:file "f.txt"]] @log)))))
   (testing ":skip-subtree skips the subtree and its post-visit-dir, not siblings"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "sub/child.txt" "top.txt")
       (let [posts (atom #{}) files-seen (atom #{})]
         (fs/walk-file-tree d {:pre-visit-dir (fn [p _] (if (= "sub" (fs/file-name p)) :skip-subtree :continue))
@@ -639,7 +639,7 @@
         (is (not (contains? @files-seen "child.txt")))
         (is (contains? @files-seen "top.txt")))))
   (testing ":max-depth boundary visits a directory as a file"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "sub/child.txt")
       (let [dirs (atom #{}) files-seen (atom #{})]
         (fs/walk-file-tree d {:max-depth 1
@@ -651,7 +651,7 @@
 
 (deftest walk-symlink-cycle-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (fs/create-dirs (fs/path d "a"))
       (fs/create-sym-link (fs/path d "a" "loop") (str (fs/path d "a")))
       (let [failed (atom #{})]
@@ -662,7 +662,7 @@
         (is (contains? @failed "loop"))))))
 
 (deftest glob-syntax-error-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "a.clj")
     (is (some? (caught #(fs/glob d "foo["))))
     (is (some? (caught #(fs/glob d "foo{a"))))
@@ -701,25 +701,25 @@
 
 (deftest glob-special-chars-test
   (testing "char class pattern"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "a.clj" "b.clj" "c.clj")
       (is (= ["a.clj" "b.clj"] (rel-entries d (fs/glob d "[ab].clj"))))))
   (testing "brackets in base path matched literally (#142)"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "foo [bar]/hello.txt")
       (is (= ["foo [bar]/hello.txt"]
              (rel-entries d (fs/match (fs/path d "foo [bar]") "glob:*.txt"))))))
   (testing "regex pattern is a full match, not a substring"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "foo" "foobar")
       (is (= ["foo"] (rel-entries d (fs/match d "regex:foo" {:recursive true}))))))
   (testing "caret in a char class is a literal, not negation"
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (files d "a" "b" "^")
       (is (= ["^" "a"] (rel-entries d (fs/glob d "[^a]")))))))
 
 (deftest list-dirs-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "d1/a.clj" "d2/b.clj")
     (is (= ["a.clj" "b.clj"]
            (sort (mapv fs/file-name (fs/list-dirs [(fs/path d "d1") (fs/path d "d2")] "*.clj")))))))
@@ -728,7 +728,7 @@
   (is (= ["a" "b" "c"] (fs/split-paths (str/join fs/path-separator ["a" "b" "c"])))))
 
 (deftest delete-if-exists-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")]
       (fs/write-bytes f (string->bytes "x"))
       (is (fs/delete-if-exists f))
@@ -737,7 +737,7 @@
 
 (deftest real-path-test
   (when-not (fs/windows?)
-    (with-tmp [d]
+    (fs/with-temp-dir [d]
       (let [real (fs/path d "real.txt")
             lnk (fs/path d "lnk.txt")]
         (fs/write-bytes real (string->bytes "x"))
@@ -746,7 +746,7 @@
                (fs/unixify (fs/real-path lnk))))))))
 
 (deftest create-link-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")
           l (fs/path d "l.txt")]
       (fs/write-bytes f (string->bytes "hi"))
@@ -756,7 +756,7 @@
       (is (= "hi" (slurp-str l))))))
 
 (deftest list-dir-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (files d "dir1/" "dir2/foo.txt" "file.txt" "source1.clj" "source2.clj")
     (is (= ["dir1/" "dir2/" "file.txt" "source1.clj" "source2.clj"]
            (rel-entries d (fs/list-dir d))))
@@ -767,7 +767,7 @@
            (rel-entries d (fs/list-dir d "*.clj"))))))
 
 (deftest walk-file-tree-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (fs/write-bytes (str (fs/path d "f1.txt")) (string->bytes ""))
     (fs/create-dir (fs/path d "sub"))
     (fs/write-bytes (str (fs/path d "sub" "f2.txt")) (string->bytes ""))
@@ -804,7 +804,7 @@
 ;;;; Times
 
 (deftest last-modified-time-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (str (fs/path d "f.txt"))]
       (fs/write-bytes f (string->bytes "x"))
       (let [t (fs/last-modified-time f)]
@@ -814,7 +814,7 @@
 ;;;; Attributes
 
 (deftest read-attributes-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")]
       (fs/write-bytes f (string->bytes "hello"))
       (let [m (fs/read-attributes f "*")]
@@ -829,21 +829,21 @@
       (is (file-time? (fs/get-attribute f "basic:lastModifiedTime"))))))
 
 (deftest set-attribute-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [f (fs/path d "afile")]
       (fs/write-bytes f (string->bytes ""))
       (is (= 100 (-> (fs/set-attribute f "basic:lastModifiedTime" (fs/millis->file-time 100))
                      (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis))))))
 
 (deftest set-last-modified-time-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [dir (fs/path d "dir")]
       (fs/create-dir dir)
       (is (= (fs/unixify dir) (fs/unixify (fs/set-last-modified-time dir 0))))
       (is (= 0 (fs/file-time->millis (fs/last-modified-time dir)))))))
 
 (deftest modified-since-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [anchor (fs/path d "anchor")
           f1 (fs/path d "f1")]
       (fs/write-bytes anchor (string->bytes "a"))
@@ -858,7 +858,7 @@
 ;;;; Gzip
 
 (deftest gzip-gunzip-test
-  (with-tmp [d]
+  (fs/with-temp-dir [d]
     (let [src (str (fs/path d "data.txt"))]
       (fs/write-bytes src (string->bytes "hello world"))
       (let [out (fs/gzip src {:dir d})]
