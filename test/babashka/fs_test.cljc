@@ -720,9 +720,10 @@
     (let [f (fs/path d "f.txt")
           l (fs/path d "l.txt")]
       (fs/write-bytes f (string->bytes "hi"))
-      (fs/create-link l f)
-      (is (fs/exists? l))
-      (is (fs/same-file? f l)))))
+      (is (= (fs/unixify l) (fs/unixify (fs/create-link l f))))
+      (is (fs/same-file? f l))
+      (is (not (fs/sym-link? l)))
+      (is (= "hi" (slurp-str l))))))
 
 (deftest list-dir-test
   (with-tmp [d]

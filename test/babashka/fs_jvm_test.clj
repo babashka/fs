@@ -55,8 +55,8 @@
          sorted (->> pre
                      (map fs/unixify)
                      (map #(if (fs/directory? %)
-                                  (str % "/")
-                                  %))
+                             (str % "/")
+                             %))
                      sort)]
      (if-not collapse
        sorted
@@ -157,9 +157,9 @@
 (deftest copy-input-stream-test
   (files "file" "dest-dir/")
   (is (= "dest-dir/file"
-         (fs/unixify 
-           (with-open [is (io/input-stream (fs/file "file"))]
-             (fs/copy is "dest-dir/file")))))
+         (fs/unixify
+          (with-open [is (io/input-stream (fs/file "file"))]
+            (fs/copy is "dest-dir/file")))))
   (is (match? ["dest-dir/file"
                "file"]
               (list-tree "."))))
@@ -185,7 +185,7 @@
   (files "src-dir/foo/bar/")
   ;; https://github.com/babashka/fs/issues/122
   (.setReadOnly (fs/file "src-dir" "foo"))
-  (is (= "dest-dir" (str (fs/copy-tree  "src-dir" "dest-dir"))))
+  (is (= "dest-dir" (str (fs/copy-tree "src-dir" "dest-dir"))))
   (is (match? ["dest-dir/foo/bar/"
                "src-dir/foo/bar/"]
               (list-tree ".")))
@@ -285,11 +285,11 @@
         "no changes expected for no-ops and throws"))
 
   ;; creates dirs with symlinks in parent path
-  (doseq [[create-path                 expected-new-path]
-          [["link-dir1/new1"           "dir1/new1"]
-           ["dir1/link-dir2/new2"      "dir1/dir2/new2"]
+  (doseq [[create-path expected-new-path]
+          [["link-dir1/new1" "dir1/new1"]
+           ["dir1/link-dir2/new2" "dir1/dir2/new2"]
            ["link-dir1/link-dir2/new3" "dir1/dir2/new3"]
-           ["link-dir1/dir2/new4"      "dir1/dir2/new4"]]]
+           ["link-dir1/dir2/new4" "dir1/dir2/new4"]]]
     (is (= create-path (fs/unixify (fs/create-dirs create-path)))
         "creates new dir when parent path has sym-links to dirs")
     (is (= true (fs/exists? expected-new-path))
@@ -312,20 +312,12 @@
 ;;
 ;; create-link
 ;;
-(deftest create-link-test
-  (files "dudette.txt")
-  (let [link (fs/create-link "hard-link.txt" "dudette.txt")]
-    (is (= "hard-link.txt" (str link)))
-    (is (match? ["dudette.txt"
-                 "hard-link.txt"]
-                (list-tree ".")))
-    (when (not windows?)
-      ;; an attribute check is not available on Windows
-      (is (= 2 (fs/get-attribute link "unix:nlink"))))
-    (is (= true (fs/same-file? "dudette.txt" "hard-link.txt")))
-    (is (= false (fs/sym-link? "hard-link.txt")))
-    (is (= (slurp "hard-link.txt")
-           (slurp "dudette.txt")))))
+(deftest create-link-nlink-test
+  ;; an attribute check is not available on Windows
+  (when (not windows?)
+    (files "dudette.txt")
+    (let [link (fs/create-link "hard-link.txt" "dudette.txt")]
+      (is (= 2 (fs/get-attribute link "unix:nlink"))))))
 
 (deftest create-link-empty-string-test
   (is (thrown? java.nio.file.FileSystemException (fs/create-link "" "")))
@@ -345,7 +337,7 @@
   ;; a bit of different behaviour depending on OS
   (if (not= :mac (util/os))
     ;; linux/windows bug? inconsistent: if "" is cwd, should be equivalent to (fs/create-sym-link "symlink1" ".") but throws:
-    (is (thrown? Exception  (fs/create-sym-link "symlink1" "")))
+    (is (thrown? Exception (fs/create-sym-link "symlink1" "")))
     (do (is (= "symlink1" (str (fs/create-sym-link "symlink1" ""))))
         ;; link is created
         (is (= true (fs/sym-link? "symlink1")))
@@ -360,7 +352,7 @@
   (is (= true (fs/sym-link? "symlink2")))
   (is (match? ["da1/da2/da3/da4/f2.txt"
                "symlink2/"]
-              (list-tree "."))) 
+              (list-tree ".")))
   (is (fs/exists? "symlink2/da1/da2/da3/da4/f2.txt")))
 
 ;;
@@ -463,11 +455,6 @@
 ;;
 ;; delete-if-exists
 ;;
-(deftest delete-if-exists-test
-  (files "dude")
-  (is (= true (fs/delete-if-exists "dude")))
-  (is (= false (fs/delete-if-exists "dude"))))
-
 (deftest delete-if-exists-empty-string-test
   (files "foo/bar/baz/boop.txt" "bop.txt")
   (let [before (util/fsnapshot)]
@@ -562,7 +549,7 @@
 
 (deftest exists?-empty-string-test
   (is (= true (fs/exists? ""))))
- 
+
 ;;
 ;; expand-home
 ;;
@@ -711,19 +698,19 @@
                  "dira2/dirb1/test.cljc"
                  "project.clj"]
                 (normalized
-                  (fs/glob "." "**.{clj,cljc}")))))
+                 (fs/glob "." "**.{clj,cljc}")))))
   (testing "glob also matches directories and doesn't return the specified root directory"
     (is (match? ["dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
                  "dira1/dirb1/source.clj"]
                 (normalized
-                  (fs/glob "dira1/dirb1" "**"))))
+                 (fs/glob "dira1/dirb1" "**"))))
     (is (match? ["dira1/dirb1/"
                  "dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
                  "dira1/dirb1/source.clj"]
                 (normalized
-                  (fs/glob "dira1" "dirb1**")))))
+                 (fs/glob "dira1" "dirb1**")))))
   (testing "symlink as root path"
     (let [sym-link (fs/create-sym-link "sym-link" "dira1")]
       (is (match? [] (fs/glob sym-link "*")))
@@ -737,20 +724,20 @@
     (testing "hidden files"
       (testing "are not matched by default"
         (is (match? [] (normalized
-                         (fs/glob "." "*git*")))))
+                        (fs/glob "." "*git*")))))
       (testing "matched when :hidden option specified"
         (is (match? [".gitignore"]
                     (normalized
-                      (fs/glob "." "*git*" {:hidden true})))))
+                     (fs/glob "." "*git*" {:hidden true})))))
       (testing "automatically matched when pattern starts with a dot"
         (is (match? [".gitignore"]
                     (normalized
-                      (fs/glob "." ".gitig*"))))))))
+                     (fs/glob "." ".gitig*"))))))))
 
 (deftest glob-unicode-test
-  (let [test-files [{:name "dir/📷 photography.md"        :has-variant-selector false}
-                    {:name "dir/🗞️ article.md"            :has-variant-selector true}
-                    {:name "dir/🗣️ talk.md"               :has-variant-selector true}
+  (let [test-files [{:name "dir/📷 photography.md" :has-variant-selector false}
+                    {:name "dir/🗞️ article.md" :has-variant-selector true}
+                    {:name "dir/🗣️ talk.md" :has-variant-selector true}
                     {:name "dir/🤔 interesting things.md" :has-variant-selector false}]]
     ;; sanity test our data
     (doseq [{:keys [name has-variant-selector]} test-files]
@@ -783,12 +770,12 @@
   (is (match? ["foo/bar/baz/dude.clj"
                "foo/bar/baz/dude2.clj"]
               (normalized
-                (fs/glob "." "foo/bar/baz/*.clj")))))
+               (fs/glob "." "foo/bar/baz/*.clj")))))
 
 (deftest glob-returns-directories-test
   (files "foo/")
   (is (match? ["foo/"] (normalized
-                         (fs/glob "." "*" {:max-depth 1})))))
+                        (fs/glob "." "*" {:max-depth 1})))))
 
 (deftest glob-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
@@ -814,9 +801,9 @@
         (is (= expected-gz-file (fs/gzip input-file))
             "gzip returns created gz in same dir as input file")
         (is (match? (normalized
-                      [input-file
-                       expected-gz-file]
-                      {:relativize "."})
+                     [input-file
+                      expected-gz-file]
+                     {:relativize "."})
                     (list-tree "."))
             "both input file and output file exist")
         (spit input-file "some\nnew\ncontent\n")
@@ -826,9 +813,9 @@
         ;; NOTE: we must specify the `dest` when specifying options, specify `nil` for default
         (is (= input-file (str (fs/gunzip expected-gz-file nil {:replace-existing true}))))
         (is (match? (normalized
-                      [input-file
-                       expected-gz-file]
-                      {:relativize "."})
+                     [input-file
+                      expected-gz-file]
+                     {:relativize "."})
                     (list-tree "."))
             "both input file and output file exist after output file overwrite")
         (is (= input-content (slurp input-file))
@@ -869,7 +856,7 @@
                          (fs/gunzip expected-gz-file out-dir))
                 "throws on attempted overwrite")
             (spit expected-ungz-file "some\nnew\ncontent\n")
-            (is (= (fs/unixify (fs/path out-dir "README.md")) 
+            (is (= (fs/unixify (fs/path out-dir "README.md"))
                    (fs/unixify (fs/gunzip expected-gz-file out-dir {:replace-existing true})))
                 "does not throw on overwrite")
             (is (match? (normalized
@@ -882,12 +869,12 @@
             "gunzipped content matches gzipped content")))))
 
 (deftest gzip-out-file-test
-  (doseq [[expected-gz source-file opts] [["boop"             "foo.txt"    {:out-file "boop"}]
-                                          ["foo.txt.gz"       "foo.txt"    {:out-file "foo.txt.gz"}]
-                                          ["a/b/c/foo.gz"     "a/b/c/foo"  {:out-file "foo.gz"}]
-                                          ["d/e/f/foo.gz"     "a/b/c/foo"  {:out-file "foo.gz" :dir "d/e/f"}]
-                                          ["a/b/c/y/z/foo.gz" "a/b/c/foo"  {:out-file "y/z/foo.gz"}]
-                                          ["out/y/z/foo.gz"   "a/b/c/foo"  {:out-file "y/z/foo.gz" :dir "out"}]]]
+  (doseq [[expected-gz source-file opts] [["boop" "foo.txt" {:out-file "boop"}]
+                                          ["foo.txt.gz" "foo.txt" {:out-file "foo.txt.gz"}]
+                                          ["a/b/c/foo.gz" "a/b/c/foo" {:out-file "foo.gz"}]
+                                          ["d/e/f/foo.gz" "a/b/c/foo" {:out-file "foo.gz" :dir "d/e/f"}]
+                                          ["a/b/c/y/z/foo.gz" "a/b/c/foo" {:out-file "y/z/foo.gz"}]
+                                          ["out/y/z/foo.gz" "a/b/c/foo" {:out-file "y/z/foo.gz" :dir "out"}]]]
     (testing (str "source-file: " source-file " opts: " opts)
       (util/clean-cwd)
       (files source-file)
@@ -1090,13 +1077,13 @@
                  "dira2/dirb1/test.cljc"
                  "project.clj"]
                 (normalized
-                  (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
+                 (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
   (testing "match also matches directories and doesn't return the root directory"
     (is (match? ["dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
                  "dira1/dirb1/source.clj"]
                 (normalized
-                  (fs/match "dira1/dirb1" "regex:.*" {:recursive true}))))
+                 (fs/match "dira1/dirb1" "regex:.*" {:recursive true}))))
     (is (match? ["dira1/dirb1/"
                  "dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
@@ -1302,7 +1289,7 @@
     (let [nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])
           orig-link-permissions (fs/posix->str (Files/getPosixFilePermissions (fs/path "link") nofollow-opts))]
       ;; cycle through some variations so we know we'll have at least one that does not match perms at create time
-      (doseq [[target  set-permissions]
+      (doseq [[target set-permissions]
               [["file" "rw-rw-rw-"]
                ["file" "rwxrwxrwx"]
                ["link" "rw-rw-rw-"]
@@ -1494,15 +1481,15 @@
 ;; root
 ;;
 (deftest root-test
-  (doseq [[path                      expected   expected-windows]
-          [[""                       nil        nil]
-           ["foo"                    nil        nil]
-           ["foo/bar"                nil        nil]
-           ["/foo/bar"               "/"        "/"]
-           ["C:/foo/bar"             nil        "C:/"]
-           ["C:foo/bar"              nil        "C:"]
-           ["//./PIPE/name/foo/bar"  "/"        "//./PIPE/"]
-           ["//server/share/foo/bar" "/"        "//server/share/"]]]
+  (doseq [[path expected expected-windows]
+          [["" nil nil]
+           ["foo" nil nil]
+           ["foo/bar" nil nil]
+           ["/foo/bar" "/" "/"]
+           ["C:/foo/bar" nil "C:/"]
+           ["C:foo/bar" nil "C:"]
+           ["//./PIPE/name/foo/bar" "/" "//./PIPE/"]
+           ["//server/share/foo/bar" "/" "//server/share/"]]]
     (if windows?
       (is (= expected-windows (some-> (fs/root path) fs/unixify))
           (str "windows: " path))
@@ -1542,12 +1529,12 @@
         lmt-link (file-time "2022-01-01T00:00:00.00Z")
         lmt-new (file-time "2023-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
-            [[nil                       lmt-link           lmt-new            nil]
-             [{:nofollow-links false}   lmt-link           lmt-new            nil]
+    (doseq [[opts expected-lmt-link expected-lmt-file expected-exception]
+            [[nil lmt-link lmt-new nil]
+             [{:nofollow-links false} lmt-link lmt-new nil]
              (if cant-set-last-modified-time-on-sym-link?
-               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
-               [{:nofollow-links true}  lmt-new            lmt-file           nil])]]
+               [{:nofollow-links true} lmt-link lmt-file FileSystemException]
+               [{:nofollow-links true} lmt-new lmt-file nil])]]
       (testing (str "opts: " (pr-str opts))
         (util/clean-cwd)
         (files "file")
@@ -1608,10 +1595,10 @@
           ct-link (file-time "2022-01-01T00:00:00.00Z")
           ct-new (file-time "2023-01-01T00:00:00.00Z")
           nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-      (doseq [[opts                     expected-ct-link expected-ct-file]
-              [[nil                     ct-link          ct-new]
-               [{:nofollow-links false} ct-link          ct-new]
-               [{:nofollow-links true}  ct-new           ct-file]]]
+      (doseq [[opts expected-ct-link expected-ct-file]
+              [[nil ct-link ct-new]
+               [{:nofollow-links false} ct-link ct-new]
+               [{:nofollow-links true} ct-new ct-file]]]
         (testing (str "opts: " (pr-str opts))
           (util/clean-cwd)
           (files "file")
@@ -1637,7 +1624,7 @@
   (let [old-create-time (fs/creation-time "")
         new-create-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:01.00Z"))
         new-modify-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:10.00Z"))]
-    (is (= "" (util/path->str (fs/set-creation-time "" new-create-time)))) 
+    (is (= "" (util/path->str (fs/set-creation-time "" new-create-time))))
     (fs/set-last-modified-time "" new-modify-time)
     (cond
       ;; quite a storied history here
@@ -1662,12 +1649,12 @@
         lmt-link (file-time "2022-01-01T00:00:00.00Z")
         lmt-new (file-time "2023-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
-            [[nil                       lmt-link           lmt-new            nil]
-             [{:nofollow-links false}   lmt-link           lmt-new            nil]
+    (doseq [[opts expected-lmt-link expected-lmt-file expected-exception]
+            [[nil lmt-link lmt-new nil]
+             [{:nofollow-links false} lmt-link lmt-new nil]
              (if cant-set-last-modified-time-on-sym-link?
-               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
-               [{:nofollow-links true}  lmt-new            lmt-file           nil])]]
+               [{:nofollow-links true} lmt-link lmt-file FileSystemException]
+               [{:nofollow-links true} lmt-new lmt-file nil])]]
       (testing (str "opts: " (pr-str opts))
         (util/clean-cwd)
         (files "file")
@@ -1766,7 +1753,7 @@
 
 (deftest touch-updates-existing-dir-test
   (let [lmt-dir (file-time "2024-01-01T00:00:00.00Z")
-        lmt-new (file-time "2026-01-01T00:00:00.00Z") 
+        lmt-new (file-time "2026-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
     (files "dir/")
     ;; use JVM API to set precondition 
@@ -1785,9 +1772,9 @@
 (deftest touch-creates-new-file-with-current-time-test
   (is (= "file" (str (fs/touch "file"))))
   (let [ft (fs/last-modified-time "file")
-          recent-time (file-time-recently)]
+        recent-time (file-time-recently)]
     (is (pos? (compare ft recent-time))
-          (format "file time %s on/after very recent time %s" ft recent-time))))
+        (format "file time %s on/after very recent time %s" ft recent-time))))
 
 (deftest touch-creates-new-file-with-specific-time-test
   (let [lmt-new (file-time "2024-01-01T00:00:00.00Z")]
@@ -1796,7 +1783,7 @@
         "file time touched (with specified time)")))
 
 (deftest touch-fails-fast-on-invalid-time-test
-  (is (thrown? Exception  (fs/touch "file" {:time "notvalid"})))
+  (is (thrown? Exception (fs/touch "file" {:time "notvalid"})))
   (is (match? [] (list-tree "."))
       "no file created"))
 
@@ -1806,12 +1793,12 @@
         lmt-link (file-time "2022-01-01T00:00:00.00Z")
         lmt-new (file-time "2023-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
-            [[nil                       lmt-link           lmt-new            nil]
-             [{:nofollow-links false}   lmt-link           lmt-new            nil]
+    (doseq [[opts expected-lmt-link expected-lmt-file expected-exception]
+            [[nil lmt-link lmt-new nil]
+             [{:nofollow-links false} lmt-link lmt-new nil]
              (if cant-set-last-modified-time-on-sym-link?
-               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
-               [{:nofollow-links true}  lmt-new            lmt-file           nil])]]
+               [{:nofollow-links true} lmt-link lmt-file FileSystemException]
+               [{:nofollow-links true} lmt-new lmt-file nil])]]
       (testing (str "opts: " (pr-str opts))
         (util/clean-cwd)
         (files "file")
@@ -1960,11 +1947,11 @@
   (is (= "foo/zippy.zip" (fs/unixify (fs/zip "foo/zippy.zip" "foo"))))
   (is (= "zip-out" (str (fs/unzip "foo/zippy.zip" "zip-out"))))
   (is (match?
-        ["foo/bar"
-         "foo/bar/baz"
-         "foo/bar/baz/somefile.txt"
-         "foo/zippy.zip"]
-        (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
+       ["foo/bar"
+        "foo/bar/baz"
+        "foo/bar/baz/somefile.txt"
+        "foo/zippy.zip"]
+       (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
       "sources and created zip file present")
   (is (not (fs/exists? "zip-out/foo/zippy.zip"))
       "zip file was not zipped")
