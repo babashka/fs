@@ -429,17 +429,17 @@
                        (if (and rp (contains? seen rp))
                          (file-visit-result (visit-file-failed dir nil))
                          (let [seen (if rp (conj seen rp) seen)
-                               ;; withFileTypes gives the entry kind without a stat per child
-                               [entries err] (try [(.readdirSync node-fs (str dir) #js {:withFileTypes true}) nil]
-                                                  (catch :default e [nil e]))]
-                           (if (nil? entries)
-                             (file-visit-result (visit-file-failed dir err))
-                             (let [pre (file-visit-result (pre-visit-dir dir nil))]
-                               (cond
-                                 (= :terminate pre) :terminate
-                                 (= :skip-subtree pre) :continue
-                                 (= :skip-siblings pre) :skip-siblings
-                                 :else
+                               pre (file-visit-result (pre-visit-dir dir nil))]
+                           (cond
+                             (= :terminate pre) :terminate
+                             (= :skip-subtree pre) :continue
+                             (= :skip-siblings pre) :skip-siblings
+                             :else
+                             ;; withFileTypes gives the entry kind without a stat per child
+                             (let [[entries err] (try [(.readdirSync node-fs (str dir) #js {:withFileTypes true}) nil]
+                                                      (catch :default e [nil e]))]
+                               (if (nil? entries)
+                                 (file-visit-result (post-visit-dir dir err))
                                  (loop [i 0]
                                    (if (>= i (.-length entries))
                                      (file-visit-result (post-visit-dir dir nil))
