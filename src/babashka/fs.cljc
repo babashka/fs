@@ -477,24 +477,25 @@
            regex-str (str/join ".*" (map convert-segment parts))]
        (.test (js/RegExp. (str "^" regex-str "$")) name))))
 
-(defn list-dir
-  "Returns a vector of all paths in `dir`. For descending into subdirectories use [[glob]].
+;; Not defined in babashka so reload keeps its built-in list-dir: the source impl needs java.nio DirectoryStream, which babashka does not expose to interpreted code.
+#?(:bb nil
+   :default
+   (defn list-dir
+     "Returns a vector of all paths in `dir`. For descending into subdirectories use [[glob]].
 
      - `glob-or-accept` - a [[glob]] string such as `\"*.edn\"` or a `(fn accept [^java.nio.file.Path p]) -> truthy`"
-  ([dir]
-   #?(:bb (throw (UnsupportedOperationException. "list-dir not supported in babashka, use glob"))
-      :clj (with-open [stream (directory-stream dir)]
-             (vec stream))
-      :cljs (let [d (str dir)]
-              (mapv #(.join node-path d %) (.readdirSync node-fs d)))))
-  ([dir glob-or-accept]
-   #?(:bb (throw (UnsupportedOperationException. "list-dir not supported in babashka, use glob"))
-      :clj (with-open [stream (directory-stream dir glob-or-accept)]
-             (vec stream))
-      :cljs (let [entries (list-dir dir)]
-              (if (string? glob-or-accept)
-                (filterv #(glob-match? (file-name %) glob-or-accept) entries)
-                (filterv glob-or-accept entries))))))
+     ([dir]
+      #?(:clj (with-open [stream (directory-stream dir)]
+                (vec stream))
+         :cljs (let [d (str dir)]
+                 (mapv #(.join node-path d %) (.readdirSync node-fs d)))))
+     ([dir glob-or-accept]
+      #?(:clj (with-open [stream (directory-stream dir glob-or-accept)]
+                (vec stream))
+         :cljs (let [entries (list-dir dir)]
+                 (if (string? glob-or-accept)
+                   (filterv #(glob-match? (file-name %) glob-or-accept) entries)
+                   (filterv glob-or-accept entries)))))))
 
 (defn- path-seq
   [path]
