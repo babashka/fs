@@ -128,6 +128,22 @@
    (defn- bigint? [x]
      (identical? js/BigInt (.-constructor x))))
 
+#?(:clj nil
+   :cljs
+   (defn- chmod [path mode]
+     (.chmodSync node-fs (str path) mode)))
+
+#?(:clj nil
+   :cljs
+   (defn- copy-file [src dest replace-existing]
+     (.copyFileSync node-fs (str src) (str dest)
+                    (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs))))))
+
+#?(:clj nil
+   :cljs
+   (defn- mkdtemp [base prefix]
+     (.mkdtempSync node-fs (path base prefix))))
+
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
 
@@ -721,11 +737,11 @@
         (if (and nofollow-links (sym-link? source))
           (do (when replace-existing (delete-if-exists dest))
               (create-sym-link dest (read-link source)))
-          (let [mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
-            (.copyFileSync node-fs (str source) dest mode)
+          (do
+            (copy-file source dest replace-existing)
             (when copy-attributes
               (let [st (stat source nofollow-links)]
-                (.chmodSync node-fs dest (.-mode st))
+                (chmod dest (.-mode st))
                 (.utimesSync node-fs dest (.-atime st) (.-mtime st))))))
         dest))))
 
@@ -794,7 +810,7 @@
       :cljs (do
               (.mkdirSync node-fs (str dir))
               (when posix-file-permissions
-                (.chmodSync node-fs (str dir) (->posix-file-permissions posix-file-permissions)))
+                (chmod dir (->posix-file-permissions posix-file-permissions)))
               (str dir)))))
 
 (defn create-dirs
@@ -816,7 +832,7 @@
       :cljs (do
               (.mkdirSync node-fs (str dir) #js {:recursive true})
               (when posix-file-permissions
-                (.chmodSync node-fs (str dir) (->posix-file-permissions posix-file-permissions)))
+                (chmod dir (->posix-file-permissions posix-file-permissions)))
               (str dir)))))
 
 (defn set-posix-file-permissions
@@ -829,7 +845,7 @@
   [path posix-file-permissions]
   #?(:clj (Files/setPosixFilePermissions (as-path path) (->posix-file-permissions posix-file-permissions))
      :cljs (do
-             (.chmodSync node-fs (str path) (->posix-file-permissions posix-file-permissions))
+             (chmod path (->posix-file-permissions posix-file-permissions))
              (str path))))
 
 (defn posix-file-permissions
@@ -856,7 +872,7 @@
               (when (or p1 p2)
                 (set-posix-file-permissions f perms))))
      :cljs (let [mode (bit-and (.-mode (stat f false)) 511)]
-             (.chmodSync node-fs (str f) (bit-or mode 192)))))
+             (chmod f (bit-or mode 192)))))
 
 (defn starts-with?
   "Returns `true` if `this-path` starts with `other-path` via [Path#startsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#startsWith(java.nio.file.Path)).
@@ -966,15 +982,13 @@
                                                     (u+wx to-dir)))
                                                 :continue))
                              :visit-file (fn [f _]
-                                           (let [rel (relativize from f)
-                                                 to-file (path dst rel)
-                                                 mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
-                                             (.copyFileSync node-fs (str f) (str to-file) mode)
+                                           (let [to-file (path dst (relativize from f))]
+                                             (copy-file f to-file replace-existing)
                                              :continue))
                              :post-visit-dir (fn [dir _]
                                                (when (and (not win?) copy-attributes)
                                                  (let [mode (posix-file-permissions dir)]
-                                                   (.chmodSync node-fs (path dst (relativize from dir)) mode)))
+                                                   (chmod (path dst (relativize from dir)) mode)))
                                                :continue)})))
         dst))))
 
@@ -1018,9 +1032,9 @@
                (Files/createTempDirectory prefix attrs)))
       :cljs (let [base (str (or dir (:path opts) (temp-dir)))
                   pre (or prefix "tmp")
-                  result (.mkdtempSync node-fs (.join node-path base pre))]
+                  result (mkdtemp base pre)]
               (when posix-file-permissions
-                (.chmodSync node-fs result (->posix-file-permissions posix-file-permissions)))
+                (chmod result (->posix-file-permissions posix-file-permissions)))
               result))))
 
 (defn create-temp-file
@@ -1062,11 +1076,11 @@
       :cljs (let [base (str (or dir (:path opts) (temp-dir)))
                   pre (or prefix "tmp")
                   suf (or suffix "")
-                  tmp-dir (.mkdtempSync node-fs (.join node-path base pre))
+                  tmp-dir (mkdtemp base pre)
                   result (.join node-path tmp-dir (str "file" suf))]
               (.writeFileSync node-fs result "" #js {:flag "wx"})
               (when posix-file-permissions
-                (.chmodSync node-fs result (->posix-file-permissions posix-file-permissions)))
+                (chmod result (->posix-file-permissions posix-file-permissions)))
               result))))
 
 (defn create-sym-link
@@ -1177,7 +1191,7 @@
       :cljs (do
               (.writeFileSync node-fs (str file) "" #js {:flag "wx"})
               (when posix-file-permissions
-                (.chmodSync node-fs (str file) (->posix-file-permissions posix-file-permissions)))
+                (chmod file (->posix-file-permissions posix-file-permissions)))
               (str file)))))
 
 (defn move
