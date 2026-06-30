@@ -6,7 +6,8 @@
                 :cljs [["fs" :as node-fs]
                        ["path" :as node-path]
                        ["os" :as node-os]
-                       ["zlib" :as node-zlib]])
+                       ["zlib" :as node-zlib]
+                       ["crypto" :as node-crypto]])
             [clojure.string :as str])
   #?@(:cljs []
       :default [(:import [java.io File InputStream]
@@ -1063,13 +1064,19 @@
                (Files/createTempFile prefix suffix attrs)))
       :cljs (let [base (str (or dir (:path opts) (temp-dir)))
                   pre (or prefix "tmp")
-                  suf (or suffix "")
-                  tmp-dir (mkdtemp base pre)
-                  result (.join node-path tmp-dir (str "file" suf))]
-              (.writeFileSync node-fs result "" #js {:flag "wx"})
-              (when posix-file-permissions
-                (chmod result (->posix-file-permissions posix-file-permissions)))
-              result))))
+                  suf (or suffix "")]
+              (loop [tries 0]
+                (let [rand (.toString (.randomBytes node-crypto 8) "hex")
+                      result (.join node-path base (str pre rand suf))
+                      ok (try (.writeFileSync node-fs result "" #js {:flag "wx"})
+                              true
+                              (catch :default _ false))]
+                  (cond
+                    ok (do (when posix-file-permissions
+                             (chmod result (->posix-file-permissions posix-file-permissions)))
+                           result)
+                    (< tries 100) (recur (inc tries))
+                    :else (throw (ex-info (str "Could not create temp file in: " base) {})))))))))
 
 (defn create-sym-link
   "Creates a symbolic `link` to `target-path` via [Files/createSymbolicLink](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createSymbolicLink(java.nio.file.Path,java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).

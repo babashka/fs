@@ -150,9 +150,12 @@
 
 (deftest create-temp-file-test
   (fs/with-temp-dir [d]
-    (let [f (fs/create-temp-file {:dir d})]
+    (let [f (fs/create-temp-file {:dir d :prefix "pre-" :suffix ".txt"})]
       (is (fs/regular-file? f))
-      (is (fs/starts-with? f d)))))
+      (is (= (fs/unixify d) (fs/unixify (fs/parent f))) "direct child of dir, not nested")
+      (is (str/starts-with? (fs/file-name f) "pre-"))
+      (is (str/ends-with? (fs/file-name f) ".txt"))
+      (is (= 1 (count (fs/list-dir d))) "no orphan dir"))))
 
 (deftest create-delete-test
   (fs/with-temp-dir [d]
