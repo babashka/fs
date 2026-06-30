@@ -347,7 +347,7 @@
   (when-not (fs/windows?)
     (with-tmp [d]
       (let [target (str (fs/path d "target.txt"))
-            link   (str (fs/path d "link.txt"))]
+            link (str (fs/path d "link.txt"))]
         (fs/write-bytes target (string->bytes "hi"))
         (fs/create-sym-link link target)
         (is (fs/sym-link? link))
@@ -647,7 +647,7 @@
         (is (false? (:isDirectory m)))
         (is (false? (:isSymbolicLink m))))
       (is (= {:isDirectory false} (fs/read-attributes f "basic:isDirectory")))
-      (is (= {:isDirectory true}  (fs/read-attributes d "basic:isDirectory")))
+      (is (= {:isDirectory true} (fs/read-attributes d "basic:isDirectory")))
       (is (file-time? (fs/get-attribute f "basic:lastModifiedTime"))))))
 
 (deftest set-attribute-test
@@ -663,6 +663,19 @@
       (fs/create-dir dir)
       (is (= (fs/unixify dir) (fs/unixify (fs/set-last-modified-time dir 0))))
       (is (= 0 (fs/file-time->millis (fs/last-modified-time dir)))))))
+
+(deftest modified-since-test
+  (with-tmp [d]
+    (let [anchor (fs/path d "anchor")
+          f1 (fs/path d "f1")]
+      (fs/write-bytes anchor (string->bytes "a"))
+      (fs/write-bytes f1 (string->bytes "b"))
+      (fs/set-last-modified-time anchor 1000)
+      (fs/set-last-modified-time f1 2000)
+      (is (= [(fs/unixify f1)]
+             (mapv fs/unixify (fs/modified-since anchor f1))))
+      (fs/set-last-modified-time anchor 2000)
+      (is (= [] (vec (fs/modified-since anchor f1)))))))
 
 ;;;; Gzip
 

@@ -104,7 +104,7 @@
   "True if `t` is the platform's last-modified-time type."
   [t]
   #?(:clj (instance? java.nio.file.attribute.FileTime t)
-     :default (instance? js/Date t)))
+     :default (identical? js/BigInt (.-constructor t))))
 
 (defn tmp []
   (fs/create-temp-dir {:prefix "fs-node-test-"}))

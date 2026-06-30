@@ -1,13 +1,13 @@
 (ns babashka.fs
-  (:require [clojure.string :as str]
-            #?@(:bb [[clojure.java.io :as io]
+  (:require #?@(:bb [[clojure.java.io :as io]
                      [clojure.walk :as walk]]
                 :clj [[clojure.java.io :as io]
                       [clojure.walk :as walk]]
                 :default [["fs" :as node-fs]
                           ["path" :as node-path]
                           ["os" :as node-os]
-                          ["zlib" :as node-zlib]]))
+                          ["zlib" :as node-zlib]])
+            [clojure.string :as str])
   #?@(:cljs []
       :squint []
       :default [(:import [java.io File InputStream]
@@ -104,9 +104,9 @@
   #?(:clj ^"[Ljava.nio.file.LinkOption;" [nofollow-links]
      :default [_nofollow-links])
   #?(:clj (into-array LinkOption
-                       (cond-> []
-                         nofollow-links
-                         (conj LinkOption/NOFOLLOW_LINKS)))
+                      (cond-> []
+                        nofollow-links
+                        (conj LinkOption/NOFOLLOW_LINKS)))
      :default nil))
 
 #?(:clj nil
@@ -115,6 +115,18 @@
      (if nofollow-links
        (.lstatSync node-fs (str path))
        (.statSync node-fs (str path)))))
+
+#?(:clj nil
+   :default
+   (defn- stat-ns [path nofollow-links]
+     (if nofollow-links
+       (.lstatSync node-fs (str path) #js {:bigint true})
+       (.statSync node-fs (str path) #js {:bigint true}))))
+
+#?(:clj nil
+   :default
+   (defn- bigint? [x]
+     (identical? js/BigInt (.-constructor x))))
 
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
@@ -357,53 +369,53 @@
                                (-> (visit-file-failed path ex)
                                    file-visit-result)))))
      :default
-     (let [pre-visit-dir  (or pre-visit-dir continue)
+     (let [pre-visit-dir (or pre-visit-dir continue)
            post-visit-dir (or post-visit-dir continue)
-           visit-file     (or visit-file continue)
+           visit-file (or visit-file continue)
            visit-file-failed (or visit-file-failed (constantly :continue))
-           max-depth      (or max-depth js/Infinity)
-           root           (str path)]
-       (letfn [(do-walk [dir depth]
-                 (let [result (file-visit-result (pre-visit-dir dir nil))]
-                   (cond
-                     (= result :terminate) :terminate
-                     (= result :skip-subtree)
-                     (file-visit-result (post-visit-dir dir nil))
-                     :else
-                     (let [term? (volatile! false)]
-                       (when (< depth max-depth)
-                         (try
-                           (let [entries (.readdirSync node-fs dir)]
-                             (loop [i 0 skip-sibs? false]
-                               (when (and (< i (.-length entries))
-                                          (not skip-sibs?)
-                                          (not @term?))
-                                 (let [entry    (aget entries i)
-                                       child    (.join node-path dir entry)
-                                       stat     (try (if follow-links
-                                                       (.statSync node-fs child)
-                                                       (.lstatSync node-fs child))
-                                                     (catch :default _ nil))
-                                       is-dir?  (and stat (.isDirectory stat))
-                                       result   (if is-dir?
-                                                  (do-walk child (inc depth))
-                                                  (if stat
-                                                    (try
-                                                      (file-visit-result (visit-file child nil))
-                                                      (catch :default e
-                                                        (file-visit-result (visit-file-failed child e))))
-                                                    (file-visit-result (visit-file-failed child nil))))]
-                                   (cond
-                                     (= result :terminate)
-                                     (vreset! term? true)
-                                     (= result :skip-siblings)
-                                     (recur (inc i) true)
-                                     :else
-                                     (recur (inc i) false))))))
-                           (catch :default _ nil)))
-                       (if @term?
-                         :terminate
-                         (file-visit-result (post-visit-dir dir nil)))))))]
+           max-depth (or max-depth js/Infinity)
+           root (str path)]
+       (let [do-walk (fn do-walk [dir depth]
+                       (let [result (file-visit-result (pre-visit-dir dir nil))]
+                         (cond
+                           (= :terminate result) :terminate
+                           (= :skip-subtree result)
+                           (file-visit-result (post-visit-dir dir nil))
+                           :else
+                           (let [term? (volatile! false)]
+                             (when (< depth max-depth)
+                               (try
+                                 (let [entries (.readdirSync node-fs dir)]
+                                   (loop [i 0 skip-sibs? false]
+                                     (when (and (< i (.-length entries))
+                                                (not skip-sibs?)
+                                                (not @term?))
+                                       (let [entry (aget entries i)
+                                             child (.join node-path dir entry)
+                                             stat (try (if follow-links
+                                                         (.statSync node-fs child)
+                                                         (.lstatSync node-fs child))
+                                                       (catch :default _ nil))
+                                             is-dir? (and stat (.isDirectory stat))
+                                             result (if is-dir?
+                                                      (do-walk child (inc depth))
+                                                      (if stat
+                                                        (try
+                                                          (file-visit-result (visit-file child nil))
+                                                          (catch :default e
+                                                            (file-visit-result (visit-file-failed child e))))
+                                                        (file-visit-result (visit-file-failed child nil))))]
+                                         (cond
+                                           (= :terminate result)
+                                           (vreset! term? true)
+                                           (= :skip-siblings result)
+                                           (recur (inc i) true)
+                                           :else
+                                           (recur (inc i) false))))))
+                                 (catch :default _ nil)))
+                             (if @term?
+                               :terminate
+                               (file-visit-result (post-visit-dir dir nil)))))))]
          (do-walk root 0)
          root))))
 
@@ -558,7 +570,7 @@
                                                     pat))))
                                  "regex"
                                  (let [pat (subs pattern 6)
-                                       re  (js/RegExp. pat)]
+                                       re (js/RegExp. pat)]
                                    (fn [p] (.test re p)))
                                  (fn [_] false))])
          match (fn [path]
@@ -625,7 +637,7 @@
                                    (str/includes? pattern file-separator)
                                    (when win?
                                      (str/includes? pattern "/"))))
-         hidden    (:hidden opts (str/starts-with? pattern "."))]
+         hidden (:hidden opts (str/starts-with? pattern "."))]
      (match root-dir (str "glob:" pattern) (assoc opts :recursive recursive :hidden hidden)))))
 
 #?(:clj
@@ -634,9 +646,9 @@
      (into-array CopyOption
                  (cond-> []
                    replace-existing (conj StandardCopyOption/REPLACE_EXISTING)
-                   copy-attributes  (conj StandardCopyOption/COPY_ATTRIBUTES)
-                   atomic-move      (conj StandardCopyOption/ATOMIC_MOVE)
-                   nofollow-links   (conj LinkOption/NOFOLLOW_LINKS)))))
+                   copy-attributes (conj StandardCopyOption/COPY_ATTRIBUTES)
+                   atomic-move (conj StandardCopyOption/ATOMIC_MOVE)
+                   nofollow-links (conj LinkOption/NOFOLLOW_LINKS)))))
 
 (defn copy
   "Copies `source` file or input-stream to `target-path` dir or file via [Files/copy](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#copy(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
@@ -649,8 +661,8 @@
   * [`:nofollow-links`](/README.md#nofollow-links) - used to determine to copy symbolic link itself or not."
   ([source target-path] (copy source target-path nil))
   ([source target-path {:keys [replace-existing
-                                copy-attributes
-                                nofollow-links]}]
+                               copy-attributes
+                               nofollow-links]}]
    #?(:clj
       (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
             dest (as-path target-path)
@@ -695,7 +707,7 @@
                                       (if (= \w (nth t 1)) 2 0)
                                       (if (= \x (nth t 2)) 1 0)))]
                 (+ (* 64 (parse-triple (subs s 0 3)))
-                   (* 8  (parse-triple (subs s 3 6)))
+                   (* 8 (parse-triple (subs s 3 6)))
                    (parse-triple (subs s 6 9))))))
 
 (defn- ->posix-file-permissions [s]
@@ -866,21 +878,21 @@
                                                      (when-not win?
                                                        (u+wx to-dir))))
                                                  :continue)
-                               :visit-file (fn [from-path _attrs]
-                                             (let [rel (relativize from from-path)
-                                                   to-file (path to rel)]
-                                               (Files/copy ^Path from-path to-file
-                                                           ^"[Ljava.nio.file.CopyOption;"
-                                                           copy-options)
-                                               :continue)
-                                             :continue)
-                               :post-visit-dir (fn [dir _ex]
-                                                 (let [rel (relativize from dir)
-                                                       to-dir (path to rel)]
-                                                   (when-not win?
-                                                     (let [perms (posix-file-permissions (file dir))]
-                                                       (Files/setPosixFilePermissions to-dir perms)))
-                                                   :continue))})
+                                :visit-file (fn [from-path _attrs]
+                                              (let [rel (relativize from from-path)
+                                                    to-file (path to rel)]
+                                                (Files/copy ^Path from-path to-file
+                                                            ^"[Ljava.nio.file.CopyOption;"
+                                                            copy-options)
+                                                :continue)
+                                              :continue)
+                                :post-visit-dir (fn [dir _ex]
+                                                  (let [rel (relativize from dir)
+                                                        to-dir (path to rel)]
+                                                    (when-not win?
+                                                      (let [perms (posix-file-permissions (file dir))]
+                                                        (Files/setPosixFilePermissions to-dir perms)))
+                                                    :continue))})
           target-dir))
       :default
       (let [src (str source-dir)
@@ -897,26 +909,26 @@
                                    ", under itself to dest: " dst) {})))
             (create-dirs dst opts)
             (walk-file-tree src
-                        {:follow-links follow-links
-                         :pre-visit-dir (fn [dir _]
-                                          (let [rel (relativize src dir)
-                                                to-dir (path dst rel)]
-                                            (when-not (exists? to-dir)
-                                              (create-dir to-dir)
-                                              (when (and (not win?) copy-attributes)
-                                                (u+wx to-dir)))
-                                            :continue))
-                         :visit-file (fn [f _]
-                                       (let [rel (relativize src f)
-                                             to-file (path dst rel)
-                                             mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
-                                         (.copyFileSync node-fs (str f) (str to-file) mode)
-                                         :continue))
-                         :post-visit-dir (fn [dir _]
-                                           (when (and (not win?) copy-attributes)
-                                             (let [mode (posix-file-permissions dir)]
-                                               (.chmodSync node-fs (path dst (relativize src dir)) mode)))
-                                           :continue)})))
+                            {:follow-links follow-links
+                             :pre-visit-dir (fn [dir _]
+                                              (let [rel (relativize src dir)
+                                                    to-dir (path dst rel)]
+                                                (when-not (exists? to-dir)
+                                                  (create-dir to-dir)
+                                                  (when (and (not win?) copy-attributes)
+                                                    (u+wx to-dir)))
+                                                :continue))
+                             :visit-file (fn [f _]
+                                           (let [rel (relativize src f)
+                                                 to-file (path dst rel)
+                                                 mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
+                                             (.copyFileSync node-fs (str f) (str to-file) mode)
+                                             :continue))
+                             :post-visit-dir (fn [dir _]
+                                               (when (and (not win?) copy-attributes)
+                                                 (let [mode (posix-file-permissions dir)]
+                                                   (.chmodSync node-fs (path dst (relativize src dir)) mode)))
+                                               :continue)})))
         dst))))
 
 (defn temp-dir
@@ -958,7 +970,7 @@
                (Files/createTempDirectory (as-path dir) prefix attrs)
                (Files/createTempDirectory prefix attrs)))
       :default (let [base (str (or dir (:path opts) (temp-dir)))
-                     pre  (or prefix "tmp")
+                     pre (or prefix "tmp")
                      result (.mkdtempSync node-fs (.join node-path base pre))]
                  (when posix-file-permissions
                    (.chmodSync node-fs result (->posix-file-permissions posix-file-permissions)))
@@ -1001,8 +1013,8 @@
                (Files/createTempFile (as-path dir) prefix suffix attrs)
                (Files/createTempFile prefix suffix attrs)))
       :default (let [base (str (or dir (:path opts) (temp-dir)))
-                     pre  (or prefix "tmp")
-                     suf  (or suffix "")
+                     pre (or prefix "tmp")
+                     suf (or suffix "")
                      tmp-dir (.mkdtempSync node-fs (.join node-path base pre))
                      result (.join node-path tmp-dir (str "file" suf))]
                  (.writeFileSync node-fs result "" #js {:flag "wx"})
@@ -1088,20 +1100,20 @@
   ([root-path {:keys [force]}]
    (when (exists? root-path {:nofollow-links true})
      #?(:clj (walk-file-tree root-path
-                              {:visit-file (fn [path _]
-                                             (when (and win? force)
-                                               (.setWritable (file path) true))
-                                             (delete path)
-                                             :continue)
-                               :pre-visit-dir (fn [path _]
-                                                (when force
-                                                  (u+wx path))
-                                                :continue)
-                               :post-visit-dir (fn [path _]
-                                                 (delete path)
-                                                 :continue)})
-       :default (do (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)})
-                    root-path)))))
+                             {:visit-file (fn [path _]
+                                            (when (and win? force)
+                                              (.setWritable (file path) true))
+                                            (delete path)
+                                            :continue)
+                              :pre-visit-dir (fn [path _]
+                                               (when force
+                                                 (u+wx path))
+                                               :continue)
+                              :post-visit-dir (fn [path _]
+                                                (delete path)
+                                                :continue)})
+        :default (do (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)})
+                     root-path)))))
 
 (defn create-file
   "Creates empty `file` via [Files/createFile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createFile(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
@@ -1161,7 +1173,7 @@
   #?(:clj (.getParent (as-path path))
      :default (let [p (str path)
                     d (.dirname node-path p)]
-                (when (and (not= d ".") (not= d p))
+                (when (and (not= "." d) (not= d p))
                   d))))
 
 (defn size
@@ -1229,6 +1241,7 @@
        (if (neg? i) s (subs s (inc i))))))
 
 (declare read-attributes*)
+(declare file-time->millis)
 
 (defn get-attribute
   "Returns value of `attribute` for `path` via [Files/getAttribute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getAttribute(java.nio.file.Path,java.lang.String,java.nio.file.LinkOption...)).
@@ -1263,18 +1276,18 @@
                    (Files/readAttributes p ^String attributes link-opts)
                    (Files/readAttributes p ^Class attributes link-opts))]
              attrs)
-      :default (let [st (stat path nofollow-links)
-                     all {"lastModifiedTime" (.-mtime st)
-                          "lastAccessTime"   (.-atime st)
-                          "creationTime"     (.-birthtime st)
-                          "size"             (.-size st)
-                          "isRegularFile"    (.isFile st)
-                          "isDirectory"      (.isDirectory st)
-                          "isSymbolicLink"   (.isSymbolicLink st)
-                          "isOther"          (not (or (.isFile st) (.isDirectory st)
-                                                      (.isSymbolicLink st)))
-                          "fileKey"          nil}
-                     spec (attr-name (if (string? attributes) attributes "*"))]
+      :default (let [st (stat-ns path nofollow-links)
+                     all {"lastModifiedTime" (.-mtimeNs st)
+                          "lastAccessTime" (.-atimeNs st)
+                          "creationTime" (.-birthtimeNs st)
+                          "size" (js/Number (.-size st))
+                          "isRegularFile" (.isFile st)
+                          "isDirectory" (.isDirectory st)
+                          "isSymbolicLink" (.isSymbolicLink st)
+                          "isOther" (not (or (.isFile st) (.isDirectory st)
+                                             (.isSymbolicLink st)))
+                          "fileKey" nil}
+                     spec (attr-name attributes)]
                  (if (= "*" spec)
                    all
                    (select-keys all (vec (.split spec ","))))))))
@@ -1303,9 +1316,10 @@
       :default (let [p (str path)
                      k (attr-name attribute)
                      st (stat path nofollow-links)
+                     v (js/Date. (file-time->millis value))
                      [atime mtime] (case k
-                                     "lastModifiedTime" [(.-atime st) value]
-                                     "lastAccessTime"   [value (.-mtime st)]
+                                     "lastModifiedTime" [(.-atime st) v]
+                                     "lastAccessTime" [v (.-mtime st)]
                                      (throw (ex-info (str "set-attribute not supported on Node.js for: " attribute) {})))]
                  (if nofollow-links
                    (.lutimesSync node-fs p atime mtime)
@@ -1328,13 +1342,13 @@
   "Converts a file time to epoch milliseconds. On JVM: `FileTime` to long. On Node.js: `Date` to number."
   [ft]
   #?(:clj (.toMillis ^FileTime ft)
-     :default (.getTime ft)))
+     :default (js/Number (/ ft (js/BigInt 1000000)))))
 
 (defn millis->file-time
   "Converts epoch milliseconds to a file time. On JVM: long to `FileTime`. On Node.js: number to `Date`."
   [millis]
   #?(:clj (FileTime/fromMillis millis)
-     :default (js/Date. millis)))
+     :default (* (js/BigInt millis) (js/BigInt 1000000))))
 
 (defn- ->file-time [x]
   #?(:clj (cond (int? x) (millis->file-time x)
@@ -1342,7 +1356,8 @@
                 (instance? FileTime x) x
                 :else (throw (ex-info "Unrecognized time type" {})))
      :default (cond (number? x) (millis->file-time x)
-                    (instance? js/Date x) x
+                    (bigint? x) x
+                    (instance? js/Date x) (* (js/BigInt (.getTime x)) (js/BigInt 1000000))
                     :else (throw (ex-info "Unrecognized time type" {})))))
 
 (defn last-modified-time
@@ -1552,19 +1567,24 @@
 
 ;;;; Modified since
 
+#?(:clj nil
+   :default
+   (defn- mtime-ns
+     "Returns mtime of `file` as nanosecond BigInt, preserving sub-millisecond filesystem precision for newness comparison."
+     [file]
+     (.-mtimeNs (stat-ns file false))))
+
 (defn- last-modified-1
   [file]
-  (if (exists? file)
-    (last-modified-time file)
-    #?(:clj (FileTime/fromMillis 0)
-       :default (js/Date. 0))))
+  #?(:clj (if (exists? file) (last-modified-time file) (FileTime/fromMillis 0))
+     :default (if (exists? file) (mtime-ns file) (js/BigInt 0))))
 
 (defn- max-filetime [filetimes]
   #?(:clj (reduce #(if (pos? (.compareTo ^FileTime %1 ^FileTime %2))
                      %1 %2)
                   (FileTime/fromMillis 0) filetimes)
-     :default (reduce #(if (> (.getTime %1) (.getTime %2)) %1 %2)
-                      (js/Date. 0) filetimes)))
+     :default (reduce #(if (> %1 %2) %1 %2)
+                      (js/BigInt 0) filetimes)))
 
 (defn- last-modified
   [path]
@@ -1575,7 +1595,7 @@
        (map last-modified-1
             (filter regular-file? (path-seq path)))))
     #?(:clj (FileTime/fromMillis 0)
-       :default (js/Date. 0))))
+       :default (js/BigInt 0))))
 
 (defn- expand-file-set
   [file-set]
@@ -1594,8 +1614,8 @@
   (let [lm (last-modified anchor-path)]
     (map str
          (filter (fn [f]
-                   (pos? #?(:clj (.compareTo ^FileTime (last-modified-1 f) ^FileTime lm)
-                            :default (- (.getTime (last-modified-1 f)) (.getTime lm)))))
+                   #?(:clj (pos? (.compareTo ^FileTime (last-modified-1 f) ^FileTime lm))
+                      :default (> (last-modified-1 f) lm)))
                  (expand-file-set path-set)))))
 
 ;;;; Zip
@@ -1788,8 +1808,8 @@
              (when (parent output-file)
                (create-dirs (parent output-file)))
              (with-open [source-input-stream (io/input-stream (file source-file))
-                         gzos                (GZIPOutputStream.
-                                              (FileOutputStream. (file output-file)))]
+                         gzos (GZIPOutputStream.
+                               (FileOutputStream. (file output-file)))]
                (io/copy source-input-stream gzos))
              (str output-file))
       :default
@@ -1950,9 +1970,9 @@
                 :or {charset "utf-8"}
                 :as opts}]
    #?(:clj (java.nio.file.Files/write (as-path file)
-                                       lines
-                                       (->charset charset)
-                                       (->open-options (dissoc opts :charset)))
+                                      lines
+                                      (->charset charset)
+                                      (->open-options (dissoc opts :charset)))
       :default (do
                  (.writeFileSync node-fs (str file)
                                  (str (str/join "\n" lines) "\n")
@@ -1998,13 +2018,13 @@
 
 (def ^:private xdg-type->env-var&default-path
   #?(:clj (delay {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
-                  :cache  ["XDG_CACHE_HOME" (path (home) ".cache")]
-                  :data   ["XDG_DATA_HOME" (path (home) ".local" "share")]
-                  :state  ["XDG_STATE_HOME" (path (home) ".local" "state")]})
+                  :cache ["XDG_CACHE_HOME" (path (home) ".cache")]
+                  :data ["XDG_DATA_HOME" (path (home) ".local" "share")]
+                  :state ["XDG_STATE_HOME" (path (home) ".local" "state")]})
      :default {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
-               :cache  ["XDG_CACHE_HOME" (path (home) ".cache")]
-               :data   ["XDG_DATA_HOME" (path (home) ".local" "share")]
-               :state  ["XDG_STATE_HOME" (path (home) ".local" "state")]}))
+               :cache ["XDG_CACHE_HOME" (path (home) ".cache")]
+               :data ["XDG_DATA_HOME" (path (home) ".local" "share")]
+               :state ["XDG_STATE_HOME" (path (home) ".local" "state")]}))
 
 (defn- xdg-home-for [k]
   (let [[env-var default-path] (#?(:clj @xdg-type->env-var&default-path
