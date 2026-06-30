@@ -3,7 +3,7 @@
   "version": "0.5.25",
   "description": "File system utilities for Clojure/ClojureScript.",
   "exports": {
-    ".": "./index.mjs"
+    ".": "./.squint-out/babashka/fs.mjs"
   },
   "scripts": {
     "test": "node_modules/.bin/squint compile && node .squint-out/babashka/run_tests.mjs"

@@ -389,11 +389,13 @@
            max-depth (or max-depth js/Infinity)
            nofollow (not follow-links)
            root (str path)
-           visit-child (fn visit-child [child]
-                         (if (exists? child {:nofollow-links nofollow})
+           visit-or-fail (fn [child]
                            (try (file-visit-result (visit-file child nil))
                                 (catch :default e
-                                  (file-visit-result (visit-file-failed child e))))
+                                  (file-visit-result (visit-file-failed child e)))))
+           visit-child (fn [child]
+                         (if (exists? child {:nofollow-links nofollow})
+                           (visit-or-fail child)
                            (file-visit-result (visit-file-failed child nil))))
            do-walk (fn do-walk [dir depth seen]
                      (let [rp (when follow-links
@@ -429,10 +431,7 @@
                                                 dir? (file-visit-result (visit-file child nil))
                                                 (and sym? follow-links (not (exists? child)))
                                                 (file-visit-result (visit-file-failed child nil))
-                                                :else
-                                                (try (file-visit-result (visit-file child nil))
-                                                     (catch :default e
-                                                       (file-visit-result (visit-file-failed child e)))))]
+                                                :else (visit-or-fail child))]
                                        (cond
                                          (= :terminate cr) :terminate
                                          (= :skip-siblings cr) (file-visit-result (post-visit-dir dir nil))
@@ -1261,10 +1260,10 @@
   [this-path other-path]
   #?(:clj (Files/isSameFile (as-path this-path) (as-path other-path))
      :cljs (try
-             (let [s1 (stat this-path false)
-                   s2 (stat other-path false)]
-               (and (= (.-dev s1) (.-dev s2))
-                    (= (.-ino s1) (.-ino s2))))
+             (let [s1 (stat-ns this-path false)
+                   s2 (stat-ns other-path false)]
+               (and (= (str (.-dev s1)) (str (.-dev s2)))
+                    (= (str (.-ino s1)) (str (.-ino s2)))))
              (catch :default _ false))))
 
 (defn read-all-bytes

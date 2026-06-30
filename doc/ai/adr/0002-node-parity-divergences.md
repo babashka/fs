@@ -93,6 +93,23 @@ arities anyway, or switch to method-via-property interop
 (`(.-lstatSync node-fs)`) which is uglier than the two small fns. The six-line
 duplication is the most readable option.
 
+## starts-with? / ends-with? are string-based on Node - accepted
+
+The JVM `Path#startsWith` / `Path#endsWith` compare whole path components. The
+cljs branch compares strings, anchored on `file-separator` so a partial last
+component does not match (`/a/foo` does not start with `/a/fo`). This agrees with
+the JVM for normal relative or absolute paths. It can diverge when `other-path`
+carries a leading or trailing separator the JVM would normalize away, or mixes
+absolute and relative forms. These inputs are unusual and not worth a component
+parser on Node.
+
+## same-file? reads inode and device as BigInt - accepted
+
+The cljs branch compares `dev` and `ino` from `statSync(path, {bigint: true})`
+and stringifies before comparing. A plain `statSync` returns these as JS numbers,
+which lose precision above 2^53 and could report two distinct files as the same.
+The BigInt read is exact.
+
 ## Consequences
 
 - These items are settled. New reviews should consult this ADR before flagging
