@@ -498,10 +498,6 @@
            regex-str (str/join ".*" (map convert-segment parts))]
        (js/RegExp. (str "^" regex-str "$")))))
 
-#?(:cljs
-   (defn- glob-match? [name pattern]
-     (.test (glob->regex pattern) name)))
-
 ;; Not defined in babashka so reload keeps its built-in list-dir: the source impl needs java.nio DirectoryStream, which babashka does not expose to interpreted code.
 #?(:bb nil
    :default
