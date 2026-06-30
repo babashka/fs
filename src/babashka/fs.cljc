@@ -321,6 +321,8 @@
 
 (def ^:private continue (constantly :continue))
 
+(declare list-dir)
+
 (defn walk-file-tree
   "Walks `path` via [Files/walkFileTree](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#walkFileTree(java.nio.file.Path,java.util.Set,int,java.nio.file.FileVisitor)).
 
@@ -385,33 +387,27 @@
                            (let [term? (volatile! false)]
                              (when (< depth max-depth)
                                (try
-                                 (let [entries (.readdirSync node-fs dir)]
-                                   (loop [i 0 skip-sibs? false]
-                                     (when (and (< i (.-length entries))
-                                                (not skip-sibs?)
-                                                (not @term?))
-                                       (let [entry (aget entries i)
-                                             child (.join node-path dir entry)
-                                             stat (try (if follow-links
-                                                         (.statSync node-fs child)
-                                                         (.lstatSync node-fs child))
-                                                       (catch :default _ nil))
-                                             is-dir? (and stat (.isDirectory stat))
-                                             result (if is-dir?
-                                                      (do-walk child (inc depth))
-                                                      (if stat
-                                                        (try
-                                                          (file-visit-result (visit-file child nil))
-                                                          (catch :default e
-                                                            (file-visit-result (visit-file-failed child e))))
-                                                        (file-visit-result (visit-file-failed child nil))))]
-                                         (cond
-                                           (= :terminate result)
-                                           (vreset! term? true)
-                                           (= :skip-siblings result)
-                                           (recur (inc i) true)
-                                           :else
-                                           (recur (inc i) false))))))
+                                 (loop [cs (list-dir dir) skip-sibs? false]
+                                   (when (and (seq cs) (not skip-sibs?) (not @term?))
+                                     (let [child (first cs)
+                                           st (try (stat child (not follow-links))
+                                                   (catch :default _ nil))
+                                           is-dir? (and st (.isDirectory st))
+                                           result (if is-dir?
+                                                    (do-walk child (inc depth))
+                                                    (if st
+                                                      (try
+                                                        (file-visit-result (visit-file child nil))
+                                                        (catch :default e
+                                                          (file-visit-result (visit-file-failed child e))))
+                                                      (file-visit-result (visit-file-failed child nil))))]
+                                       (cond
+                                         (= :terminate result)
+                                         (vreset! term? true)
+                                         (= :skip-siblings result)
+                                         (recur (rest cs) true)
+                                         :else
+                                         (recur (rest cs) false)))))
                                  (catch :default _ nil)))
                              (if @term?
                                :terminate
