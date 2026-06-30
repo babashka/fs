@@ -1222,7 +1222,7 @@
 
   Options:
   * `replace-existing` - overwrite existing `target-path`, default `false`
-  * `atomic-move` - watchers will only see complete `target-path` file, default `false`"
+  * `atomic-move` - watchers will only see complete `target-path` file, default `false`. Ignored on Node.js, which always uses `renameSync`. A cross-filesystem move throws on Node.js."
   ([source-path target-path] (move source-path target-path nil))
   ([source-path target-path {:keys [:replace-existing
                                     :atomic-move]}]
@@ -1583,7 +1583,10 @@
   "Returns a vector of command search paths (from the `PATH` environment variable). Same
   as `(split-paths (System/getenv \"PATH\"))`."
   []
-  (split-paths (or (get-env "PATH") "")))
+  (let [path (get-env "PATH")]
+    (if (str/blank? path)
+      []
+      (split-paths path))))
 
 (defn- filename-only?
   "Returns `true` if `path` is exactly a file name (i.e. with no absolute or

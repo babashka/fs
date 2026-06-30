@@ -30,11 +30,21 @@ would call `copyFileSync` with the exclusive flag onto an existing file and thro
 `EEXIST`. Verified empirically: `copyFileSync(src, dst, COPYFILE_EXCL)` onto the
 same file via a `/var` vs `/private/var` alias throws `EEXIST`.
 
-The JVM originally had no guard: it walked the tree and copied every file onto
-itself via the same-file no-op. Result was identical but the walk was wasted
-work. The JVM now carries the same guard, so it skips the self-copy walk. This
-keeps both branches structurally aligned and avoids the pointless walk. The
-self-copy *detection* still differs: JVM `canonicalize` follows symlinks, cljs
+Reviewers repeatedly claim master `(copy-tree d d)` threw
+`FileAlreadyExistsException` and that the guard hides a regression. It did not.
+`Files/copy` of a file onto itself is a documented no-op, not a throw, so master
+walked the tree and copied every file onto itself harmlessly, returning
+`target-dir`. Verified three ways: master's released `babashka.fs` in babashka,
+a direct `Files/copy` of a path onto itself without `REPLACE_EXISTING`, and the
+current JVM build. All return without throwing. The guard only skips the now
+pointless walk; the observable result is unchanged from master.
+
+This is covered by `copy-tree-fails-on-parent-to-child-test` in
+`test/babashka/fs_test.cljc`, which asserts `(copy-tree d d)` returns the target
+and leaves the tree unchanged. That suite runs on the JVM, ClojureScript and
+Squint, so the self-copy no-op is locked on all three.
+
+The self-copy *detection* still differs: JVM `canonicalize` follows symlinks, cljs
 uses `:nofollow-links true`, so a copy through a symlink alias is detected as
 self-copy on the JVM but walked on Node. Symlink-aliased self-copy is rare and
 both produce a correct tree.
@@ -53,6 +63,15 @@ On the JVM these pass arbitrary `StandardOpenOption` values through to
 `writeFileSync` flag; other options (e.g. `:truncate-existing false`) are
 ignored. Node's `writeFileSync` has no equivalent for the full option set. The
 common `:append` case is covered; the rest is an accepted port limitation.
+
+## move :atomic-move is ignored on Node - accepted
+
+JVM `move` honors `:atomic-move` through `StandardCopyOption/ATOMIC_MOVE`. The Node
+branch always uses `renameSync`, which has no option flag and ignores
+`:atomic-move`. `renameSync` is atomic within a single filesystem, so the common
+case is covered, but the option is not enforced and there is no copy-then-delete
+fallback: a cross-filesystem move throws `EXDEV` on Node, where the JVM without
+`:atomic-move` would copy then delete.
 
 ## walk-file-tree reads entry types from the directory listing
 
