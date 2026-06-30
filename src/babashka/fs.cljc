@@ -1814,8 +1814,8 @@
    (let [dest-dir (or target-dir (parent gz-file) "")
          dest-filename (str/replace-first (file-name gz-file) #"\.gz$" "")
          output-file (path dest-dir dest-filename)]
-     (when (parent output-file)
-       (create-dirs (parent output-file)))
+     (when-let [p (parent output-file)]
+       (create-dirs p))
      #?(:clj (with-open [fis (Files/newInputStream (as-path gz-file) (into-array java.nio.file.OpenOption []))
                          gzis (GZIPInputStream. fis)]
                (Files/copy ^java.io.InputStream gzis output-file
@@ -1847,8 +1847,8 @@
    (let [dest-dir (or dir (parent source-file) "")
          dest-filename (if out-file (str out-file) (str (file-name source-file) ".gz"))
          output-file (path dest-dir dest-filename)]
-     (when (parent output-file)
-       (create-dirs (parent output-file)))
+     (when-let [p (parent output-file)]
+       (create-dirs p))
      #?(:clj (with-open [source-input-stream (io/input-stream (file source-file))
                          gzos (GZIPOutputStream. (FileOutputStream. (file output-file)))]
                (io/copy source-input-stream gzos))
