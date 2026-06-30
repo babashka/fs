@@ -1673,9 +1673,10 @@
 
 (defn- last-modified-1
   [file]
-  (if (exists? file)
-    #?(:clj (last-modified-time file) :cljs (mtime-ns file))
-    epoch-file-time))
+  #?(:clj (try (last-modified-time file)
+               (catch java.io.IOException _ epoch-file-time))
+     :cljs (try (mtime-ns file)
+                (catch :default _ epoch-file-time))))
 
 (defn- max-filetime [filetimes]
   (reduce #(if (file-time> %1 %2) %1 %2) epoch-file-time filetimes))
