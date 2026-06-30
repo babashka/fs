@@ -697,7 +697,15 @@
                               :visit-file (fn [_ _] (swap! log conj :file) :continue)
                               :pre-visit-dir (fn [_ _] (swap! log conj :pre) :continue)
                               :post-visit-dir (fn [_ _] (swap! log conj :post) :continue)})
-        (is (= [:file] @log))))))
+        (is (= [:file] @log)))))
+  (testing ":skip-siblings from visit-file skips remaining entries, still posts the dir"
+    (fs/with-temp-dir [d]
+      (files d "a.txt" "b.txt" "c.txt")
+      (let [seen (atom 0) posted (atom false)]
+        (fs/walk-file-tree d {:visit-file (fn [_ _] (swap! seen inc) :skip-siblings)
+                              :post-visit-dir (fn [_ _] (reset! posted true) :continue)})
+        (is (= 1 @seen) "only the first sibling visited, rest skipped")
+        (is @posted "post-visit-dir still called")))))
 
 (deftest walk-symlink-cycle-test
   (when-not (fs/windows?)

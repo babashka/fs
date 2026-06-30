@@ -731,9 +731,11 @@
             (copy-file source dest replace-existing)
             (when copy-attributes
               (let [st (stat source nofollow-links)]
-                (chmod dest (.-mode st))
+                (chmod dest (bit-and (.-mode st) 8r7777))
                 (.utimesSync node-fs dest (.-atime st) (.-mtime st))))))
         dest))))
+
+#?(:cljs (def ^:private octal->rwx ["---" "--x" "-w-" "-wx" "r--" "r-x" "rw-" "rwx"]))
 
 (defn posix->str
   "Converts a set of `PosixFilePermission` `p` to a string, like `\"rwx------\"` via [PosixFilePermissions/toString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#toString(java.util.Set)).
@@ -741,9 +743,8 @@
   See also: [[str->posix]]"
   [p]
   #?(:clj (PosixFilePermissions/toString p)
-     :cljs (let [octal->rwx ["---" "--x" "-w-" "-wx" "r--" "r-x" "rw-" "rwx"]]
-             (apply str (for [shift [6 3 0]]
-                          (octal->rwx (bit-and (unsigned-bit-shift-right p shift) 7)))))))
+     :cljs (apply str (for [shift [6 3 0]]
+                        (octal->rwx (bit-and (unsigned-bit-shift-right p shift) 7))))))
 
 (defn str->posix
   "Converts string `s` to a set of `PosixFilePermission` via [PosixFilePermissions/fromString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#fromString(java.lang.String)).
@@ -1810,31 +1811,20 @@
   ([gz-file] (gunzip gz-file nil))
   ([gz-file target-dir] (gunzip gz-file target-dir {}))
   ([gz-file target-dir {:keys [replace-existing]}]
-   #?(:clj (let [dest-dir (or target-dir (parent gz-file) "")
-                 dest-filename (str/replace-first (file-name gz-file) #"\.gz$" "")
-                 gz-file (as-path gz-file)
-                 cp-opts (->copy-opts replace-existing nil nil nil)
-                 output-file (path dest-dir dest-filename)]
-             (with-open
-              [fis (Files/newInputStream gz-file (into-array java.nio.file.OpenOption []))
-               gzis (GZIPInputStream. fis)]
-               (when (parent output-file)
-                 (create-dirs (parent output-file)))
-               (Files/copy ^java.io.InputStream gzis
-                           output-file
-                           cp-opts))
-             output-file)
-      :cljs
-      (let [dest-dir (or target-dir (parent gz-file) "")
-            dest-filename (str/replace-first (file-name (str gz-file)) #"\.gz$" "")
-            output-file (path dest-dir dest-filename)]
-        (when (and (not replace-existing) (exists? output-file))
-          (throw (ex-info (str "File already exists: " output-file) {})))
-        (when (parent output-file) (create-dirs (parent output-file)))
-        (let [compressed (.readFileSync node-fs (str gz-file))
-              decompressed (.gunzipSync node-zlib compressed)]
-          (.writeFileSync node-fs output-file decompressed))
-        output-file))))
+   (let [dest-dir (or target-dir (parent gz-file) "")
+         dest-filename (str/replace-first (file-name gz-file) #"\.gz$" "")
+         output-file (path dest-dir dest-filename)]
+     (when (parent output-file)
+       (create-dirs (parent output-file)))
+     #?(:clj (with-open [fis (Files/newInputStream (as-path gz-file) (into-array java.nio.file.OpenOption []))
+                         gzis (GZIPInputStream. fis)]
+               (Files/copy ^java.io.InputStream gzis output-file
+                           (->copy-opts replace-existing nil nil nil)))
+        :cljs (do (when (and (not replace-existing) (exists? output-file))
+                    (throw (ex-info (str "File already exists: " output-file) {})))
+                  (.writeFileSync node-fs output-file
+                                  (.gunzipSync node-zlib (.readFileSync node-fs (str gz-file))))))
+     output-file)))
 
 (defn gzip
   "Gzips `source-file` to `:dir`/`:out-file`.
@@ -1854,28 +1844,17 @@
   ([source-file {:keys [dir out-file]}]
    (assert source-file "source-file must be specified")
    (assert (exists? source-file) "source-file does not exist")
-   #?(:clj (let [dest-dir (or dir (parent source-file) "")
-                 dest-filename (if (not out-file)
-                                 (str (file-name source-file) ".gz")
-                                 (str out-file))
-                 output-file (path dest-dir dest-filename)]
-             (when (parent output-file)
-               (create-dirs (parent output-file)))
-             (with-open [source-input-stream (io/input-stream (file source-file))
-                         gzos (GZIPOutputStream.
-                               (FileOutputStream. (file output-file)))]
+   (let [dest-dir (or dir (parent source-file) "")
+         dest-filename (if out-file (str out-file) (str (file-name source-file) ".gz"))
+         output-file (path dest-dir dest-filename)]
+     (when (parent output-file)
+       (create-dirs (parent output-file)))
+     #?(:clj (with-open [source-input-stream (io/input-stream (file source-file))
+                         gzos (GZIPOutputStream. (FileOutputStream. (file output-file)))]
                (io/copy source-input-stream gzos))
-             (str output-file))
-      :cljs
-      (let [dest-dir (or dir (parent source-file) "")
-            dest-filename (if out-file (str out-file)
-                              (str (file-name (str source-file)) ".gz"))
-            output-file (path dest-dir dest-filename)]
-        (when (parent output-file) (create-dirs (parent output-file)))
-        (let [content (.readFileSync node-fs (str source-file))
-              compressed (.gzipSync node-zlib content)]
-          (.writeFileSync node-fs output-file compressed))
-        output-file))))
+        :cljs (.writeFileSync node-fs output-file
+                              (.gzipSync node-zlib (.readFileSync node-fs (str source-file)))))
+     (str output-file))))
 
 ;;;; End gzip
 
