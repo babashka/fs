@@ -95,47 +95,39 @@
    #?(:clj (apply io/file (map as-file (cons path paths)))
       :cljs (reduce path* (path* path) paths))))
 
-(defn- ->link-opts
-  #?(:clj ^"[Ljava.nio.file.LinkOption;" [nofollow-links]
-     :cljs [_nofollow-links])
-  #?(:clj (into-array LinkOption
-                      (cond-> []
-                        nofollow-links
-                        (conj LinkOption/NOFOLLOW_LINKS)))
-     :cljs nil))
+#?(:clj
+   (defn- ->link-opts ^"[Ljava.nio.file.LinkOption;" [nofollow-links]
+     (into-array LinkOption
+                 (cond-> []
+                   nofollow-links
+                   (conj LinkOption/NOFOLLOW_LINKS)))))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- stat [path nofollow-links]
      (if nofollow-links
        (.lstatSync node-fs (str path))
        (.statSync node-fs (str path)))))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- stat-ns [path nofollow-links]
      (if nofollow-links
        (.lstatSync node-fs (str path) #js {:bigint true})
        (.statSync node-fs (str path) #js {:bigint true}))))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- bigint? [x]
      (and x (identical? js/BigInt (.-constructor x)))))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- chmod [path mode]
      (.chmodSync node-fs (str path) mode)))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- copy-file [src dest replace-existing]
      (.copyFileSync node-fs (str src) (str dest)
                     (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs))))))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- mkdtemp [base prefix]
      (.mkdtempSync node-fs (path base prefix))))
 
@@ -463,8 +455,7 @@
               (str/includes? "win"))
      :cljs (= "win32" js/process.platform)))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn ^:no-doc glob->regex
      "Compiles glob `pattern` to a RegExp matching JVM `getPathMatcher` semantics.
   Handles `**` (any chars including separator), `*` (any chars except separator),
@@ -506,8 +497,7 @@
            regex-str (str/join ".*" (map convert-segment parts))]
        (js/RegExp. (str "^" regex-str "$")))))
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- glob-match? [name pattern]
      (.test (glob->regex pattern) name)))
 
@@ -1289,8 +1279,7 @@
 
 ;;;; Attributes
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- attr-name
      "Strips a `view:` prefix from an attribute spec, e.g. \"basic:size\" -> \"size\"."
      [s]
@@ -1550,7 +1539,7 @@
 (defn split-paths
   "Splits `joined-paths` string into a vector of paths by OS-specific [[path-separator]]."
   [^String joined-paths]
-  (mapv str (.split joined-paths path-separator)))
+  (mapv #?(:clj path :cljs str) (.split joined-paths path-separator)))
 
 (defn exec-paths
   "Returns a vector of command search paths (from the `PATH` environment variable). Same
@@ -1626,8 +1615,7 @@
 
 ;;;; Modified since
 
-#?(:clj nil
-   :cljs
+#?(:cljs
    (defn- mtime-ns
      "Returns mtime of `file` as nanosecond BigInt, preserving sub-millisecond filesystem precision for newness comparison."
      [file]

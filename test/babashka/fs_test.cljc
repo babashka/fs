@@ -768,7 +768,7 @@
            (sort (mapv fs/file-name (fs/list-dirs [(fs/path d "d1") (fs/path d "d2")] "*.clj")))))))
 
 (deftest split-paths-test
-  (is (= ["a" "b" "c"] (fs/split-paths (str/join fs/path-separator ["a" "b" "c"])))))
+  (is (= ["a" "b" "c"] (mapv str (fs/split-paths (str/join fs/path-separator ["a" "b" "c"]))))))
 
 (deftest delete-if-exists-test
   (fs/with-temp-dir [d]
