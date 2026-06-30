@@ -783,6 +783,11 @@
 (deftest home-test
   (is (fs/absolute? (str (fs/home)))))
 
+(deftest expand-home-test
+  (is (= (fs/unixify (fs/path (fs/home) "foo"))
+         (fs/unixify (fs/expand-home "~/foo"))))
+  (is (= "rel/path" (fs/unixify (fs/expand-home "rel/path")))))
+
 (deftest windows-test
   (is (boolean? (fs/windows?))))
 

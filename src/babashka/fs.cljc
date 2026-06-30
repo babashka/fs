@@ -68,8 +68,7 @@
   "Coerces `path`(s) into a `Path`, combining multiple paths into one.
   Multiple-arg versions treat the first argument as parent and subsequent
   args as children relative to the parent."
-  #?(:clj (^Path [path] (as-path path))
-     :cljs ([path] (str path)))
+  (^Path [path] (as-path path))
   #?(:clj (^Path [parent child]
            (if parent
              (if (string? child)
@@ -92,8 +91,7 @@
   "Coerces `path`(s) into a `File`, combining multiple paths into one.
   Multiple-arg versions treat the first argument as parent and subsequent args
   as children relative to the parent."
-  #?(:clj (^File [path] (as-file path))
-     :cljs ([path] (str path)))
+  (^File [path] (as-file path))
   ([path & paths]
    #?(:clj (apply io/file (map as-file (cons path paths)))
       :cljs (reduce path* (path* path) paths))))
@@ -1945,13 +1943,13 @@
 
   See also: [[home]]"
   [path]
-  (let [path-str #?(:clj (str (as-path path)) :cljs (str path))]
+  (let [path-str (str (as-path path))]
     (if (.startsWith path-str "~")
       (let [sep (.indexOf path-str ^String file-separator)]
         (if (neg? sep)
           (home (subs path-str 1))
           (path* (home (subs path-str 1 sep)) (subs path-str (inc sep)))))
-      #?(:clj (as-path path) :cljs path-str))))
+      (as-path path))))
 
 (defn windows?
   "Returns `true` if OS is Windows."
