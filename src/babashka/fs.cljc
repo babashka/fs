@@ -591,9 +591,7 @@
                             (str prefix ":" pattern))]
              :cljs [matcher (case prefix
                               "glob"
-                              (let [re (glob->regex (if win?
-                                                      (str/replace pattern "/" "\\")
-                                                      pattern))]
+                              (let [re (glob->regex pattern)]
                                 (fn [p]
                                   (.test re (if win?
                                               (str/replace p "/" "\\")
@@ -1813,9 +1811,7 @@
       :cljs
       (let [dest-dir (or target-dir (parent gz-file) "")
             dest-filename (str/replace-first (file-name (str gz-file)) #"\.gz$" "")
-            output-file (if dest-dir
-                          (path dest-dir dest-filename)
-                          dest-filename)]
+            output-file (path dest-dir dest-filename)]
         (when (and (not replace-existing) (exists? output-file))
           (throw (ex-info (str "File already exists: " output-file) {})))
         (when (parent output-file) (create-dirs (parent output-file)))
@@ -1858,9 +1854,7 @@
       (let [dest-dir (or dir (parent source-file) "")
             dest-filename (if out-file (str out-file)
                               (str (file-name (str source-file)) ".gz"))
-            output-file (if dest-dir
-                          (path dest-dir dest-filename)
-                          dest-filename)]
+            output-file (path dest-dir dest-filename)]
         (when (parent output-file) (create-dirs (parent output-file)))
         (let [content (.readFileSync node-fs (str source-file))
               compressed (.gzipSync node-zlib content)]
