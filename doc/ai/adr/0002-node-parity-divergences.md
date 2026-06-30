@@ -64,6 +64,16 @@ On the JVM these pass arbitrary `StandardOpenOption` values through to
 ignored. Node's `writeFileSync` has no equivalent for the full option set. The
 common `:append` case is covered; the rest is an accepted port limitation.
 
+## copy takes a path source on Node, not an InputStream - accepted
+
+JVM `copy` accepts either a path or a `java.io.InputStream` as `source`,
+dispatching to `Files/copy` for the stream case. The Node branch only handles a
+path: it stats the source and calls `copyFileSync`. Passing a stream-like object
+does not work. Reading a stream into a file would require an asynchronous read,
+which conflicts with the port's synchronous-only design. Node callers use a path
+source; this matches the synchronous design recorded in
+[[0001-node-file-time-representation]] and the changelog.
+
 ## move :atomic-move is ignored on Node - accepted
 
 JVM `move` honors `:atomic-move` through `StandardCopyOption/ATOMIC_MOVE`. The Node
