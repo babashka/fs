@@ -74,6 +74,15 @@ which conflicts with the port's synchronous-only design. Node callers use a path
 source; this matches the synchronous design recorded in
 [[0001-node-file-time-representation]] and the changelog.
 
+## read-attributes / get-attribute serve only the basic view on Node - accepted
+
+The JVM reads `basic:`, `posix:`, `unix:`, `dos:` and other attribute views. The
+Node branch builds one map of basic attributes (times, size, kind), so
+`get-attribute` for a `unix:`/`posix:` key such as `"unix:mode"` or
+`"posix:permissions"` returns `nil` where the JVM returns a value. The common
+permission case is covered by [[posix-file-permissions]]. The full view set is an
+accepted port limitation.
+
 ## move :atomic-move is ignored on Node - accepted
 
 JVM `move` honors `:atomic-move` through `StandardCopyOption/ATOMIC_MOVE`. The Node

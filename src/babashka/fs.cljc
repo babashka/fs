@@ -952,8 +952,7 @@
   ([source-dir target-dir] (copy-tree source-dir target-dir nil))
   ([source-dir target-dir {:keys [:replace-existing
                                   :copy-attributes
-                                  :nofollow-links
-                                  :follow-links]
+                                  :nofollow-links]
                            :as opts}]
    #?(:clj
       (let [target-dir (as-path target-dir)]
