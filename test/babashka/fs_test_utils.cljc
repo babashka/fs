@@ -4,11 +4,11 @@
 
 (defn string->bytes [s]
   #?(:clj (.getBytes ^String s "UTF-8")
-     :default (.from js/Buffer s)))
+     :cljs (.from js/Buffer s)))
 
 (defn bytes->string [b]
   #?(:clj (String. ^bytes b "UTF-8")
-     :default (.toString b)))
+     :cljs (.toString b)))
 
 (defn slurp-str
   "Read `p` as a UTF-8 string. Cross-platform stand-in for clojure.core/slurp."
@@ -20,12 +20,12 @@
   stand-in for `thrown?` which needs a literal class symbol in `catch`."
   [thunk]
   (try (thunk) nil
-       (catch #?(:clj Throwable :default :default) e e)))
+       (catch #?(:clj Throwable :cljs :default) e e)))
 
 (defn ex-msg
   "Message of exception `e`, cross-platform."
   [e]
-  #?(:clj (ex-message e) :default (.-message e)))
+  #?(:clj (ex-message e) :cljs (.-message e)))
 
 (defn fsnapshot
   "Snapshot of the tree under `base` for before/after equality checks: each
@@ -52,7 +52,7 @@
     (fs/set-last-modified-time link t {:nofollow-links true})
     (= (fs/file-time->millis t)
        (fs/file-time->millis (fs/last-modified-time link {:nofollow-links true})))
-    (catch #?(:clj Throwable :default :default) _ false)))
+    (catch #?(:clj Throwable :cljs :default) _ false)))
 
 (defn files
   "Create files/dirs under `base`. A spec ending in `/` is a dir, otherwise a
@@ -104,7 +104,7 @@
   "True if `t` is the platform's last-modified-time type."
   [t]
   #?(:clj (instance? java.nio.file.attribute.FileTime t)
-     :default (identical? js/BigInt (.-constructor t))))
+     :cljs (identical? js/BigInt (.-constructor t))))
 
 (defn tmp []
   (fs/create-temp-dir {:prefix "fs-node-test-"}))
