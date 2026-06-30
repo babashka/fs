@@ -1654,17 +1654,21 @@
      [file]
      (.-mtimeNs (stat-ns file false))))
 
+(def ^:private epoch-file-time #?(:clj (FileTime/fromMillis 0) :cljs (js/BigInt 0)))
+
+(defn- file-time>
+  [a b]
+  #?(:clj (pos? (.compareTo ^FileTime a ^FileTime b))
+     :cljs (> a b)))
+
 (defn- last-modified-1
   [file]
-  #?(:clj (if (exists? file) (last-modified-time file) (FileTime/fromMillis 0))
-     :cljs (if (exists? file) (mtime-ns file) (js/BigInt 0))))
+  (if (exists? file)
+    #?(:clj (last-modified-time file) :cljs (mtime-ns file))
+    epoch-file-time))
 
 (defn- max-filetime [filetimes]
-  #?(:clj (reduce #(if (pos? (.compareTo ^FileTime %1 ^FileTime %2))
-                     %1 %2)
-                  (FileTime/fromMillis 0) filetimes)
-     :cljs (reduce #(if (> %1 %2) %1 %2)
-                   (js/BigInt 0) filetimes)))
+  (reduce #(if (file-time> %1 %2) %1 %2) epoch-file-time filetimes))
 
 (defn- last-modified
   [path]
@@ -1674,8 +1678,7 @@
       (max-filetime
        (map last-modified-1
             (filter regular-file? (path-seq path)))))
-    #?(:clj (FileTime/fromMillis 0)
-       :cljs (js/BigInt 0))))
+    epoch-file-time))
 
 (defn- expand-file-set
   [file-set]
@@ -1694,8 +1697,7 @@
   (let [lm (last-modified anchor-path)]
     (map str
          (filter (fn [f]
-                   #?(:clj (pos? (.compareTo ^FileTime (last-modified-1 f) ^FileTime lm))
-                      :cljs (> (last-modified-1 f) lm)))
+                   (file-time> (last-modified-1 f) lm))
                  (expand-file-set path-set)))))
 
 ;;;; Zip
