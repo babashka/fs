@@ -691,7 +691,7 @@
       :cljs
       (let [dest (str target-path)
             dest (if (directory-simple? dest)
-                   (.join node-path dest (file-name source))
+                   (path dest (file-name source))
                    dest)
             mode (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs)))]
         (.copyFileSync node-fs (str source) dest mode)
@@ -823,7 +823,7 @@
                   p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
               (when (or p1 p2)
                 (set-posix-file-permissions f perms))))
-     :cljs (let [mode (bit-and (.-mode (.statSync node-fs (str f))) 511)]
+     :cljs (let [mode (bit-and (.-mode (stat f false)) 511)]
              (.chmodSync node-fs (str f) (bit-or mode 192)))))
 
 (defn starts-with?
@@ -1075,9 +1075,8 @@
   throws otherwise. Does not follow symlinks."
   [path]
   #?(:clj (Files/delete (as-path path))
-     :cljs (let [p (str path)
-                 stat (.lstatSync node-fs p)]
-             (if (.isDirectory stat)
+     :cljs (let [p (str path)]
+             (if (.isDirectory (stat path true))
                (.rmdirSync node-fs p)
                (.unlinkSync node-fs p)))))
 
@@ -1100,7 +1099,7 @@
   [path]
   #?(:clj (Files/isSymbolicLink (as-path path))
      :cljs (try
-             (.isSymbolicLink (.lstatSync node-fs (str path)))
+             (.isSymbolicLink (stat path true))
              (catch :default _ false))))
 
 (defn delete-tree
@@ -1173,7 +1172,7 @@
                            (->copy-opts replace-existing false atomic-move nofollow-links))))
       :cljs (let [dest (str target-path)
                   dest (if (directory? dest {:nofollow-links true})
-                         (.join node-path dest (file-name source-path))
+                         (path dest (file-name source-path))
                          dest)]
               (when (and (not replace-existing) (exists? dest))
                 (throw (ex-info (str "Target already exists: " dest) {})))
@@ -1194,7 +1193,7 @@
   "Returns the size of `path` in bytes."
   [path]
   #?(:clj (Files/size (as-path path))
-     :cljs (.-size (.statSync node-fs (str path)))))
+     :cljs (.-size (stat path false))))
 
 (defn delete-on-exit
   "Requests delete of `path` on exit via [File#deleteOnExit](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#deleteOnExit()).
@@ -1212,8 +1211,8 @@
   [this-path other-path]
   #?(:clj (Files/isSameFile (as-path this-path) (as-path other-path))
      :cljs (try
-             (let [s1 (.statSync node-fs (str this-path))
-                   s2 (.statSync node-fs (str other-path))]
+             (let [s1 (stat this-path false)
+                   s2 (stat other-path false)]
                (and (= (.-dev s1) (.-dev s2))
                     (= (.-ino s1) (.-ino s2))))
              (catch :default _ false))))
@@ -1786,7 +1785,7 @@
       (let [dest-dir (or target-dir (parent gz-file) "")
             dest-filename (str/replace-first (file-name (str gz-file)) #"\.gz$" "")
             output-file (if dest-dir
-                          (.join node-path (str dest-dir) dest-filename)
+                          (path dest-dir dest-filename)
                           dest-filename)]
         (when (and (not replace-existing) (exists? output-file))
           (throw (ex-info (str "File already exists: " output-file) {})))
@@ -1831,7 +1830,7 @@
             dest-filename (if out-file (str out-file)
                               (str (file-name (str source-file)) ".gz"))
             output-file (if dest-dir
-                          (.join node-path (str dest-dir) dest-filename)
+                          (path dest-dir dest-filename)
                           dest-filename)]
         (when dest-dir (create-dirs dest-dir))
         (let [content (.readFileSync node-fs (str source-file))
