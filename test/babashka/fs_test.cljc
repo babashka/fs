@@ -34,6 +34,10 @@
   (is (= "dir" (fs/unixify (fs/parent "dir/foo"))))
   (is (nil? (fs/parent "foo"))))
 
+(deftest root-test
+  (is (some? (fs/root (fs/absolutize "foo"))))
+  (is (nil? (fs/root "relative/path"))))
+
 (deftest absolutize-test
   (is (fs/absolute? (fs/absolutize "foo")))
   (is (fs/absolute? (fs/absolutize "."))))
@@ -143,6 +147,12 @@
     (let [f (fs/path d "new-file")]
       (is (= (fs/unixify f) (fs/unixify (fs/create-file f))))
       (is (fs/regular-file? f)))))
+
+(deftest create-temp-file-test
+  (fs/with-temp-dir [d]
+    (let [f (fs/create-temp-file {:dir d})]
+      (is (fs/regular-file? f))
+      (is (fs/starts-with? f d)))))
 
 (deftest create-delete-test
   (fs/with-temp-dir [d]
@@ -275,6 +285,16 @@
       (let [e (caught #(fs/copy-tree (fs/path d "link-src-dir") (fs/path d "dest-dir") {:nofollow-links true}))]
         (is (some? e))
         (is (re-find #"Not a directory" (ex-msg e)))))))
+
+(deftest copy-tree-nofollow-inner-link-sym-link-test
+  (when-not (fs/windows?)
+    (fs/with-temp-dir [d]
+      (let [src (fs/path d "src")]
+        (fs/create-dirs src)
+        (fs/write-bytes (fs/path src "target.txt") (string->bytes "x"))
+        (fs/create-sym-link (fs/path src "innerlink") "target.txt")
+        (fs/copy-tree src (fs/path d "dst") {:nofollow-links true})
+        (is (fs/sym-link? (fs/path d "dst" "innerlink")))))))
 
 (deftest copy-tree-nofollow-dest-link-throws-sym-link-test
   (when-not (fs/windows?)
@@ -661,7 +681,16 @@
                               :visit-file (fn [p _] (swap! files-seen conj (fs/file-name p)) :continue)})
         (is (contains? @files-seen "sub"))
         (is (not (contains? @dirs "sub")))
-        (is (not (contains? @files-seen "child.txt")))))))
+        (is (not (contains? @files-seen "child.txt"))))))
+  (testing ":max-depth 0 visits a directory root as a file"
+    (fs/with-temp-dir [d]
+      (files d "f.txt")
+      (let [log (atom [])]
+        (fs/walk-file-tree d {:max-depth 0
+                              :visit-file (fn [_ _] (swap! log conj :file) :continue)
+                              :pre-visit-dir (fn [_ _] (swap! log conj :pre) :continue)
+                              :post-visit-dir (fn [_ _] (swap! log conj :post) :continue)})
+        (is (= [:file] @log))))))
 
 (deftest walk-symlink-cycle-test
   (when-not (fs/windows?)
@@ -803,7 +832,7 @@
   (is (= "rel/path" (fs/unixify (fs/expand-home "rel/path")))))
 
 (deftest windows-test
-  (is (boolean? (fs/windows?))))
+  (is (= (fs/windows?) (= "\\" fs/file-separator))))
 
 (deftest which-test
   (is (some? (fs/which "node"))))
@@ -827,6 +856,14 @@
     (let [f (str (fs/path d "f.txt"))]
       (fs/write-bytes f (string->bytes "x"))
       (let [t (fs/last-modified-time f)]
+        (is (file-time? t))
+        (is (pos? (fs/file-time->millis t)))))))
+
+(deftest creation-time-test
+  (fs/with-temp-dir [d]
+    (let [f (str (fs/path d "f.txt"))]
+      (fs/write-bytes f (string->bytes "x"))
+      (let [t (fs/creation-time f)]
         (is (file-time? t))
         (is (pos? (fs/file-time->millis t)))))))
 

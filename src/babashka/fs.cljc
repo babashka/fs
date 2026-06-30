@@ -9,7 +9,6 @@
                        ["zlib" :as node-zlib]])
             [clojure.string :as str])
   #?@(:cljs []
-      :squint []
       :default [(:import [java.io File InputStream]
                          [java.net URI]
                          [java.nio.file StandardOpenOption CopyOption
@@ -435,7 +434,8 @@
                                          (= :skip-siblings cr) (file-visit-result (post-visit-dir dir nil))
                                          :else (recur (rest cs)))))))))))))]
        (cond
-         (directory? root {:nofollow-links nofollow}) (do-walk root 0 #{})
+         (and (directory? root {:nofollow-links nofollow}) (< 0 max-depth))
+         (do-walk root 0 #{})
          (exists? root {:nofollow-links nofollow}) (visit-child root)
          :else (file-visit-result (visit-file-failed root nil)))
        root)))
@@ -978,7 +978,10 @@
                                                 :continue))
                              :visit-file (fn [f _]
                                            (let [to-file (path dst (relativize from f))]
-                                             (copy-file f to-file replace-existing)
+                                             (if (and nofollow-links (sym-link? f))
+                                               (do (when replace-existing (delete-if-exists to-file))
+                                                   (create-sym-link to-file (read-link f)))
+                                               (copy-file f to-file replace-existing))
                                              :continue))
                              :post-visit-dir (fn [dir _]
                                                (when (and (not win?) copy-attributes)
