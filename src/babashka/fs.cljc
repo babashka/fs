@@ -263,23 +263,23 @@
 
 ;;;; End predicates
 
+#?(:cljs
+   (defn- native-sep [path]
+     (cond-> (str path) win? (str/replace "/" (.-sep node-path)))))
+
 (defn components
   "Returns a seq of paths for all components of `path`.
   i.e.: split on the [[file-separator]]."
   [path]
   #?(:clj (seq (as-path path))
-     :cljs (let [sep (.-sep node-path)
-                 p (cond-> (str path)
-                     win? (str/replace "/" sep))]
-             (seq (remove str/blank? (.split p sep))))))
+     :cljs (seq (remove str/blank? (.split (native-sep path) (.-sep node-path))))))
 
 (defn absolutize
   "Converts `path` into an absolute path via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
   [path]
   #?(:clj (.toAbsolutePath (as-path path))
      :cljs (let [sep (.-sep node-path)
-                 p (cond-> (str path)
-                     win? (str/replace "/" sep))]
+                 p (native-sep path)]
              (cond
                (= "" p) (.cwd js/process)
                (.isAbsolute node-path p) p

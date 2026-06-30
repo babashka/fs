@@ -13,12 +13,12 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
   - Glob syntax is implemented from scratch to match the JVM glob syntax.
   - `zip` support was left out as Node.js doesn't have support for it natively.
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
-- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: define/document undefined return values:
+- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: define/document undefined return values: 
   - `copy` returns copied target file (and fixed for case when `source` is input stream)
   - `copy-tree` now explicitly returns `target-dir` (previously `source-dir`)
-  - `delete-tree` existing return value now documented
+  - `delete-tree` existing return value now documented 
   - `gunzip` now explicitly returns the extracted file (previously `nil`)
-  - `set-attribute` document that `path` is return
+  - `set-attribute` document that `path` is return 
   - `set-creation-time` document that `path` is return
   - `set-last-modified-time` document that `path` is return
   - `set-posix-file-permissions` document that `path` is return
