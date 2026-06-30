@@ -747,10 +747,9 @@
   See also: [[str->posix]]"
   [p]
   #?(:clj (PosixFilePermissions/toString p)
-     :cljs (let [rwx ["r" "w" "x"]]
-             (apply str (for [shift [6 3 0]
-                              [c bit] (map vector rwx [4 2 1])]
-                          (if (pos? (bit-and (unsigned-bit-shift-right p shift) bit)) c "-"))))))
+     :cljs (let [octal->rwx ["---" "--x" "-w-" "-wx" "r--" "r-x" "rw-" "rwx"]]
+             (apply str (for [shift [6 3 0]]
+                          (octal->rwx (bit-and (unsigned-bit-shift-right p shift) 7)))))))
 
 (defn str->posix
   "Converts string `s` to a set of `PosixFilePermission` via [PosixFilePermissions/fromString](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/PosixFilePermissions.html#fromString(java.lang.String)).
