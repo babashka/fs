@@ -1345,25 +1345,25 @@
               path))))
 
 (defn file-time->instant
-  "Converts a file time to an instant. On JVM: `FileTime` to `Instant`. On Node.js: returns the value as-is (JS Date)."
+  "Converts a file time to an instant. On JVM: `FileTime` to `Instant`. On Node.js: returns the value as-is (BigInt nanoseconds)."
   [ft]
   #?(:clj (.toInstant ^FileTime ft)
      :cljs ft))
 
 (defn instant->file-time
-  "Converts an instant to a file time. On JVM: `Instant` to `FileTime`. On Node.js: returns the value as-is (JS Date)."
+  "Converts an instant to a file time. On JVM: `Instant` to `FileTime`. On Node.js: returns the value as-is (BigInt nanoseconds)."
   [instant]
   #?(:clj (FileTime/from instant)
      :cljs instant))
 
 (defn file-time->millis
-  "Converts a file time to epoch milliseconds. On JVM: `FileTime` to long. On Node.js: `Date` to number."
+  "Converts a file time to epoch milliseconds. On JVM: `FileTime` to long. On Node.js: BigInt nanoseconds to number."
   [ft]
   #?(:clj (.toMillis ^FileTime ft)
      :cljs (js/Number (/ ft (js/BigInt 1000000)))))
 
 (defn millis->file-time
-  "Converts epoch milliseconds to a file time. On JVM: long to `FileTime`. On Node.js: number to `Date`."
+  "Converts epoch milliseconds to a file time. On JVM: long to `FileTime`. On Node.js: number to BigInt nanoseconds."
   [millis]
   #?(:clj (FileTime/fromMillis millis)
      :cljs (* (js/BigInt millis) (js/BigInt 1000000))))
@@ -1379,7 +1379,7 @@
                  :else (throw (ex-info "Unrecognized time type" {})))))
 
 (defn last-modified-time
-  "Returns last modified time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) (JVM) or JS `Date` (Node.js).
+  "Returns last modified time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) (JVM) or BigInt nanoseconds (Node.js).
 
   See also: [[set-last-modified-time]], [[creation-time]], [[file-time->instant]], [[file-time->millis]]"
   ([path]
@@ -1392,7 +1392,7 @@
   `time` can be `epoch milliseconds` (long),
   [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
   or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html)
-  (on JVM), or JS `Date` / epoch ms (on Node.js).
+  (on JVM), or BigInt nanoseconds / epoch ms (on Node.js).
 
   Returns `path`.
 
@@ -1403,7 +1403,7 @@
    (set-attribute path "basic:lastModifiedTime" (->file-time time) opts)))
 
 (defn creation-time
-  "Returns creation time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) (JVM) or JS `Date` (Node.js).
+  "Returns creation time of `path` as [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html) (JVM) or BigInt nanoseconds (Node.js).
 
   See [README notes](/README.md#creation-time) for some details on behaviour.
 
