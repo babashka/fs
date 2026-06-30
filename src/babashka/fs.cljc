@@ -450,16 +450,34 @@
   and `?` (single char except separator)."
      [name pattern]
      (let [sep-class (if win? "[^/\\\\]" "[^/]")
+           esc (fn [s] (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&"))
+           convert-segment
+           (fn convert-segment [seg]
+             (let [n (.-length seg)]
+               (loop [i 0 out ""]
+                 (if (>= i n)
+                   out
+                   (let [c (.charAt seg i)]
+                     (cond
+                       (= "\\" c) (recur (+ i 2) (str out (esc (.charAt seg (inc i)))))
+                       (= "*" c) (recur (inc i) (str out sep-class "*"))
+                       (= "?" c) (recur (inc i) (str out sep-class))
+                       (= "[" c) (let [end (.indexOf seg "]" (inc i))]
+                                   (if (neg? end)
+                                     (recur (inc i) (str out "\\["))
+                                     (let [body (subs seg (inc i) end)
+                                           body (if (str/starts-with? body "!")
+                                                  (str "^" (subs body 1))
+                                                  body)]
+                                       (recur (inc end) (str out "[" body "]")))))
+                       (= "{" c) (let [end (.indexOf seg "}" (inc i))]
+                                   (if (neg? end)
+                                     (recur (inc i) (str out "\\{"))
+                                     (let [alts (.split (subs seg (inc i) end) ",")]
+                                       (recur (inc end) (str out "(" (str/join "|" (map convert-segment alts)) ")")))))
+                       :else (recur (inc i) (str out (esc c)))))))))
            ;; split on ** to handle separately, then rejoin with .*
            parts (.split pattern "**")
-           convert-segment (fn [seg]
-                             (-> seg
-                                 (.replace (js/RegExp. "[.+^$()|[\\]\\\\]" "g") "\\$&")
-                                 (.replace (js/RegExp. "\\*" "g") (str sep-class "*"))
-                                 (.replace (js/RegExp. "\\?" "g") sep-class)
-                                 (.replace (js/RegExp. "\\{([^}]*)\\}" "g")
-                                           (fn [_ inner]
-                                             (str "(" (.replace inner (js/RegExp. "," "g") "|") ")")))))
            regex-str (str/join ".*" (map convert-segment parts))]
        (.test (js/RegExp. (str "^" regex-str "$")) name))))
 
@@ -570,7 +588,7 @@
                                                     pat))))
                                  "regex"
                                  (let [pat (subs pattern 6)
-                                       re (js/RegExp. pat)]
+                                       re (js/RegExp. (str "^(?:" pat ")$"))]
                                    (fn [p] (.test re p)))
                                  (fn [_] false))])
          match (fn [path]

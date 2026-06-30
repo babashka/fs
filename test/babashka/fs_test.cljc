@@ -577,6 +577,21 @@
       (testing "hidden files automatically matched when pattern starts with a dot"
         (is (= [".gitignore"] (rel-entries d (fs/glob d ".gitig*"))))))))
 
+(deftest glob-special-chars-test
+  (testing "char class pattern"
+    (with-tmp [d]
+      (files d "a.clj" "b.clj" "c.clj")
+      (is (= ["a.clj" "b.clj"] (rel-entries d (fs/glob d "[ab].clj"))))))
+  (testing "brackets in base path matched literally (#142)"
+    (with-tmp [d]
+      (files d "foo [bar]/hello.txt")
+      (is (= ["foo [bar]/hello.txt"]
+             (rel-entries d (fs/match (fs/path d "foo [bar]") "glob:*.txt"))))))
+  (testing "regex pattern is a full match, not a substring"
+    (with-tmp [d]
+      (files d "foo" "foobar")
+      (is (= ["foo"] (rel-entries d (fs/match d "regex:foo" {:recursive true})))))))
+
 (deftest list-dir-test
   (with-tmp [d]
     (files d "dir1/" "dir2/foo.txt" "file.txt" "source1.clj" "source2.clj")
