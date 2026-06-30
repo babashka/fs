@@ -712,7 +712,10 @@
    (defn- copy-one [src dest {:keys [nofollow-links replace-existing copy-attributes]}]
      (if (and nofollow-links (sym-link? src))
        (do (when replace-existing (delete-if-exists dest))
-           (create-sym-link dest (read-link src)))
+           (create-sym-link dest (read-link src))
+           (when copy-attributes
+             (let [st (stat src nofollow-links)]
+               (.lutimesSync node-fs (str dest) (.-atime st) (.-mtime st)))))
        (do
          (copy-file src dest replace-existing)
          (when copy-attributes
