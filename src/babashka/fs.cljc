@@ -51,14 +51,16 @@
      {:continue FileVisitResult/CONTINUE
       :skip-subtree FileVisitResult/SKIP_SUBTREE
       :skip-siblings FileVisitResult/SKIP_SIBLINGS
-      :terminate FileVisitResult/TERMINATE}))
+      :terminate FileVisitResult/TERMINATE})
+   :cljs
+   (def ^:private fvr-lookup #{:continue :skip-subtree :skip-siblings :terminate}))
 
 (defn- file-visit-result
   [x]
   #?(:clj (if (instance? FileVisitResult x) x
               (or (fvr-lookup x)
                   (throw (Exception. "Expected: one of :continue, :skip-subtree, :skip-siblings, :terminate."))))
-     :cljs (if (#{:continue :skip-subtree :skip-siblings :terminate} x)
+     :cljs (if (fvr-lookup x)
              x
              (throw (ex-info "Expected: one of :continue, :skip-subtree, :skip-siblings, :terminate." {})))))
 
@@ -107,11 +109,13 @@
        (.lstatSync node-fs (str path))
        (.statSync node-fs (str path)))))
 
+#?(:cljs (def ^:private stat-bigint-opts #js {:bigint true}))
+
 #?(:cljs
    (defn- stat-ns [path nofollow-links]
      (if nofollow-links
-       (.lstatSync node-fs (str path) #js {:bigint true})
-       (.statSync node-fs (str path) #js {:bigint true}))))
+       (.lstatSync node-fs (str path) stat-bigint-opts)
+       (.statSync node-fs (str path) stat-bigint-opts))))
 
 #?(:cljs
    (defn- bigint? [x]
@@ -1695,7 +1699,7 @@
   searched recursively."
   [anchor-path path-set]
   (let [lm (last-modified anchor-path)]
-    (map str
+    (map path
          (filter (fn [f]
                    (file-time> (last-modified-1 f) lm))
                  (expand-file-set path-set)))))
