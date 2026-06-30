@@ -46,12 +46,12 @@
   #?(:clj (System/getenv k)
      :cljs (aget (.-env js/process) k)))
 
-(def ^:private fvr-lookup
-  #?(:clj {:continue FileVisitResult/CONTINUE
-           :skip-subtree FileVisitResult/SKIP_SUBTREE
-           :skip-siblings FileVisitResult/SKIP_SIBLINGS
-           :terminate FileVisitResult/TERMINATE}
-     :cljs nil))
+#?(:clj
+   (def ^:private fvr-lookup
+     {:continue FileVisitResult/CONTINUE
+      :skip-subtree FileVisitResult/SKIP_SUBTREE
+      :skip-siblings FileVisitResult/SKIP_SIBLINGS
+      :terminate FileVisitResult/TERMINATE}))
 
 (defn- file-visit-result
   [x]
@@ -1238,15 +1238,20 @@
   #?(:clj (Files/size (as-path path))
      :cljs (.-size (stat path false))))
 
+#?(:cljs (def ^:private delete-on-exit-paths (atom #{})))
+
 (defn delete-on-exit
   "Requests delete of `path` on exit via [File#deleteOnExit](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#deleteOnExit()).
   Returns `path`."
   [path]
   #?(:clj (do (.deleteOnExit (as-file path)) path)
      :cljs (do
-             (.on js/process "exit"
-                  (fn [] (try (.rmSync node-fs (str path) #js {:recursive true :force true})
-                              (catch :default _))))
+             (when (empty? @delete-on-exit-paths)
+               (.on js/process "exit"
+                    (fn [] (doseq [p @delete-on-exit-paths]
+                             (try (.rmSync node-fs (str p) #js {:recursive true :force true})
+                                  (catch :default _))))))
+             (swap! delete-on-exit-paths conj (str path))
              (str path))))
 
 (defn same-file?
@@ -1720,35 +1725,31 @@
       :cljs
       (throw (ex-info "unzip not supported on Node.js without an npm dependency" {})))))
 
-(defn- add-zip-entry
-  #?(:clj [^ZipOutputStream output-stream ^Path path fpath]
-     :cljs [output-stream path fpath])
-  #?(:clj (let [dir (directory? path)
-                attrs (Files/readAttributes path BasicFileAttributes
-                                            (->link-opts []))
-                entry (doto (ZipEntry. (str fpath))
-                        (.setLastModifiedTime (.lastModifiedTime attrs)))]
-            (.putNextEntry output-stream entry)
-            (when-not dir
-              (with-open [fis (BufferedInputStream. (FileInputStream. (file path)))]
-                (io/copy fis output-stream)))
-            (.closeEntry output-stream))
-     :cljs nil))
+#?(:clj
+   (defn- add-zip-entry [^ZipOutputStream output-stream ^Path path fpath]
+     (let [dir (directory? path)
+           attrs (Files/readAttributes path BasicFileAttributes
+                                       (->link-opts []))
+           entry (doto (ZipEntry. (str fpath))
+                   (.setLastModifiedTime (.lastModifiedTime attrs)))]
+       (.putNextEntry output-stream entry)
+       (when-not dir
+         (with-open [fis (BufferedInputStream. (FileInputStream. (file path)))]
+           (io/copy fis output-stream)))
+       (.closeEntry output-stream))))
 
-(defn- copy-to-zip
-  #?(:clj [^ZipOutputStream jos path path-fn]
-     :cljs [jos path path-fn])
-  #?(:clj (let [files (path-seq path)]
-            (run! (fn [^Path f]
-                    (let [dir (directory? f)
-                          fpath (str f)
-                          fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
-                          fpath (str/replace fpath \\ \/)
-                          fpath (path-fn fpath)]
-                      (when-not (str/blank? fpath)
-                        (add-zip-entry jos f fpath))))
-                  files))
-     :cljs nil))
+#?(:clj
+   (defn- copy-to-zip [^ZipOutputStream jos path path-fn]
+     (let [files (path-seq path)]
+       (run! (fn [^Path f]
+               (let [dir (directory? f)
+                     fpath (str f)
+                     fpath (if (and dir (not (.endsWith fpath "/"))) (str fpath "/") fpath)
+                     fpath (str/replace fpath \\ \/)
+                     fpath (path-fn fpath)]
+                 (when-not (str/blank? fpath)
+                   (add-zip-entry jos f fpath))))
+             files))))
 
 (defn zip
   "Zips `path-or-paths` into `zip-file`. A path may be a file or
