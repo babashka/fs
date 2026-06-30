@@ -877,10 +877,14 @@
   [this-path other-path]
   #?(:clj (.startsWith (as-path this-path) (as-path other-path))
      :cljs (let [a (str this-path)
-                 b (str other-path)
-                 sep file-separator]
-             (or (= a b)
-                 (str/starts-with? a (if (str/ends-with? b sep) b (str b sep)))))))
+                 b (str other-path)]
+             (if (= "" b)
+               (= "" a)
+               (let [ac (vec (components a))
+                     bc (vec (components b))]
+                 (and (= (.isAbsolute node-path a) (.isAbsolute node-path b))
+                      (<= (count bc) (count ac))
+                      (= bc (vec (take (count bc) ac)))))))))
 
 (defn ends-with?
   "Returns `true` if `this-path` ends with `other-path` via [Path#endsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#endsWith(java.nio.file.Path)).
@@ -889,10 +893,15 @@
   [this-path other-path]
   #?(:clj (.endsWith (as-path this-path) (as-path other-path))
      :cljs (let [a (str this-path)
-                 b (str other-path)
-                 sep file-separator]
-             (or (= a b)
-                 (str/ends-with? a (str sep b))))))
+                 b (str other-path)]
+             (if (= "" b)
+               (= "" a)
+               (let [ac (vec (components a))
+                     bc (vec (components b))]
+                 (if (.isAbsolute node-path b)
+                   (and (.isAbsolute node-path a) (= ac bc))
+                   (and (<= (count bc) (count ac))
+                        (= bc (vec (drop (- (count ac) (count bc)) ac))))))))))
 
 (defn copy-tree
   "Copies entire file tree from `source-dir` to `target-dir`. Creates `target-dir` if needed.
@@ -1270,12 +1279,11 @@
   "Returns `true` if `this-path` is the same file as `other-path` via [Files/isSamefile](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isSameFile(java.nio.file.Path,java.nio.file.Path))."
   [this-path other-path]
   #?(:clj (Files/isSameFile (as-path this-path) (as-path other-path))
-     :cljs (try
-             (let [s1 (stat-ns this-path false)
-                   s2 (stat-ns other-path false)]
-               (and (= (str (.-dev s1)) (str (.-dev s2)))
-                    (= (str (.-ino s1)) (str (.-ino s2)))))
-             (catch :default _ false))))
+     :cljs (or (= (str this-path) (str other-path))
+               (let [s1 (stat-ns this-path false)
+                     s2 (stat-ns other-path false)]
+                 (and (= (str (.-dev s1)) (str (.-dev s2)))
+                      (= (str (.-ino s1)) (str (.-ino s2))))))))
 
 (defn read-all-bytes
   "Returns contents of `file` as byte array via [Files/readAllBytes](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllBytes(java.nio.file.Path))."

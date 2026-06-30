@@ -92,16 +92,35 @@
 (deftest starts-with-test
   (is (fs/starts-with? "foo/bar/baz" "foo/bar"))
   (is (fs/starts-with? "foo/bar" "foo/bar"))
-  (is (not (fs/starts-with? "foo/bar" "foo/b"))))
+  (is (not (fs/starts-with? "foo/bar" "foo/b")))
+  (testing "root component must match"
+    (is (not (fs/starts-with? "/a/b" "a/b")))
+    (is (not (fs/starts-with? "a/b" "/a/b")))
+    (is (fs/starts-with? "/a/b/c" "/a/b")))
+  (testing "duplicate and trailing separators collapse"
+    (is (fs/starts-with? "a//b/c" "a/b"))
+    (is (fs/starts-with? "a/b/" "a/b")))
+  (is (not (fs/starts-with? "a/b/c" ""))))
 
 (deftest ends-with-test
   (is (= true (fs/ends-with? "one/two/three" "three")))
   (is (= true (fs/ends-with? "one/two/three" "two/three")))
   (is (= true (fs/ends-with? "one/two/three" "one/two/three")))
-  (is (= false (fs/ends-with? "one/two/three" "one/three"))))
+  (is (= false (fs/ends-with? "one/two/three" "one/three")))
+  (testing "relative suffix ignores the root, absolute requires full match"
+    (is (fs/ends-with? "/a/b/c" "b/c"))
+    (is (not (fs/ends-with? "/a/b/c" "/b/c")))
+    (is (not (fs/ends-with? "a/b/c" "a/b")))))
 
 (deftest components-test
-  (is (= ["foo" "bar" "baz" "bop.txt"] (map str (fs/components "foo/bar/baz/bop.txt")))))
+  (is (= ["foo" "bar" "baz" "bop.txt"] (map str (fs/components "foo/bar/baz/bop.txt"))))
+  (testing "keeps . and .. but collapses duplicate and trailing separators"
+    (is (= ["a" "." "b" ".." "c"] (map str (fs/components "a/./b/../c"))))
+    (is (= ["a" "b"] (map str (fs/components "a//b/"))))))
+
+(deftest same-file?-equal-path-test
+  (testing "equal paths are the same file without touching the filesystem"
+    (is (true? (fs/same-file? "does-not-exist" "does-not-exist")))))
 
 (deftest unixify-test
   (is (= "README.md" (fs/unixify "README.md")))

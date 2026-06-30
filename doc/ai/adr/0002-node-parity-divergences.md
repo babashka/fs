@@ -39,13 +39,6 @@ uses `:nofollow-links true`, so a copy through a symlink alias is detected as
 self-copy on the JVM but walked on Node. Symlink-aliased self-copy is rare and
 both produce a correct tree.
 
-## same-file? on a missing path - accepted
-
-The cljs branch catches and returns `false` when a path does not exist; the JVM
-`isSameFile` throws. This follows the cljs predicate convention across the port
-(`exists?`, `directory?`, `regular-file?`, `sym-link?` all catch and return
-`false` rather than throw), so `same-file?` is consistent with its neighbors.
-
 ## Write precision is millisecond - accepted
 
 File times are read as BigInt nanoseconds but written through `utimesSync`, which
@@ -92,16 +85,6 @@ safe alternatives either keep the `if nofollow-links` branch duplicated across
 arities anyway, or switch to method-via-property interop
 (`(.-lstatSync node-fs)`) which is uglier than the two small fns. The six-line
 duplication is the most readable option.
-
-## starts-with? / ends-with? are string-based on Node - accepted
-
-The JVM `Path#startsWith` / `Path#endsWith` compare whole path components. The
-cljs branch compares strings, anchored on `file-separator` so a partial last
-component does not match (`/a/foo` does not start with `/a/fo`). This agrees with
-the JVM for normal relative or absolute paths. It can diverge when `other-path`
-carries a leading or trailing separator the JVM would normalize away, or mixes
-absolute and relative forms. These inputs are unusual and not worth a component
-parser on Node.
 
 ## same-file? reads inode and device as BigInt - accepted
 
