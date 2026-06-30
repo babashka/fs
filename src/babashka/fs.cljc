@@ -611,11 +611,11 @@
                               "glob"
                               (let [pat (subs pattern 5)
                                     re (glob->regex (if win?
-                                                      (.replace pat (js/RegExp. "/" "g") "\\")
+                                                      (str/replace pat "/" "\\")
                                                       pat))]
                                 (fn [p]
                                   (.test re (if win?
-                                              (.replace p (js/RegExp. "/" "g") "\\")
+                                              (str/replace p "/" "\\")
                                               p))))
                               "regex"
                               (let [pat (subs pattern 6)
@@ -2062,7 +2062,7 @@
   [path]
   (let [s (str path)]
     (if win?
-      (.replace s #?(:clj "\\" :cljs (js/RegExp. "\\\\" "g")) "/")
+      (str/replace s "\\" "/")
       s)))
 
 (defn- xdg-path-from-env-var
