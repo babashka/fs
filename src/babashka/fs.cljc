@@ -139,6 +139,8 @@
    (defn- regex-escape [s]
      (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&")))
 
+(declare absolutize parent file-name)
+
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
 
@@ -148,7 +150,7 @@
   ([path {:keys [:nofollow-links]}]
    #?(:clj (.toRealPath (as-path path) (->link-opts nofollow-links))
       :cljs (if nofollow-links
-              (.resolve node-path (.cwd js/process) (str path))
+              (absolutize path)
               (.realpathSync node-fs (str path))))))
 
 (defn owner
@@ -204,7 +206,7 @@
   Consider instead checking cwd via `(hidden \".\")`."
   [path]
   #?(:clj (Files/isHidden (as-path path))
-     :cljs (str/starts-with? (.basename node-path (str path)) ".")))
+     :cljs (str/starts-with? (file-name path) ".")))
 
 (defn absolute?
   "Returns `true` if `path` is absolute via [Path#isAbsolute](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#isAbsolute())."
@@ -280,8 +282,6 @@
   [path]
   #?(:clj (.normalize (as-path path))
      :cljs (.normalize node-path (str path))))
-
-(declare parent file-name)
 
 (defn canonicalize
   "Returns the canonical path for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).

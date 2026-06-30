@@ -1,7 +1,7 @@
 (ns babashka.fs-jvm-test
   (:require
    [babashka.fs :as fs]
-   [babashka.fs-test-util :as util]
+   [babashka.fs-jvm-test-util :as util]
    [babashka.process :as process]
    [babashka.test-report]
    [clojure.java.io :as io]

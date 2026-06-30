@@ -44,6 +44,14 @@ takes a Date or seconds-float. A set then read round-trip truncates to
 milliseconds on Node. See [[0001-node-file-time-representation]] for the full
 rationale. `copy` with `:copy-attributes` has the same millisecond write limit.
 
+## write-bytes / write-lines open options - accepted
+
+On the JVM these pass arbitrary `StandardOpenOption` values through to
+`Files/write`. On Node only `:append` is honored, mapped to the `"a"`/`"w"`
+`writeFileSync` flag; other options (e.g. `:truncate-existing false`) are
+ignored. Node's `writeFileSync` has no equivalent for the full option set. The
+common `:append` case is covered; the rest is an accepted port limitation.
+
 ## Consequences
 
 - These items are settled. New reviews should consult this ADR before flagging
