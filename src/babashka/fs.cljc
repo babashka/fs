@@ -117,6 +117,8 @@
    (defn- bigint? [x]
      (and x (identical? js/BigInt (.-constructor x)))))
 
+#?(:cljs (def ^:private fs-constants (.-constants node-fs)))
+
 #?(:cljs
    (defn- access? [path mode]
      (try (.accessSync node-fs (str path) mode) true
@@ -129,7 +131,7 @@
 #?(:cljs
    (defn- copy-file [src dest replace-existing]
      (.copyFileSync node-fs (str src) (str dest)
-                    (if replace-existing 0 (.-COPYFILE_EXCL (.-constants node-fs))))))
+                    (if replace-existing 0 (.-COPYFILE_EXCL fs-constants)))))
 
 #?(:cljs
    (defn- mkdtemp [base prefix]
@@ -222,19 +224,19 @@
   "Returns `true` if `path` is executable via [Files/isExecutable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isExecutable(java.nio.file.Path))."
   [path]
   #?(:clj (Files/isExecutable (as-path path))
-     :cljs (access? path (.-X_OK (.-constants node-fs)))))
+     :cljs (access? path (.-X_OK fs-constants))))
 
 (defn readable?
   "Returns `true` if `path` is readable via [Files/isReadable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isReadable(java.nio.file.Path))"
   [path]
   #?(:clj (Files/isReadable (as-path path))
-     :cljs (access? path (.-R_OK (.-constants node-fs)))))
+     :cljs (access? path (.-R_OK fs-constants))))
 
 (defn writable?
   "Returns `true` if `path` is writable via [Files/isWritable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isWritable(java.nio.file.Path))"
   [path]
   #?(:clj (Files/isWritable (as-path path))
-     :cljs (access? path (.-W_OK (.-constants node-fs)))))
+     :cljs (access? path (.-W_OK fs-constants))))
 
 (defn relative?
   "Returns `true` if `path` is relative (in other words, is not [[absolute?]])."
@@ -702,6 +704,18 @@
 
 (declare sym-link? read-link create-sym-link delete-if-exists)
 
+#?(:cljs
+   (defn- copy-one [src dest {:keys [nofollow-links replace-existing copy-attributes]}]
+     (if (and nofollow-links (sym-link? src))
+       (do (when replace-existing (delete-if-exists dest))
+           (create-sym-link dest (read-link src)))
+       (do
+         (copy-file src dest replace-existing)
+         (when copy-attributes
+           (let [st (stat src nofollow-links)]
+             (chmod dest (bit-and (.-mode st) 8r7777))
+             (.utimesSync node-fs dest (.-atime st) (.-mtime st))))))))
+
 (defn copy
   "Copies `source` file or input-stream to `target-path` dir or file via [Files/copy](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#copy(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)).
 
@@ -712,11 +726,10 @@
   * `:copy-attributes`
   * [`:nofollow-links`](/README.md#nofollow-links) - used to determine to copy symbolic link itself or not."
   ([source target-path] (copy source target-path nil))
-  ([source target-path {:keys [replace-existing
-                               copy-attributes
-                               nofollow-links]}]
+  ([source target-path opts]
    #?(:clj
-      (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
+      (let [{:keys [replace-existing copy-attributes nofollow-links]} opts
+            copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
             dest (as-path target-path)
             dest (if (directory-simple? dest)
                    (path dest (file-name source))
@@ -731,15 +744,7 @@
             dest (if (directory-simple? dest)
                    (path dest (file-name source))
                    dest)]
-        (if (and nofollow-links (sym-link? source))
-          (do (when replace-existing (delete-if-exists dest))
-              (create-sym-link dest (read-link source)))
-          (do
-            (copy-file source dest replace-existing)
-            (when copy-attributes
-              (let [st (stat source nofollow-links)]
-                (chmod dest (bit-and (.-mode st) 8r7777))
-                (.utimesSync node-fs dest (.-atime st) (.-mtime st))))))
+        (copy-one source dest opts)
         dest))))
 
 #?(:cljs (def ^:private octal->rwx ["---" "--x" "-w-" "-wx" "r--" "r-x" "rw-" "rwx"]))
@@ -987,17 +992,8 @@
                                                       (u+wx to-dir)))
                                                   :continue))
                                :visit-file (fn [f _]
-                                             (let [to-file (path dst (relativize from f))]
-                                               (if (and nofollow-links (sym-link? f))
-                                                 (do (when replace-existing (delete-if-exists to-file))
-                                                     (create-sym-link to-file (read-link f)))
-                                                 (do
-                                                   (copy-file f to-file replace-existing)
-                                                   (when copy-attributes
-                                                     (let [st (stat f nofollow-links)]
-                                                       (chmod to-file (bit-and (.-mode st) 8r7777))
-                                                       (.utimesSync node-fs to-file (.-atime st) (.-mtime st))))))
-                                               :continue))
+                                             (copy-one f (path dst (relativize from f)) opts)
+                                             :continue)
                                :post-visit-dir (fn [dir _]
                                                  (when (and (not win?) copy-attributes)
                                                    (let [mode (posix-file-permissions dir)]
