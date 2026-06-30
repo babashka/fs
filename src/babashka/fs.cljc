@@ -214,13 +214,6 @@
               (.isDirectory (stat path nofollow-links))
               (catch :default _ false)))))
 
-#?(:clj (def ^:private simple-link-opts (into-array LinkOption [])))
-
-(defn- directory-simple?
-  [path]
-  #?(:clj (Files/isDirectory (as-path path) simple-link-opts)
-     :cljs (directory? path)))
-
 (defn hidden?
   "Returns `true` if `path` is hidden via [Files/isHidden](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isHidden(java.nio.file.Path)).
 
@@ -764,7 +757,7 @@
       (let [{:keys [replace-existing copy-attributes nofollow-links]} opts
             copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
             dest (as-path target-path)
-            dest (if (directory-simple? dest)
+            dest (if (directory? dest)
                    (path dest (file-name source))
                    dest)
             input-stream? (instance? java.io.InputStream source)]
@@ -774,7 +767,7 @@
           (Files/copy (as-path source) dest copy-options)))
       :cljs
       (let [dest (str target-path)
-            dest (if (directory-simple? dest)
+            dest (if (directory? dest)
                    (path dest (file-name source))
                    dest)]
         (copy-one source dest opts)

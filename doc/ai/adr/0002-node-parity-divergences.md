@@ -83,6 +83,21 @@ Node branch builds one map of basic attributes (times, size, kind), so
 permission case is covered by [[posix-file-permissions]]. The full view set is an
 accepted port limitation.
 
+## parent of a single dot-prefixed component differs on Node - accepted
+
+`parent` on Node uses `path.dirname` with a guard so a single-component path like
+`"foo"` returns `nil`, matching the JVM. `path.dirname` cannot distinguish
+`"foo"` from `"./foo"` (both yield `"."`), so `(parent "./foo")` returns `nil` on
+Node where the JVM returns `"."`. This is a lexical normalization difference, the
+same class as other Node path-string diffs, and not worth a hand-written parser.
+
+## copy of a directory source differs on Node - accepted
+
+JVM `copy` of a directory source creates an empty target directory. The Node
+branch calls `copyFileSync`, which throws `EISDIR` on a directory. `copy-tree` is
+the directory API; copying a bare directory with `copy` is rare. The divergence
+is accepted rather than guarded.
+
 ## move :atomic-move is ignored on Node - accepted
 
 JVM `move` honors `:atomic-move` through `StandardCopyOption/ATOMIC_MOVE`. The Node
