@@ -52,26 +52,26 @@ On the JVM these pass arbitrary `StandardOpenOption` values through to
 ignored. Node's `writeFileSync` has no equivalent for the full option set. The
 common `:append` case is covered; the rest is an accepted port limitation.
 
-## walk-file-tree stats each entry - accepted tradeoff
+## walk-file-tree reads entry types from the directory listing
 
-The Node `walk-file-tree` lists a directory with `readdirSync` (via `list-dir`),
-then stats each child: `directory?` to decide recursion, and `visit-child` calls
-`exists?` for non-directory entries. That is two-plus `statSync` calls per entry,
-versus the JVM walker which carries `BasicFileAttributes` from the directory
-read.
+The Node `walk-file-tree` reads a directory with
+`readdirSync(dir, {withFileTypes: true})`, which returns `Dirent` objects
+carrying the entry kind. The walker uses `Dirent.isDirectory` /
+`Dirent.isSymbolicLink` to decide recursion, so a non-symlink entry costs no
+`statSync` at all, and a listed entry is known to exist so no `exists?` check is
+needed either. This is the closest equivalent to the JVM walker carrying
+`BasicFileAttributes` from the directory read.
 
-`readdirSync(dir, {withFileTypes: true})` returns `Dirent` objects with
-`isDirectory`/`isSymbolicLink`, which would remove most child stats and speed up
-`glob`/`copy-tree`/`delete-tree` on large trees. It is deliberately not done:
+`Dirent` is lstat-based, so it cannot tell whether a symlink points at a
+directory. Under `:follow-links true` a symlink entry still needs a real
+`directory?` (and an `exists?` to detect a broken link), matching the JVM
+`FOLLOW_LINKS` semantics. Symlinks are the rare case; the common file/dir tree
+walks with zero per-entry stats.
 
-- it would bypass the `list-dir` reuse the walk currently builds on, reintroducing
-  raw `readdir` interop into the walker.
-- `Dirent` type flags follow or not-follow links by how the entry was read, so
-  the `:follow-links` and symlink-cycle handling would need careful rework to stay
-  correct.
-
-The correctness is right and the walk is synchronous scripting code, so the extra
-stats are accepted. Revisit only if a real workload shows walk time is a problem.
+This is the one place the walker uses raw `readdirSync` rather than `list-dir`:
+`list-dir` returns path strings and would drop the `Dirent` types, defeating the
+optimization. The cycle guard still uses `realpathSync` per directory under
+`:follow-links`.
 
 ## Consequences
 

@@ -397,7 +397,8 @@
                        (if (and rp (contains? seen rp))
                          (file-visit-result (visit-file-failed dir nil))
                          (let [seen (if rp (conj seen rp) seen)
-                               [entries err] (try [(list-dir dir) nil]
+                               ;; withFileTypes gives the entry kind without a stat per child
+                               [entries err] (try [(.readdirSync node-fs (str dir) #js {:withFileTypes true}) nil]
                                                   (catch :default e [nil e]))]
                            (if (nil? entries)
                              (file-visit-result (visit-file-failed dir err))
@@ -407,20 +408,31 @@
                                  (= :skip-subtree pre) :continue
                                  (= :skip-siblings pre) :skip-siblings
                                  :else
-                                 (loop [cs entries]
-                                   (if (empty? cs)
+                                 (loop [i 0]
+                                   (if (>= i (.-length entries))
                                      (file-visit-result (post-visit-dir dir nil))
-                                     (let [child (first cs)
+                                     (let [d (aget entries i)
+                                           child (.join node-path (str dir) (.-name d))
                                            cd (inc depth)
-                                           dir? (directory? child {:nofollow-links nofollow})
+                                           sym? (.isSymbolicLink d)
+                                           ;; Dirent is lstat-based: a symlink under follow-links
+                                           ;; needs a real stat to know if its target is a directory
+                                           dir? (if sym?
+                                                  (and follow-links (directory? child))
+                                                  (.isDirectory d))
                                            cr (cond
                                                 (and dir? (< cd max-depth)) (do-walk child cd seen)
                                                 dir? (file-visit-result (visit-file child nil))
-                                                :else (visit-child child))]
+                                                (and sym? follow-links (not (exists? child)))
+                                                (file-visit-result (visit-file-failed child nil))
+                                                :else
+                                                (try (file-visit-result (visit-file child nil))
+                                                     (catch :default e
+                                                       (file-visit-result (visit-file-failed child e)))))]
                                        (cond
                                          (= :terminate cr) :terminate
                                          (= :skip-siblings cr) (file-visit-result (post-visit-dir dir nil))
-                                         :else (recur (rest cs)))))))))))))]
+                                         :else (recur (inc i)))))))))))))]
        (cond
          (and (directory? root {:nofollow-links nofollow}) (< 0 max-depth))
          (do-walk root 0 #{})
