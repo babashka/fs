@@ -1,19 +1,18 @@
 (ns babashka.fs
-  (:require #?@(:bb [[clojure.java.io :as io]
-                     [clojure.walk :as walk]]
-                :clj [[clojure.java.io :as io]
-                      [clojure.walk :as walk]]
-                :cljs [["fs" :as node-fs]
+  (:require #?@(:cljs [[clojure.string :as str]
+                       ["fs" :as node-fs]
                        ["path" :as node-path]
                        ["os" :as node-os]
                        ["zlib" :as node-zlib]
-                       ["crypto" :as node-crypto]])
-            [clojure.string :as str])
+                       ["crypto" :as node-crypto]]
+                :default [[clojure.java.io :as io]
+                          [clojure.string :as str]
+                          [clojure.walk :as walk]]))
   #?@(:cljs []
-      :default [(:import [java.io File InputStream]
+      :default [(:import [java.io File InputStream BufferedInputStream FileInputStream FileOutputStream]
                          [java.net URI]
                          [java.nio.file StandardOpenOption CopyOption
-                          #?@(:bb [] :clj [DirectoryStream]) #?@(:bb [] :clj [DirectoryStream$Filter])
+                          #?@(:bb [] :clj [DirectoryStream DirectoryStream$Filter])
                           Files
                           FileSystems
                           FileVisitOption
@@ -23,8 +22,7 @@
                           FileVisitor]
                          [java.nio.file.attribute BasicFileAttributes FileAttribute FileTime PosixFilePermissions PosixFilePermission]
                          [java.nio.charset Charset]
-                         [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry]
-                         [java.io File BufferedInputStream FileInputStream FileOutputStream])]))
+                         [java.util.zip GZIPInputStream GZIPOutputStream ZipInputStream ZipOutputStream ZipEntry])]))
 
 #?(:clj (set! *warn-on-reflection* true))
 
@@ -131,6 +129,10 @@
 #?(:cljs
    (defn- mkdtemp [base prefix]
      (.mkdtempSync node-fs (path base prefix))))
+
+#?(:cljs
+   (defn- regex-escape [s]
+     (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&")))
 
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
@@ -415,12 +417,10 @@
                                      (file-visit-result (post-visit-dir dir nil))
                                      (let [child (first cs)
                                            cd (inc depth)
+                                           dir? (directory? child {:nofollow-links nofollow})
                                            cr (cond
-                                                (and (directory? child {:nofollow-links nofollow})
-                                                     (< cd max-depth))
-                                                (do-walk child cd seen)
-                                                (directory? child {:nofollow-links nofollow})
-                                                (file-visit-result (visit-file child nil))
+                                                (and dir? (< cd max-depth)) (do-walk child cd seen)
+                                                dir? (file-visit-result (visit-file child nil))
                                                 :else (visit-child child))]
                                        (cond
                                          (= :terminate cr) :terminate
@@ -464,7 +464,7 @@
   and `\\`-escaped metachars. Throws on invalid glob syntax."
      [pattern]
      (let [sep-class (if win? "[^/\\\\]" "[^/]")
-           esc (fn [s] (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&"))
+           esc regex-escape
            convert-segment
            (fn convert-segment [seg]
              (let [n (.-length seg)]
@@ -553,7 +553,7 @@
   "Escapes a string so it can be used literally in a regular expression."
   [s]
   #?(:clj (java.util.regex.Pattern/quote s)
-     :cljs (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&")))
+     :cljs (regex-escape s)))
 
 (defn match
   "Returns a vector of paths matching `pattern` (on path and filename) relative to `root-dir`.
@@ -1552,8 +1552,7 @@
   "Returns a vector of command search paths (from the `PATH` environment variable). Same
   as `(split-paths (System/getenv \"PATH\"))`."
   []
-  #?(:clj (split-paths (System/getenv "PATH"))
-     :cljs (split-paths (or (aget (.-env js/process) "PATH") ""))))
+  (split-paths (or (get-env "PATH") "")))
 
 (defn- filename-only?
   "Returns `true` if `path` is exactly a file name (i.e. with no absolute or
