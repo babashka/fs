@@ -717,6 +717,7 @@
     (is (some? (caught #(fs/glob d "foo["))))
     (is (some? (caught #(fs/glob d "foo{a"))))
     (is (some? (caught #(fs/glob d "{a,{b,c}}"))))
+    (is (some? (caught #(doall (fs/match d "foo:bar")))) "unknown syntax prefix throws")
     (is (nil? (caught #(fs/glob d "*.{clj,cljs}"))))))
 
 #?(:cljs

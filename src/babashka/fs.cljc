@@ -135,9 +135,13 @@
    (defn- mkdtemp [base prefix]
      (.mkdtempSync node-fs (path base prefix))))
 
+#?(:cljs (def ^:private regex-escape-re (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g")))
+
 #?(:cljs
    (defn- regex-escape [s]
-     (.replace s (js/RegExp. "[.*+?^${}()|[\\]\\\\]" "g") "\\$&")))
+     (.replace s regex-escape-re "\\$&")))
+
+#?(:cljs (def ^:private ns-per-ms (js/BigInt 1000000)))
 
 (declare absolutize parent file-name)
 
@@ -611,7 +615,7 @@
                               "regex"
                               (let [re (js/RegExp. (str "^(?:" pattern ")$"))]
                                 (fn [p] (.test re p)))
-                              (fn [_] false))])
+                              (throw (ex-info (str "Syntax '" prefix "' not recognized") {})))])
          match (fn [path]
                  (when (#?(:clj .matches :cljs matcher) #?(:clj matcher) path)
                    (swap! results conj! #?(:clj path :cljs (str path))))
@@ -845,7 +849,7 @@
   ([path] (posix-file-permissions path nil))
   ([path {:keys [:nofollow-links]}]
    #?(:clj (Files/getPosixFilePermissions (as-path path) (->link-opts nofollow-links))
-      :cljs (bit-and (.-mode (stat path nofollow-links)) 511))))
+      :cljs (bit-and (.-mode (stat path nofollow-links)) 8r777))))
 
 (defn- u+wx
   [f]
@@ -856,7 +860,7 @@
                   p2 (.add perms PosixFilePermission/OWNER_EXECUTE)]
               (when (or p1 p2)
                 (set-posix-file-permissions f perms))))
-     :cljs (chmod f (bit-or (posix-file-permissions f) 192))))
+     :cljs (chmod f (bit-or (posix-file-permissions f) 8r300))))
 
 (defn starts-with?
   "Returns `true` if `this-path` starts with `other-path` via [Path#startsWith](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#startsWith(java.nio.file.Path)).
@@ -1398,13 +1402,13 @@
   "Converts a file time to epoch milliseconds. On JVM: `FileTime` to long. On Node.js: BigInt nanoseconds to number."
   [ft]
   #?(:clj (.toMillis ^FileTime ft)
-     :cljs (js/Number (/ ft (js/BigInt 1000000)))))
+     :cljs (js/Number (/ ft ns-per-ms))))
 
 (defn millis->file-time
   "Converts epoch milliseconds to a file time. On JVM: long to `FileTime`. On Node.js: number to BigInt nanoseconds."
   [millis]
   #?(:clj (FileTime/fromMillis millis)
-     :cljs (* (js/BigInt millis) (js/BigInt 1000000))))
+     :cljs (* (js/BigInt millis) ns-per-ms)))
 
 (defn- ->file-time [x]
   #?(:clj (cond (int? x) (millis->file-time x)
@@ -1413,7 +1417,7 @@
                 :else (throw (ex-info "Unrecognized time type" {})))
      :cljs (cond (number? x) (millis->file-time x)
                  (bigint? x) x
-                 (instance? js/Date x) (* (js/BigInt (.getTime x)) (js/BigInt 1000000))
+                 (instance? js/Date x) (* (js/BigInt (.getTime x)) ns-per-ms)
                  :else (throw (ex-info "Unrecognized time type" {})))))
 
 (defn last-modified-time

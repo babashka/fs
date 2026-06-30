@@ -73,6 +73,17 @@ This is the one place the walker uses raw `readdirSync` rather than `list-dir`:
 optimization. The cycle guard still uses `realpathSync` per directory under
 `:follow-links`.
 
+## stat and stat-ns are kept as two helpers - accepted
+
+`stat` and `stat-ns` differ only by passing `#js {:bigint true}`. Merging them
+into one helper with a flag has been proposed repeatedly. It is not done: the
+clean single-body version needs a leading `& [opts]` that defaults to `null`,
+and `statSync(path, null)` throws (Node reads `options.bigint` off null). The
+safe alternatives either keep the `if nofollow-links` branch duplicated across
+arities anyway, or switch to method-via-property interop
+(`(.-lstatSync node-fs)`) which is uglier than the two small fns. The six-line
+duplication is the most readable option.
+
 ## Consequences
 
 - These items are settled. New reviews should consult this ADR before flagging
