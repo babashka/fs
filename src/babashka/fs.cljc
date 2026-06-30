@@ -40,11 +40,11 @@
   ^java.io.File [path]
   #?(:clj (if (instance? Path path) (.toFile ^Path path)
               (io/file path))
-     :cljs (str path)))
+     :cljs (as-path path)))
 
 (defn- get-env [k]
   #?(:clj (System/getenv k)
-     :cljs (aget (.-env js/process) k)))
+     :cljs (unchecked-get (.-env js/process) k)))
 
 #?(:clj
    (def ^:private fvr-lookup
@@ -464,7 +464,7 @@
   #?(:clj (-> (System/getProperty "os.name")
               (str/lower-case)
               (str/includes? "win"))
-     :cljs (= "win32" js/process.platform)))
+     :cljs (= "win32" (.-platform js/process))))
 
 #?(:cljs
    (defn ^:no-doc glob->regex
