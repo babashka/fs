@@ -5,9 +5,10 @@ Status: accepted
 ## Context
 
 The Node.js port takes the JVM as the reference implementation. A handful of
-Node `:cljs` branches get flagged repeatedly in review as divergences. Most are
-not divergences; the rest are accepted with a reason. This records the verdicts
-so they are not re-litigated.
+Node `:cljs` branches get flagged repeatedly by automated review as divergences.
+Most are not divergences; the rest are accepted with a reason. This records the
+verdicts so they are not re-litigated. The findings below originate from
+automated review, not from the maintainer.
 
 ## real-path with :nofollow-links - NOT a divergence
 
@@ -18,17 +19,25 @@ not resolve symbolic links", and an empirical test confirms it: `real-path` of
 `dirlink/x` with `:nofollow-links true`, where `dirlink` is a symlink, returns
 `dirlink/x` unresolved on both the JVM and Node. The cljs absolutize matches.
 
-## copy-tree copying a directory onto itself - accepted, matches JVM
+## copy-tree copying a directory onto itself - not a divergence
 
-The cljs branch wraps `create-dirs` + the walk in `(when (not= csrc cdest) ...)`.
-The JVM has no such guard. This looks divergent but the observable behavior is
-identical: both no-op and return the target.
+Both branches wrap `create-dirs` + the walk in `(when (not= csrc cdest) ...)`, so
+`(copy-tree d d)` is a no-op returning the target on both runtimes.
 
-The guard is required, not incidental. JVM `Files/copy` has a built-in same-file
-no-op; Node `copyFileSync` does not. Without the guard the cljs walk would call
-`copyFileSync` with the exclusive flag onto an existing file and throw `EEXIST`,
-diverging from the JVM no-op. Removing the guard to "match the JVM shape" would
-introduce the divergence it appears to remove.
+The guard is required on cljs, not incidental. JVM `Files/copy` has a built-in
+same-file no-op; Node `copyFileSync` does not. Without the guard the cljs walk
+would call `copyFileSync` with the exclusive flag onto an existing file and throw
+`EEXIST`. Verified empirically: `copyFileSync(src, dst, COPYFILE_EXCL)` onto the
+same file via a `/var` vs `/private/var` alias throws `EEXIST`.
+
+The JVM originally had no guard: it walked the tree and copied every file onto
+itself via the same-file no-op. Result was identical but the walk was wasted
+work. The JVM now carries the same guard, so it skips the self-copy walk. This
+keeps both branches structurally aligned and avoids the pointless walk. The
+self-copy *detection* still differs: JVM `canonicalize` follows symlinks, cljs
+uses `:nofollow-links true`, so a copy through a symlink alias is detected as
+self-copy on the JVM but walked on Node. Symlink-aliased self-copy is rare and
+both produce a correct tree.
 
 ## same-file? on a missing path - accepted
 

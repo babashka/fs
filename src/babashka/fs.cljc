@@ -910,41 +910,41 @@
           (throw (IllegalArgumentException. (str "Not a directory: " target-dir))))
         (let [csrc (canonicalize source-dir)
               cdest (canonicalize target-dir)]
-          (when (and (not= csrc cdest)
-                     (starts-with? cdest csrc))
-            (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
-                                       (str source-dir) (str target-dir))))))
-        (create-dirs target-dir opts)
-        (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
-              link-options (->link-opts nofollow-links)
-              from (real-path source-dir {:nofollow-links nofollow-links})
-              to (canonicalize target-dir {:nofollow-links nofollow-links})]
-          (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
-                                                 (let [rel (relativize from dir)
-                                                       to-dir (path to rel)]
-                                                   (when-not (Files/exists to-dir link-options)
-                                                     (Files/copy ^Path dir to-dir
-                                                                 ^"[Ljava.nio.file.CopyOption;"
-                                                                 copy-options)
-                                                     (when-not win?
-                                                       (u+wx to-dir))))
-                                                 :continue)
-                                :visit-file (fn [from-path _attrs]
-                                              (let [rel (relativize from from-path)
-                                                    to-file (path to rel)]
-                                                (Files/copy ^Path from-path to-file
-                                                            ^"[Ljava.nio.file.CopyOption;"
-                                                            copy-options)
-                                                :continue)
-                                              :continue)
-                                :post-visit-dir (fn [dir _ex]
-                                                  (let [rel (relativize from dir)
-                                                        to-dir (path to rel)]
-                                                    (when-not win?
-                                                      (let [perms (posix-file-permissions (file dir))]
-                                                        (Files/setPosixFilePermissions to-dir perms)))
-                                                    :continue))})
-          target-dir))
+          (when (not= csrc cdest)
+            (when (starts-with? cdest csrc)
+              (throw (Exception. (format "Cannot copy src directory: %s, under itself to dest: %s"
+                                         (str source-dir) (str target-dir)))))
+            (create-dirs target-dir opts)
+            (let [copy-options (->copy-opts replace-existing copy-attributes false nofollow-links)
+                  link-options (->link-opts nofollow-links)
+                  from (real-path source-dir {:nofollow-links nofollow-links})
+                  to (canonicalize target-dir {:nofollow-links nofollow-links})]
+              (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+                                                     (let [rel (relativize from dir)
+                                                           to-dir (path to rel)]
+                                                       (when-not (Files/exists to-dir link-options)
+                                                         (Files/copy ^Path dir to-dir
+                                                                     ^"[Ljava.nio.file.CopyOption;"
+                                                                     copy-options)
+                                                         (when-not win?
+                                                           (u+wx to-dir))))
+                                                     :continue)
+                                    :visit-file (fn [from-path _attrs]
+                                                  (let [rel (relativize from from-path)
+                                                        to-file (path to rel)]
+                                                    (Files/copy ^Path from-path to-file
+                                                                ^"[Ljava.nio.file.CopyOption;"
+                                                                copy-options)
+                                                    :continue)
+                                                  :continue)
+                                    :post-visit-dir (fn [dir _ex]
+                                                      (let [rel (relativize from dir)
+                                                            to-dir (path to rel)]
+                                                        (when-not win?
+                                                          (let [perms (posix-file-permissions (file dir))]
+                                                            (Files/setPosixFilePermissions to-dir perms)))
+                                                        :continue))}))))
+        target-dir)
       :cljs
       (let [src (str source-dir)
             dst (str target-dir)]
@@ -953,35 +953,35 @@
         (when (and (exists? dst opts) (not (directory? dst opts)))
           (throw (ex-info (str "Not a directory: " dst) {})))
         (let [csrc (canonicalize src {:nofollow-links true})
-              cdest (canonicalize dst {:nofollow-links true})
-              from (real-path src {:nofollow-links nofollow-links})]
+              cdest (canonicalize dst {:nofollow-links true})]
           (when (not= csrc cdest)
             (when (starts-with? cdest csrc)
               (throw (ex-info (str "Cannot copy src directory: " src
                                    ", under itself to dest: " dst) {})))
             (create-dirs dst opts)
-            (walk-file-tree from
-                            {:follow-links follow-links
-                             :pre-visit-dir (fn [dir _]
-                                              (let [rel (relativize from dir)
-                                                    to-dir (path dst rel)]
-                                                (when-not (exists? to-dir)
-                                                  (create-dir to-dir)
-                                                  (when (and (not win?) copy-attributes)
-                                                    (u+wx to-dir)))
-                                                :continue))
-                             :visit-file (fn [f _]
-                                           (let [to-file (path dst (relativize from f))]
-                                             (if (and nofollow-links (sym-link? f))
-                                               (do (when replace-existing (delete-if-exists to-file))
-                                                   (create-sym-link to-file (read-link f)))
-                                               (copy-file f to-file replace-existing))
-                                             :continue))
-                             :post-visit-dir (fn [dir _]
-                                               (when (and (not win?) copy-attributes)
-                                                 (let [mode (posix-file-permissions dir)]
-                                                   (chmod (path dst (relativize from dir)) mode)))
-                                               :continue)})))
+            (let [from (real-path src {:nofollow-links nofollow-links})]
+              (walk-file-tree from
+                              {:follow-links follow-links
+                               :pre-visit-dir (fn [dir _]
+                                                (let [rel (relativize from dir)
+                                                      to-dir (path dst rel)]
+                                                  (when-not (exists? to-dir)
+                                                    (create-dir to-dir)
+                                                    (when (and (not win?) copy-attributes)
+                                                      (u+wx to-dir)))
+                                                  :continue))
+                               :visit-file (fn [f _]
+                                             (let [to-file (path dst (relativize from f))]
+                                               (if (and nofollow-links (sym-link? f))
+                                                 (do (when replace-existing (delete-if-exists to-file))
+                                                     (create-sym-link to-file (read-link f)))
+                                                 (copy-file f to-file replace-existing))
+                                               :continue))
+                               :post-visit-dir (fn [dir _]
+                                                 (when (and (not win?) copy-attributes)
+                                                   (let [mode (posix-file-permissions dir)]
+                                                     (chmod (path dst (relativize from dir)) mode)))
+                                                 :continue)}))))
         dst))))
 
 (defn temp-dir
@@ -1276,7 +1276,7 @@
 (defn- ->charset
   ^Charset [charset]
   #?(:clj (if (string? charset) (Charset/forName charset) charset)
-     :cljs (or charset "utf-8")))
+     :cljs charset))
 
 (defn read-all-lines
   "Returns contents of `file` as a vector of lines via [Files/readAllLines](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#readAllLines(java.nio.file.Path,java.nio.charset.Charset)).
