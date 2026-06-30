@@ -279,6 +279,8 @@
   #?(:clj (.normalize (as-path path))
      :cljs (.normalize node-path (str path))))
 
+(declare parent file-name)
+
 (defn canonicalize
   "Returns the canonical path for `path` via [File#getCanonicalPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#getCanonicalPath()).
 
@@ -293,7 +295,10 @@
              (as-path (.getCanonicalPath (as-file path))))
       :cljs (if nofollow-links
               (-> path absolutize normalize)
-              (.realpathSync node-fs (str path))))))
+              (try (.realpathSync node-fs (str path))
+                   (catch :default _
+                     (str (path* (canonicalize (parent (absolutize path)))
+                                 (file-name path)))))))))
 
 (defn root
   "Returns root path for `path`, or `nil`, via [Path#getRoot](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getRoot()).
@@ -462,9 +467,10 @@
                                    (if (neg? end)
                                      (recur (inc i) (str out "\\["))
                                      (let [body (subs seg (inc i) end)
-                                           body (if (str/starts-with? body "!")
-                                                  (str "^" (subs body 1))
-                                                  body)]
+                                           body (cond
+                                                  (str/starts-with? body "!") (str "^" (subs body 1))
+                                                  (str/starts-with? body "^") (str "\\^" (subs body 1))
+                                                  :else body)]
                                        (recur (inc end) (str out "[" body "]")))))
                        (= "{" c) (let [end (.indexOf seg "}" (inc i))]
                                    (if (neg? end)
@@ -1451,10 +1457,10 @@
                                                      java.nio.file.StandardOpenOption/WRITE])))])
                  (set-last-modified-time path time opts))))
       :cljs (let [p (str path)
-                  t (if time (->file-time time) (js/Date.))]
-              (if (exists? p)
-                (.utimesSync node-fs p t t)
+                  t (if time (js/Date. (file-time->millis (->file-time time))) (js/Date.))]
+              (when-not (exists? p)
                 (.writeFileSync node-fs p "" #js {:flag "a"}))
+              (.utimesSync node-fs p t t)
               p))))
 
 (defn list-dirs
@@ -1790,7 +1796,7 @@
                           dest-filename)]
         (when (and (not replace-existing) (exists? output-file))
           (throw (ex-info (str "File already exists: " output-file) {})))
-        (when dest-dir (create-dirs dest-dir))
+        (when (parent output-file) (create-dirs (parent output-file)))
         (let [compressed (.readFileSync node-fs (str gz-file))
               decompressed (.gunzipSync node-zlib compressed)]
           (.writeFileSync node-fs output-file decompressed))
@@ -1833,7 +1839,7 @@
             output-file (if dest-dir
                           (path dest-dir dest-filename)
                           dest-filename)]
-        (when dest-dir (create-dirs dest-dir))
+        (when (parent output-file) (create-dirs (parent output-file)))
         (let [content (.readFileSync node-fs (str source-file))
               compressed (.gzipSync node-zlib content)]
           (.writeFileSync node-fs output-file compressed))

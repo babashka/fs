@@ -537,7 +537,26 @@
     (let [f (str (fs/path d "f.txt"))]
       (is (not (fs/exists? f)))
       (fs/touch f)
-      (is (fs/exists? f)))))
+      (is (fs/exists? f))))
+  (testing ":time on an existing file"
+    (with-tmp [d]
+      (let [f (fs/path d "f.txt")]
+        (fs/write-bytes f (string->bytes "x"))
+        (fs/touch f {:time 1000})
+        (is (= 1000 (fs/file-time->millis (fs/last-modified-time f)))))))
+  (testing ":time creates the file and sets the time"
+    (with-tmp [d]
+      (let [f (fs/path d "new.txt")]
+        (fs/touch f {:time 1000})
+        (is (fs/exists? f))
+        (is (= 1000 (fs/file-time->millis (fs/last-modified-time f))))))))
+
+(deftest canonicalize-missing-test
+  (with-tmp [d]
+    (let [missing (fs/path d "does-not-exist")]
+      (is (= (fs/unixify (fs/canonicalize d))
+             (fs/unixify (fs/parent (fs/canonicalize missing)))))
+      (is (= "does-not-exist" (fs/file-name (fs/canonicalize missing)))))))
 
 (deftest update-file-test
   (with-tmp [d]
@@ -590,7 +609,11 @@
   (testing "regex pattern is a full match, not a substring"
     (with-tmp [d]
       (files d "foo" "foobar")
-      (is (= ["foo"] (rel-entries d (fs/match d "regex:foo" {:recursive true})))))))
+      (is (= ["foo"] (rel-entries d (fs/match d "regex:foo" {:recursive true}))))))
+  (testing "caret in a char class is a literal, not negation"
+    (with-tmp [d]
+      (files d "a" "b" "^")
+      (is (= ["^" "a"] (rel-entries d (fs/glob d "[^a]")))))))
 
 (deftest list-dir-test
   (with-tmp [d]
