@@ -2074,18 +2074,13 @@
           #?(:clj (path) :cljs (str))))
 
 (def ^:private xdg-type->env-var&default-path
-  #?(:clj (delay {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
-                  :cache ["XDG_CACHE_HOME" (path (home) ".cache")]
-                  :data ["XDG_DATA_HOME" (path (home) ".local" "share")]
-                  :state ["XDG_STATE_HOME" (path (home) ".local" "state")]})
-     :cljs {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
-            :cache ["XDG_CACHE_HOME" (path (home) ".cache")]
-            :data ["XDG_DATA_HOME" (path (home) ".local" "share")]
-            :state ["XDG_STATE_HOME" (path (home) ".local" "state")]}))
+  (delay {:config ["XDG_CONFIG_HOME" (path (home) ".config")]
+          :cache ["XDG_CACHE_HOME" (path (home) ".cache")]
+          :data ["XDG_DATA_HOME" (path (home) ".local" "share")]
+          :state ["XDG_STATE_HOME" (path (home) ".local" "state")]}))
 
 (defn- xdg-home-for [k]
-  (let [[env-var default-path] (#?(:clj @xdg-type->env-var&default-path
-                                   :cljs xdg-type->env-var&default-path) k)]
+  (let [[env-var default-path] (get @xdg-type->env-var&default-path k)]
     (or (xdg-path-from-env-var env-var)
         default-path)))
 
