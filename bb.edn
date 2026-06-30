@@ -76,6 +76,18 @@
    :task (do (shell "npm" "install")
              (shell "npm" "test"))}
 
+  deno-squint-test
+  {:doc "Run squint tests on Deno (uses node: prefixed imports)"
+   :task (do (shell "npm" "install")
+             (shell "npx" "squint" "compile")
+             (shell "deno" "run" "-A" ".squint-out/babashka/run_tests.mjs"))}
+
+  shadow-deno-test
+  {:doc "Run shadow-cljs ESM tests on Deno (uses node: prefixed imports)"
+   :task (do (shell "npm" "install")
+             (shell "npx" "shadow-cljs" "compile" "esm-test")
+             (shell "deno" "run" "-A" "out/esm/test.js"))}
+
   quickdoc
   {:doc "Invoke quickdoc"
    :requires ([quickdoc.api :as api])

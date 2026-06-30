@@ -11,6 +11,9 @@
   "dependencies": {
     "squint-cljs": "^0.14.197"
   },
+  "devDependencies": {
+    "shadow-cljs": "^3.4.11"
+  },
   "license": "EPL-1.0",
   "repository": {
     "type": "git",

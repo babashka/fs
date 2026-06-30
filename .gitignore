@@ -84,3 +84,5 @@ node_modules/
 package-lock.json
 .squint-out/
 cljs-test-runner-out/
+.shadow-cljs/
+out/

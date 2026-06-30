@@ -1,0 +1,7 @@
+{:source-paths ["src" "test"]
+ :builds {:esm-test
+          {:target :esm
+           :output-dir "out/esm"
+           :compiler-options {:reader-features #{:shadow}}
+           :js-options {:js-provider :import}
+           :modules {:test {:entries [babashka.run-tests]}}}}}

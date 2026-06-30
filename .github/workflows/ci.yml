@@ -103,3 +103,61 @@ jobs:
 
       - name: Test squint
         run: npm test
+
+  deno-squint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@13.5.3
+        with:
+          bb: latest
+
+      - name: Test squint on Deno
+        run: bb deno-squint-test
+
+  deno-shadow:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Prepare java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 21
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@13.5.3
+        with:
+          bb: latest
+
+      - name: Test shadow-cljs ESM on Deno
+        run: bb shadow-deno-test

@@ -1,5 +1,17 @@
 (ns babashka.fs
-  (:require #?@(:cljs [[clojure.string :as str]
+  (:require #?@(:shadow [[clojure.string :as str]
+                         ["node:fs" :as node-fs]
+                         ["node:path" :as node-path]
+                         ["node:os" :as node-os]
+                         ["node:zlib" :as node-zlib]
+                         ["node:crypto" :as node-crypto]]
+                :squint [[clojure.string :as str]
+                         ["node:fs" :as node-fs]
+                         ["node:path" :as node-path]
+                         ["node:os" :as node-os]
+                         ["node:zlib" :as node-zlib]
+                         ["node:crypto" :as node-crypto]]
+                :cljs [[clojure.string :as str]
                        ["fs" :as node-fs]
                        ["path" :as node-path]
                        ["os" :as node-os]
@@ -431,7 +443,7 @@
                                  (loop [i 0]
                                    (if (>= i (.-length entries))
                                      (file-visit-result (post-visit-dir dir nil))
-                                     (let [d (aget entries i)
+                                     (let [^js d (aget entries i)
                                            child (.join node-path (str dir) (.-name d))
                                            cd (inc depth)
                                            sym? (.isSymbolicLink d)
@@ -547,7 +559,7 @@
    (defn- path-seq-children
      ;; entry kinds come from the directory listing, so only a symlink costs a stat
      [dir]
-     (mapcat (fn [d]
+     (mapcat (fn [^js d]
                (let [child (.join node-path (str dir) (.-name d))]
                  (if (if (.isSymbolicLink d) (directory? child) (.isDirectory d))
                    (cons child (lazy-seq (path-seq-children child)))
@@ -1207,7 +1219,9 @@
                               :post-visit-dir (fn [path _]
                                                 (delete path)
                                                 :continue)})
-        :cljs (do (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)})
+        :cljs (do (if (sym-link? root-path)
+                    (delete root-path)
+                    (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)}))
                   root-path)))))
 
 (defn create-file
