@@ -390,17 +390,17 @@
                                  (loop [cs (list-dir dir) skip-sibs? false]
                                    (when (and (seq cs) (not skip-sibs?) (not @term?))
                                      (let [child (first cs)
-                                           st (try (stat child (not follow-links))
-                                                   (catch :default _ nil))
-                                           is-dir? (and st (.isDirectory st))
-                                           result (if is-dir?
+                                           nofollow (not follow-links)
+                                           result (cond
+                                                    (directory? child {:nofollow-links nofollow})
                                                     (do-walk child (inc depth))
-                                                    (if st
-                                                      (try
-                                                        (file-visit-result (visit-file child nil))
-                                                        (catch :default e
-                                                          (file-visit-result (visit-file-failed child e))))
-                                                      (file-visit-result (visit-file-failed child nil))))]
+                                                    (exists? child {:nofollow-links nofollow})
+                                                    (try
+                                                      (file-visit-result (visit-file child nil))
+                                                      (catch :default e
+                                                        (file-visit-result (visit-file-failed child e))))
+                                                    :else
+                                                    (file-visit-result (visit-file-failed child nil)))]
                                        (cond
                                          (= :terminate result)
                                          (vreset! term? true)
@@ -1076,7 +1076,7 @@
   [path]
   #?(:clj (Files/delete (as-path path))
      :cljs (let [p (str path)]
-             (if (.isDirectory (stat path true))
+             (if (directory? path {:nofollow-links true})
                (.rmdirSync node-fs p)
                (.unlinkSync node-fs p)))))
 
