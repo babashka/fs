@@ -1012,14 +1012,14 @@
                                                       to-dir (path dst rel)]
                                                   (when-not (exists? to-dir)
                                                     (create-dir to-dir)
-                                                    (when (and (not win?) copy-attributes)
+                                                    (when-not win?
                                                       (u+wx to-dir)))
                                                   :continue))
                                :visit-file (fn [f _]
                                              (copy-one f (path dst (relativize from f)) opts)
                                              :continue)
                                :post-visit-dir (fn [dir _]
-                                                 (when (and (not win?) copy-attributes)
+                                                 (when-not win?
                                                    (let [mode (posix-file-permissions dir)]
                                                      (chmod (path dst (relativize from dir)) mode)))
                                                  :continue)}))))

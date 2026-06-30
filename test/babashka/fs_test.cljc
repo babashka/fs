@@ -262,6 +262,26 @@
                (fs/posix->str (fs/posix-file-permissions
                                (fs/copy src (fs/path d "dst.txt") {:copy-attributes true})))))))))
 
+(deftest copy-default-permissions-test
+  (testing "copy without :copy-attributes preserves the source perms"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (let [src (fs/path d "src.txt")]
+          (fs/write-bytes src (string->bytes "hi"))
+          (fs/set-posix-file-permissions src "rwx------")
+          (is (= "rwx------"
+                 (fs/posix->str (fs/posix-file-permissions (fs/copy src (fs/path d "dst.txt")))))))))))
+
+(deftest copy-tree-default-permissions-test
+  (testing "copy-tree copies dir perms even without :copy-attributes"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (fs/create-dirs (fs/path d "src/sub"))
+        (fs/set-posix-file-permissions (fs/path d "src/sub") "rwx------")
+        (fs/copy-tree (fs/path d "src") (fs/path d "dst"))
+        (is (= "rwx------"
+               (fs/posix->str (fs/posix-file-permissions (fs/path d "dst/sub")))))))))
+
 (deftest copy-tree-attributes-test
   (testing ":copy-attributes preserves file modification time"
     (fs/with-temp-dir [d]
