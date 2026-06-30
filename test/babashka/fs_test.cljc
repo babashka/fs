@@ -201,7 +201,11 @@
   (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")]
       (fs/write-bytes f (string->bytes "some\ncontent\nhere"))
-      (is (= ["some" "content" "here"] (fs/read-all-lines f))))))
+      (is (= ["some" "content" "here"] (fs/read-all-lines f))))
+    (testing "empty file reads as empty vector"
+      (let [e (fs/path d "empty.txt")]
+        (fs/write-bytes e (string->bytes ""))
+        (is (= [] (fs/read-all-lines e)))))))
 
 (deftest copy-to-file-test
   (fs/with-temp-dir [d]

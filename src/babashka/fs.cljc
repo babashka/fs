@@ -1289,7 +1289,7 @@
           :or {charset "utf-8"}}]
    #?(:clj (vec (Files/readAllLines (as-path file) (->charset charset)))
       :cljs (let [content (.readFileSync node-fs (str file) #js {:encoding (->charset charset)})]
-              (vec (str/split-lines content))))))
+              (vec (when (seq content) (str/split-lines content)))))))
 
 ;;;; Attributes
 
