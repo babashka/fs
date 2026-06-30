@@ -590,10 +590,10 @@
          #?@(:clj [matcher (.getPathMatcher
                             (FileSystems/getDefault)
                             pattern)]
-             :cljs [matcher (case prefix
+             :cljs [pat (subs pattern (inc (count prefix)))
+                    matcher (case prefix
                               "glob"
-                              (let [pat (subs pattern (inc (count prefix)))
-                                    re (glob->regex (if win?
+                              (let [re (glob->regex (if win?
                                                       (str/replace pat "/" "\\")
                                                       pat))]
                                 (fn [p]
@@ -601,8 +601,7 @@
                                               (str/replace p "/" "\\")
                                               p))))
                               "regex"
-                              (let [pat (subs pattern (inc (count prefix)))
-                                    re (js/RegExp. (str "^(?:" pat ")$"))]
+                              (let [re (js/RegExp. (str "^(?:" pat ")$"))]
                                 (fn [p] (.test re p)))
                               (fn [_] false))])
          match (fn [path]
@@ -2019,9 +2018,9 @@
                                       lines
                                       (->charset charset)
                                       (->open-options (dissoc opts :charset)))
-      :cljs (let [eol (.-EOL node-os)]
-              (.writeFileSync node-fs (str file)
-                              (str (str/join eol lines) eol)
+      :cljs (let [eol (.-EOL node-os)
+                  content (if (seq lines) (str (str/join eol lines) eol) "")]
+              (.writeFileSync node-fs (str file) content
                               #js {:encoding (->charset charset) :flag (if append "a" "w")})
               (str file)))))
 

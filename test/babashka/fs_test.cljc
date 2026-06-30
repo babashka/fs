@@ -184,7 +184,11 @@
       (is (= (vec (repeat 3 "bar")) (fs/read-all-lines f)) "existing file overwritten")
       (fs/write-lines f (repeat 3 "baz") {:append true})
       (is (= (into (vec (repeat 3 "bar")) (repeat 3 "baz")) (fs/read-all-lines f))
-          "existing file appended to"))))
+          "existing file appended to"))
+    (testing "empty seq writes an empty file"
+      (let [e (fs/path d "empty.txt")]
+        (fs/write-lines e [])
+        (is (= 0 (fs/size e)))))))
 
 (deftest read-all-bytes-test
   (fs/with-temp-dir [d]
