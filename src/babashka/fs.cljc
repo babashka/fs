@@ -118,6 +118,11 @@
      (and x (identical? js/BigInt (.-constructor x)))))
 
 #?(:cljs
+   (defn- access? [path mode]
+     (try (.accessSync node-fs (str path) mode) true
+          (catch :default _ false))))
+
+#?(:cljs
    (defn- chmod [path mode]
      (.chmodSync node-fs (str path) mode)))
 
@@ -211,28 +216,19 @@
   "Returns `true` if `path` is executable via [Files/isExecutable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isExecutable(java.nio.file.Path))."
   [path]
   #?(:clj (Files/isExecutable (as-path path))
-     :cljs (try
-             (.accessSync node-fs (str path) (.-X_OK (.-constants node-fs)))
-             true
-             (catch :default _ false))))
+     :cljs (access? path (.-X_OK (.-constants node-fs)))))
 
 (defn readable?
   "Returns `true` if `path` is readable via [Files/isReadable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isReadable(java.nio.file.Path))"
   [path]
   #?(:clj (Files/isReadable (as-path path))
-     :cljs (try
-             (.accessSync node-fs (str path) (.-R_OK (.-constants node-fs)))
-             true
-             (catch :default _ false))))
+     :cljs (access? path (.-R_OK (.-constants node-fs)))))
 
 (defn writable?
   "Returns `true` if `path` is writable via [Files/isWritable](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#isWritable(java.nio.file.Path))"
   [path]
   #?(:clj (Files/isWritable (as-path path))
-     :cljs (try
-             (.accessSync node-fs (str path) (.-W_OK (.-constants node-fs)))
-             true
-             (catch :default _ false))))
+     :cljs (access? path (.-W_OK (.-constants node-fs)))))
 
 (defn relative?
   "Returns `true` if `path` is relative (in other words, is not [[absolute?]])."
@@ -597,7 +593,7 @@
                             pattern)]
              :cljs [matcher (case prefix
                               "glob"
-                              (let [pat (subs pattern 5)
+                              (let [pat (subs pattern (inc (count prefix)))
                                     re (glob->regex (if win?
                                                       (str/replace pat "/" "\\")
                                                       pat))]
@@ -606,7 +602,7 @@
                                               (str/replace p "/" "\\")
                                               p))))
                               "regex"
-                              (let [pat (subs pattern 6)
+                              (let [pat (subs pattern (inc (count prefix)))
                                     re (js/RegExp. (str "^(?:" pat ")$"))]
                                 (fn [p] (.test re p)))
                               (fn [_] false))])
