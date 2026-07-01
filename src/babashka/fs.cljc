@@ -408,13 +408,9 @@
            max-depth (or max-depth js/Infinity)
            nofollow (not follow-links)
            root (str path)
-           visit-or-fail (fn [child]
-                           (try (file-visit-result (visit-file child nil))
-                                (catch :default e
-                                  (file-visit-result (visit-file-failed child e)))))
            visit-child (fn [child]
                          (if (exists? child {:nofollow-links nofollow})
-                           (visit-or-fail child)
+                           (file-visit-result (visit-file child nil))
                            (file-visit-result (visit-file-failed child nil))))
            do-walk (fn do-walk [dir depth seen]
                      (let [rp (when follow-links
@@ -450,7 +446,7 @@
                                                 dir? (file-visit-result (visit-file child nil))
                                                 (and sym? follow-links (not (exists? child)))
                                                 (file-visit-result (visit-file-failed child nil))
-                                                :else (visit-or-fail child))]
+                                                :else (file-visit-result (visit-file child nil)))]
                                        (cond
                                          (= :terminate cr) :terminate
                                          (= :skip-siblings cr) (file-visit-result (post-visit-dir dir nil))

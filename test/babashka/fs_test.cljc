@@ -784,6 +784,16 @@
                             :visit-file-failed (fn [p _] (swap! failed conj (fs/file-name p)) :continue)})
         (is (contains? @failed "loop"))))))
 
+(deftest walk-file-tree-propagates-visit-file-exception-test
+  (testing "an exception thrown by visit-file propagates, it is not swallowed as a failure"
+    (fs/with-temp-dir [d]
+      (fs/create-file (fs/path d "f.txt"))
+      (let [caught (atom false)]
+        (try
+          (fs/walk-file-tree d {:visit-file (fn [_ _] (throw (ex-info "boom" {})))})
+          (catch #?(:clj Exception :cljs :default) _ (reset! caught true)))
+        (is (true? @caught))))))
+
 (deftest glob-syntax-error-test
   (fs/with-temp-dir [d]
     (files d "a.clj")
