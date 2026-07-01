@@ -264,6 +264,21 @@
         (testing "default follows the link"
           (is (not (fs/sym-link? (fs/copy lnk (fs/path d "c2"))))))))))
 
+(deftest copy-replaces-dest-symlink-test
+  (testing ":replace-existing replaces a symlink dest, it does not follow it"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (let [src (fs/path d "src")
+              target (fs/path d "target")
+              link (fs/path d "link")]
+          (fs/spit src "SRC")
+          (fs/spit target "TARGET")
+          (fs/create-sym-link link target)
+          (fs/copy src link {:replace-existing true})
+          (is (false? (fs/sym-link? link)))
+          (is (= "SRC" (fs/slurp link)))
+          (is (= "TARGET" (fs/slurp target))))))))
+
 (deftest copy-attributes-test
   (when-not (fs/windows?)
     (fs/with-temp-dir [d]

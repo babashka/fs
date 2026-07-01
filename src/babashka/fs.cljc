@@ -746,6 +746,9 @@
              (let [st (stat src nofollow-links)]
                (.lutimesSync node-fs dest (.-atime st) (.-mtime st)))))
        (do
+         ;; copyFileSync follows a symlink dest; JVM replaces the link itself
+         (when (and replace-existing (sym-link? dest))
+           (delete-if-exists dest))
          (copy-file src dest replace-existing)
          (when copy-attributes
            (let [st (stat src nofollow-links)]
