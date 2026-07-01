@@ -1,10 +1,8 @@
 // Public JS API for @babashka/fs, compiled from src/babashka/fs.cljc by squint.
-// The squint-compiled names (exists_QMARK_, copy_tree, ...) are re-exported for
-// direct interop; the friendly camelCase names are the documented JS surface.
+// Every function is exported under a friendly camelCase name; option maps accept
+// camelCase (or dashed) keys.
 // Generated from script/index.template.mjs by script/gen_index.cljs (bb gen-index).
-import {
-%IMPORTS%
-} from './lib/babashka/fs.mjs';
+import * as raw from './lib/babashka/fs.mjs';
 
 // camelCase (or dashed) option keys are translated to the dashed keyword
 // strings the squint-compiled functions read, e.g. {posixFilePermissions}
@@ -30,12 +28,12 @@ export {
 // Creates a temp dir, runs `callback(dir)`, then deletes it (unless `opts.keep`).
 export function withTempDir(callback, opts) {
   const o = kebabizeArg(opts);
-  const dir = create_temp_dir(o);
+  const dir = raw.create_temp_dir(o);
   try {
     return callback(dir);
   } finally {
     if (!(o && o.keep)) {
-      delete_tree(dir, { force: true });
+      raw.delete_tree(dir, { force: true });
     }
   }
 }

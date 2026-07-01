@@ -1,9 +1,9 @@
 ;; Regenerates index.mjs (the JS API) from script/index.template.mjs by importing
 ;; the compiled module at runtime, reading its exports, and demunging the squint
-;; names back to their Clojure names. Run via nbb: `bb gen-index` (builds lib first).
+;; names back to their Clojure names. Every function is wrapped with jsFriendly so
+;; its option keys accept camelCase. Run via nbb: `bb gen-index` (builds lib first).
 
-(require '["node:fs" :as node-fs]
-         '["../lib/babashka/fs.mjs" :as fs]
+(require '["../lib/babashka/fs.mjs" :as fs]
          '[clojure.string :as str])
 
 (def names
@@ -33,44 +33,38 @@
 (def reserved
   #{"delete" "new" "class" "return" "typeof" "in" "for" "do" "if" "void" "yield"})
 
-(def rows
-  (for [n names
-        :let [c (camel (demunge n))]
-        :when (not= n c)]
-    [n c]))
+(def rows (mapv (fn [n] [n (camel (demunge n))]) names))
 
-(def alias-rows (filter (fn [[_ c]] (reserved c)) rows))
-(def const-rows (remove (fn [[_ c]] (reserved c)) rows))
+(when-not (apply distinct? (map second rows))
+  (throw (js/Error. (str "duplicate JS name: "
+                         (->> (map second rows) frequencies (filter (fn [[_ v]] (< 1 v))))))))
 
-(def imports
-  (str/join ",\n" (map #(str "  " %) names)))
+(defn wrap [n] (if (value? n) (str "raw." n) (str "jsFriendly(raw." n ")")))
 
 (def consts
   (str/join "\n"
             (map (fn [[n c]]
-                   (if (value? n)
-                     (str "const " c " = " n ";")
-                     (str "const " c " = jsFriendly(" n ");")))
-                 const-rows)))
+                   (if (reserved c)
+                     (str "const " c "_ = " (wrap n) ";")
+                     (str "const " c " = " (wrap n) ";")))
+                 rows)))
 
 (def exports
-  (str "  // squint names\n"
-       (str/join ",\n" (map #(str "  " %) names))
-       ",\n  // friendly camelCase aliases\n"
-       (str/join ",\n" (map (fn [[_ c]] (str "  " c)) const-rows))
-       (when (seq alias-rows)
-         (str ",\n  // reserved-word names (no option translation, none needed)\n"
-              (str/join ",\n" (map (fn [[n c]] (str "  " n " as " c)) alias-rows))))))
+  (str/join ",\n"
+            (map (fn [[_ c]]
+                   (if (reserved c)
+                     (str "  " c "_ as " c)
+                     (str "  " c)))
+                 rows)))
 
 (defn inject [s placeholder content]
   (let [i (str/index-of s placeholder)]
     (str (subs s 0 i) content (subs s (+ i (count placeholder))))))
 
 (def out
-  (-> (.readFileSync node-fs "script/index.template.mjs" "utf8")
-      (inject "%IMPORTS%" imports)
+  (-> (fs/slurp "script/index.template.mjs")
       (inject "%CONSTS%" consts)
       (inject "%EXPORTS%" exports)))
 
-(.writeFileSync node-fs "index.mjs" out)
-(println "wrote index.mjs:" (count names) "exports," (count rows) "aliases")
+(fs/spit "index.mjs" out)
+(println "wrote index.mjs:" (count names) "functions wrapped")

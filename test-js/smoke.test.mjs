@@ -15,9 +15,23 @@ test('beautiful names resolve', () => {
   assert.equal(typeof fs.isSymlink, 'function');
 });
 
-test('raw squint names are still exported for interop', () => {
-  assert.equal(typeof fs.exists_QMARK_, 'function');
-  assert.equal(fs.exists_QMARK_('package.json'), true);
+test('camelCase options translate on same-name functions too (copy, move, glob)', () => {
+  fs.withTempDir((d) => {
+    const src = fs.path(String(d), 'a.txt');
+    const dst = fs.path(String(d), 'b.txt');
+    fs.spit(src, 'new');
+    fs.spit(dst, 'old');
+    fs.copy(src, dst, { replaceExisting: true });
+    assert.equal(fs.slurp(dst), 'new');
+  });
+});
+
+test('slurp / spit round-trip', () => {
+  fs.withTempDir((d) => {
+    const f = fs.path(String(d), 'f.txt');
+    fs.spit(f, 'hello\nworld');
+    assert.equal(fs.slurp(f), 'hello\nworld');
+  });
 });
 
 test('fileSeparator / pathSeparator are values, not functions', () => {

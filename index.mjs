@@ -1,102 +1,8 @@
 // Public JS API for @babashka/fs, compiled from src/babashka/fs.cljc by squint.
-// The squint-compiled names (exists_QMARK_, copy_tree, ...) are re-exported for
-// direct interop; the friendly camelCase names are the documented JS surface.
+// Every function is exported under a friendly camelCase name; option maps accept
+// camelCase (or dashed) keys.
 // Generated from script/index.template.mjs by script/gen_index.cljs (bb gen-index).
-import {
-  absolute_QMARK_,
-  absolutize,
-  canonicalize,
-  components,
-  copy,
-  copy_tree,
-  create_dir,
-  create_dirs,
-  create_file,
-  create_link,
-  create_sym_link,
-  create_temp_dir,
-  create_temp_file,
-  creation_time,
-  cwd,
-  delete$,
-  delete_if_exists,
-  delete_on_exit,
-  delete_tree,
-  directory_QMARK_,
-  ends_with_QMARK_,
-  exec_paths,
-  executable_QMARK_,
-  exists_QMARK_,
-  expand_home,
-  extension,
-  file,
-  file_name,
-  file_separator,
-  file_time__GT_instant,
-  file_time__GT_millis,
-  get_attribute,
-  glob,
-  glob__GT_regex,
-  gunzip,
-  gzip,
-  hidden_QMARK_,
-  home,
-  instant__GT_file_time,
-  last_modified_time,
-  list_dir,
-  list_dirs,
-  match,
-  millis__GT_file_time,
-  modified_since,
-  move,
-  normalize,
-  owner,
-  parent,
-  path,
-  path_separator,
-  posix__GT_str,
-  posix_file_permissions,
-  read_all_bytes,
-  read_all_lines,
-  read_attributes,
-  read_attributes_STAR_,
-  read_link,
-  readable_QMARK_,
-  real_path,
-  regular_file_QMARK_,
-  relative_QMARK_,
-  relativize,
-  root,
-  same_file_QMARK_,
-  set_attribute,
-  set_creation_time,
-  set_last_modified_time,
-  set_posix_file_permissions,
-  size,
-  split_ext,
-  split_paths,
-  starts_with_QMARK_,
-  str__GT_posix,
-  strip_ext,
-  sym_link_QMARK_,
-  temp_dir,
-  touch,
-  unixify,
-  unzip,
-  update_file,
-  walk_file_tree,
-  which,
-  which_all,
-  windows_QMARK_,
-  writable_QMARK_,
-  write_bytes,
-  write_lines,
-  xdg_cache_home,
-  xdg_config_home,
-  xdg_data_home,
-  xdg_state_home,
-  zip
-} from './lib/babashka/fs.mjs';
+import * as raw from './lib/babashka/fs.mjs';
 
 // camelCase (or dashed) option keys are translated to the dashed keyword
 // strings the squint-compiled functions read, e.g. {posixFilePermissions}
@@ -112,171 +18,108 @@ const kebabizeArg = (x) => {
 };
 const jsFriendly = (fn) => (...args) => fn(...args.map(kebabizeArg));
 
-const isAbsolute = jsFriendly(absolute_QMARK_);
-const copyTree = jsFriendly(copy_tree);
-const createDir = jsFriendly(create_dir);
-const createDirs = jsFriendly(create_dirs);
-const createFile = jsFriendly(create_file);
-const createLink = jsFriendly(create_link);
-const createSymLink = jsFriendly(create_sym_link);
-const createTempDir = jsFriendly(create_temp_dir);
-const createTempFile = jsFriendly(create_temp_file);
-const creationTime = jsFriendly(creation_time);
-const deleteIfExists = jsFriendly(delete_if_exists);
-const deleteOnExit = jsFriendly(delete_on_exit);
-const deleteTree = jsFriendly(delete_tree);
-const isDirectory = jsFriendly(directory_QMARK_);
-const endsWith = jsFriendly(ends_with_QMARK_);
-const execPaths = jsFriendly(exec_paths);
-const isExecutable = jsFriendly(executable_QMARK_);
-const exists = jsFriendly(exists_QMARK_);
-const expandHome = jsFriendly(expand_home);
-const fileName = jsFriendly(file_name);
-const fileSeparator = file_separator;
-const fileTimeToInstant = jsFriendly(file_time__GT_instant);
-const fileTimeToMillis = jsFriendly(file_time__GT_millis);
-const getAttribute = jsFriendly(get_attribute);
-const globToRegex = jsFriendly(glob__GT_regex);
-const isHidden = jsFriendly(hidden_QMARK_);
-const instantToFileTime = jsFriendly(instant__GT_file_time);
-const lastModifiedTime = jsFriendly(last_modified_time);
-const listDir = jsFriendly(list_dir);
-const listDirs = jsFriendly(list_dirs);
-const millisToFileTime = jsFriendly(millis__GT_file_time);
-const modifiedSince = jsFriendly(modified_since);
-const pathSeparator = path_separator;
-const posixToStr = jsFriendly(posix__GT_str);
-const posixFilePermissions = jsFriendly(posix_file_permissions);
-const readAllBytes = jsFriendly(read_all_bytes);
-const readAllLines = jsFriendly(read_all_lines);
-const readAttributes = jsFriendly(read_attributes);
-const readAttributesRaw = jsFriendly(read_attributes_STAR_);
-const readLink = jsFriendly(read_link);
-const isReadable = jsFriendly(readable_QMARK_);
-const realPath = jsFriendly(real_path);
-const isRegularFile = jsFriendly(regular_file_QMARK_);
-const isRelative = jsFriendly(relative_QMARK_);
-const isSameFile = jsFriendly(same_file_QMARK_);
-const setAttribute = jsFriendly(set_attribute);
-const setCreationTime = jsFriendly(set_creation_time);
-const setLastModifiedTime = jsFriendly(set_last_modified_time);
-const setPosixFilePermissions = jsFriendly(set_posix_file_permissions);
-const splitExt = jsFriendly(split_ext);
-const splitPaths = jsFriendly(split_paths);
-const startsWith = jsFriendly(starts_with_QMARK_);
-const strToPosix = jsFriendly(str__GT_posix);
-const stripExt = jsFriendly(strip_ext);
-const isSymlink = jsFriendly(sym_link_QMARK_);
-const tempDir = jsFriendly(temp_dir);
-const updateFile = jsFriendly(update_file);
-const walkFileTree = jsFriendly(walk_file_tree);
-const whichAll = jsFriendly(which_all);
-const isWindows = jsFriendly(windows_QMARK_);
-const isWritable = jsFriendly(writable_QMARK_);
-const writeBytes = jsFriendly(write_bytes);
-const writeLines = jsFriendly(write_lines);
-const xdgCacheHome = jsFriendly(xdg_cache_home);
-const xdgConfigHome = jsFriendly(xdg_config_home);
-const xdgDataHome = jsFriendly(xdg_data_home);
-const xdgStateHome = jsFriendly(xdg_state_home);
+const isAbsolute = jsFriendly(raw.absolute_QMARK_);
+const absolutize = jsFriendly(raw.absolutize);
+const canonicalize = jsFriendly(raw.canonicalize);
+const components = jsFriendly(raw.components);
+const copy = jsFriendly(raw.copy);
+const copyTree = jsFriendly(raw.copy_tree);
+const createDir = jsFriendly(raw.create_dir);
+const createDirs = jsFriendly(raw.create_dirs);
+const createFile = jsFriendly(raw.create_file);
+const createLink = jsFriendly(raw.create_link);
+const createSymLink = jsFriendly(raw.create_sym_link);
+const createTempDir = jsFriendly(raw.create_temp_dir);
+const createTempFile = jsFriendly(raw.create_temp_file);
+const creationTime = jsFriendly(raw.creation_time);
+const cwd = jsFriendly(raw.cwd);
+const delete_ = jsFriendly(raw.delete$);
+const deleteIfExists = jsFriendly(raw.delete_if_exists);
+const deleteOnExit = jsFriendly(raw.delete_on_exit);
+const deleteTree = jsFriendly(raw.delete_tree);
+const isDirectory = jsFriendly(raw.directory_QMARK_);
+const endsWith = jsFriendly(raw.ends_with_QMARK_);
+const execPaths = jsFriendly(raw.exec_paths);
+const isExecutable = jsFriendly(raw.executable_QMARK_);
+const exists = jsFriendly(raw.exists_QMARK_);
+const expandHome = jsFriendly(raw.expand_home);
+const extension = jsFriendly(raw.extension);
+const file = jsFriendly(raw.file);
+const fileName = jsFriendly(raw.file_name);
+const fileSeparator = raw.file_separator;
+const fileTimeToInstant = jsFriendly(raw.file_time__GT_instant);
+const fileTimeToMillis = jsFriendly(raw.file_time__GT_millis);
+const getAttribute = jsFriendly(raw.get_attribute);
+const glob = jsFriendly(raw.glob);
+const globToRegex = jsFriendly(raw.glob__GT_regex);
+const gunzip = jsFriendly(raw.gunzip);
+const gzip = jsFriendly(raw.gzip);
+const isHidden = jsFriendly(raw.hidden_QMARK_);
+const home = jsFriendly(raw.home);
+const instantToFileTime = jsFriendly(raw.instant__GT_file_time);
+const lastModifiedTime = jsFriendly(raw.last_modified_time);
+const listDir = jsFriendly(raw.list_dir);
+const listDirs = jsFriendly(raw.list_dirs);
+const match = jsFriendly(raw.match);
+const millisToFileTime = jsFriendly(raw.millis__GT_file_time);
+const modifiedSince = jsFriendly(raw.modified_since);
+const move = jsFriendly(raw.move);
+const normalize = jsFriendly(raw.normalize);
+const owner = jsFriendly(raw.owner);
+const parent = jsFriendly(raw.parent);
+const path = jsFriendly(raw.path);
+const pathSeparator = raw.path_separator;
+const posixToStr = jsFriendly(raw.posix__GT_str);
+const posixFilePermissions = jsFriendly(raw.posix_file_permissions);
+const readAllBytes = jsFriendly(raw.read_all_bytes);
+const readAllLines = jsFriendly(raw.read_all_lines);
+const readAttributes = jsFriendly(raw.read_attributes);
+const readAttributesRaw = jsFriendly(raw.read_attributes_STAR_);
+const readLink = jsFriendly(raw.read_link);
+const isReadable = jsFriendly(raw.readable_QMARK_);
+const realPath = jsFriendly(raw.real_path);
+const isRegularFile = jsFriendly(raw.regular_file_QMARK_);
+const isRelative = jsFriendly(raw.relative_QMARK_);
+const relativize = jsFriendly(raw.relativize);
+const root = jsFriendly(raw.root);
+const isSameFile = jsFriendly(raw.same_file_QMARK_);
+const setAttribute = jsFriendly(raw.set_attribute);
+const setCreationTime = jsFriendly(raw.set_creation_time);
+const setLastModifiedTime = jsFriendly(raw.set_last_modified_time);
+const setPosixFilePermissions = jsFriendly(raw.set_posix_file_permissions);
+const size = jsFriendly(raw.size);
+const slurp = jsFriendly(raw.slurp);
+const spit = jsFriendly(raw.spit);
+const splitExt = jsFriendly(raw.split_ext);
+const splitPaths = jsFriendly(raw.split_paths);
+const startsWith = jsFriendly(raw.starts_with_QMARK_);
+const strToPosix = jsFriendly(raw.str__GT_posix);
+const stripExt = jsFriendly(raw.strip_ext);
+const isSymlink = jsFriendly(raw.sym_link_QMARK_);
+const tempDir = jsFriendly(raw.temp_dir);
+const touch = jsFriendly(raw.touch);
+const unixify = jsFriendly(raw.unixify);
+const unzip = jsFriendly(raw.unzip);
+const updateFile = jsFriendly(raw.update_file);
+const walkFileTree = jsFriendly(raw.walk_file_tree);
+const which = jsFriendly(raw.which);
+const whichAll = jsFriendly(raw.which_all);
+const isWindows = jsFriendly(raw.windows_QMARK_);
+const isWritable = jsFriendly(raw.writable_QMARK_);
+const writeBytes = jsFriendly(raw.write_bytes);
+const writeLines = jsFriendly(raw.write_lines);
+const xdgCacheHome = jsFriendly(raw.xdg_cache_home);
+const xdgConfigHome = jsFriendly(raw.xdg_config_home);
+const xdgDataHome = jsFriendly(raw.xdg_data_home);
+const xdgStateHome = jsFriendly(raw.xdg_state_home);
+const zip = jsFriendly(raw.zip);
 
 export {
-  // squint names
-  absolute_QMARK_,
+  isAbsolute,
   absolutize,
   canonicalize,
   components,
   copy,
-  copy_tree,
-  create_dir,
-  create_dirs,
-  create_file,
-  create_link,
-  create_sym_link,
-  create_temp_dir,
-  create_temp_file,
-  creation_time,
-  cwd,
-  delete$,
-  delete_if_exists,
-  delete_on_exit,
-  delete_tree,
-  directory_QMARK_,
-  ends_with_QMARK_,
-  exec_paths,
-  executable_QMARK_,
-  exists_QMARK_,
-  expand_home,
-  extension,
-  file,
-  file_name,
-  file_separator,
-  file_time__GT_instant,
-  file_time__GT_millis,
-  get_attribute,
-  glob,
-  glob__GT_regex,
-  gunzip,
-  gzip,
-  hidden_QMARK_,
-  home,
-  instant__GT_file_time,
-  last_modified_time,
-  list_dir,
-  list_dirs,
-  match,
-  millis__GT_file_time,
-  modified_since,
-  move,
-  normalize,
-  owner,
-  parent,
-  path,
-  path_separator,
-  posix__GT_str,
-  posix_file_permissions,
-  read_all_bytes,
-  read_all_lines,
-  read_attributes,
-  read_attributes_STAR_,
-  read_link,
-  readable_QMARK_,
-  real_path,
-  regular_file_QMARK_,
-  relative_QMARK_,
-  relativize,
-  root,
-  same_file_QMARK_,
-  set_attribute,
-  set_creation_time,
-  set_last_modified_time,
-  set_posix_file_permissions,
-  size,
-  split_ext,
-  split_paths,
-  starts_with_QMARK_,
-  str__GT_posix,
-  strip_ext,
-  sym_link_QMARK_,
-  temp_dir,
-  touch,
-  unixify,
-  unzip,
-  update_file,
-  walk_file_tree,
-  which,
-  which_all,
-  windows_QMARK_,
-  writable_QMARK_,
-  write_bytes,
-  write_lines,
-  xdg_cache_home,
-  xdg_config_home,
-  xdg_data_home,
-  xdg_state_home,
-  zip,
-  // friendly camelCase aliases
-  isAbsolute,
   copyTree,
   createDir,
   createDirs,
@@ -286,6 +129,8 @@ export {
   createTempDir,
   createTempFile,
   creationTime,
+  cwd,
+  delete_ as delete,
   deleteIfExists,
   deleteOnExit,
   deleteTree,
@@ -295,19 +140,31 @@ export {
   isExecutable,
   exists,
   expandHome,
+  extension,
+  file,
   fileName,
   fileSeparator,
   fileTimeToInstant,
   fileTimeToMillis,
   getAttribute,
+  glob,
   globToRegex,
+  gunzip,
+  gzip,
   isHidden,
+  home,
   instantToFileTime,
   lastModifiedTime,
   listDir,
   listDirs,
+  match,
   millisToFileTime,
   modifiedSince,
+  move,
+  normalize,
+  owner,
+  parent,
+  path,
   pathSeparator,
   posixToStr,
   posixFilePermissions,
@@ -320,11 +177,16 @@ export {
   realPath,
   isRegularFile,
   isRelative,
+  relativize,
+  root,
   isSameFile,
   setAttribute,
   setCreationTime,
   setLastModifiedTime,
   setPosixFilePermissions,
+  size,
+  slurp,
+  spit,
   splitExt,
   splitPaths,
   startsWith,
@@ -332,8 +194,12 @@ export {
   stripExt,
   isSymlink,
   tempDir,
+  touch,
+  unixify,
+  unzip,
   updateFile,
   walkFileTree,
+  which,
   whichAll,
   isWindows,
   isWritable,
@@ -343,20 +209,19 @@ export {
   xdgConfigHome,
   xdgDataHome,
   xdgStateHome,
-  // reserved-word names (no option translation, none needed)
-  delete$ as delete
+  zip
 };
 
 // with-temp-dir is a compile-time macro; this is the JS-callable equivalent.
 // Creates a temp dir, runs `callback(dir)`, then deletes it (unless `opts.keep`).
 export function withTempDir(callback, opts) {
   const o = kebabizeArg(opts);
-  const dir = create_temp_dir(o);
+  const dir = raw.create_temp_dir(o);
   try {
     return callback(dir);
   } finally {
     if (!(o && o.keep)) {
-      delete_tree(dir, { force: true });
+      raw.delete_tree(dir, { force: true });
     }
   }
 }
