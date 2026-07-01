@@ -475,6 +475,15 @@
       (fs/create-dirs nested)
       (is (fs/directory? nested)))))
 
+(deftest create-dirs-permissions-test
+  (testing ":posix-file-permissions is applied to each created dir, like the JVM"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (fs/create-dirs (fs/path d "a" "b" "c") {:posix-file-permissions "rwx------"})
+        (doseq [p ["a" "a/b" "a/b/c"]]
+          (is (= "rwx------"
+                 (fs/posix->str (fs/posix-file-permissions (fs/path d p))))))))))
+
 (deftest delete-tree-test
   (fs/with-temp-dir [d]
     (files d "foo/bar/baz/file.txt")

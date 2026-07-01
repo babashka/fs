@@ -862,6 +862,19 @@
                 (chmod-umasked dir posix-file-permissions))
               (str dir)))))
 
+#?(:cljs
+   (defn- create-dirs*
+     ;; create each missing ancestor and apply the perms to it, like JVM
+     ;; createDirectories; existing dirs are left untouched
+     [dir posix-file-permissions]
+     (let [dir (str dir)]
+       (when-not (or (= "" dir) (exists? dir))
+         (when-let [p (parent dir)]
+           (create-dirs* p posix-file-permissions))
+         (.mkdirSync node-fs dir)
+         (when posix-file-permissions
+           (chmod-umasked dir posix-file-permissions))))))
+
 (defn create-dirs
   "Creates `dir` via [Files/createDirectories](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#createDirectories(java.nio.file.Path,java.nio.file.attribute.FileAttribute...)).
   Also creates parents if needed.
@@ -879,9 +892,7 @@
                p
                (Files/createDirectories (as-path dir) (posix->attrs posix-file-permissions))))
       :cljs (do
-              (.mkdirSync node-fs (str dir) #js {:recursive true})
-              (when posix-file-permissions
-                (chmod-umasked dir posix-file-permissions))
+              (create-dirs* dir posix-file-permissions)
               (str dir)))))
 
 (defn set-posix-file-permissions
