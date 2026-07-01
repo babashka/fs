@@ -795,8 +795,9 @@
             dest (if (directory? dest)
                    (path dest (file-name source))
                    dest)]
-        ;; JVM Files/copy is a no-op for the same file; copyFileSync would throw
-        (when-not (and (exists? dest) (same-file? source dest))
+        ;; JVM Files/copy is a no-op for the same file; copyFileSync would throw.
+        ;; A symlink dest is not the same file (checked NOFOLLOW), let copy-one handle it
+        (when-not (and (exists? dest) (not (sym-link? dest)) (same-file? source dest))
           (copy-one source dest opts))
         dest))))
 
@@ -1317,8 +1318,9 @@
                          (path dest (file-name source-path))
                          dest)]
               (cond
-                ;; JVM Files/move is a no-op for the same file
-                (and (exists? dest) (same-file? source-path dest)) dest
+                ;; JVM Files/move is a no-op for the same file; a symlink dest is
+                ;; not the same file (checked NOFOLLOW)
+                (and (exists? dest) (not (sym-link? dest)) (same-file? source-path dest)) dest
                 (and (not replace-existing) (exists? dest {:nofollow-links true}))
                 (throw (ex-info (str "Target already exists: " dest) {}))
                 :else (do (.renameSync node-fs (str source-path) dest)

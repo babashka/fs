@@ -313,6 +313,22 @@
         (is (= (fs/unixify f) (fs/unixify (fs/move f f))))
         (is (= "X" (fs/slurp f)))))))
 
+(deftest copy-onto-symlink-to-source-not-noop-test
+  (testing "copy onto a symlink resolving to source is not a same-file no-op (matches JVM)"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (let [src (fs/path d "src")
+              link (fs/path d "link")]
+          (fs/spit src "SRC")
+          (fs/create-sym-link link src)
+          (let [caught (atom false)]
+            (try (fs/copy src link)
+                 (catch #?(:clj Exception :cljs :default) _ (reset! caught true)))
+            (is (true? @caught) "no-replace throws"))
+          (fs/copy src link {:replace-existing true})
+          (is (false? (fs/sym-link? link)) "replace replaces the link with a real file")
+          (is (= "SRC" (fs/slurp link))))))))
+
 (deftest copy-replaces-dest-symlink-test
   (testing ":replace-existing replaces a symlink dest, it does not follow it"
     (when-not (fs/windows?)
