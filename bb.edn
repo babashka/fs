@@ -62,7 +62,7 @@
              (do
                (println (format "-[Running test for %s]-" alias))
                (from-scratch-cwd "tests" [alias :test-runner] args))))}
-  
+
   dev
   {:doc "Launch an nREPL server"
    :task (from-scratch-cwd "repl" [:test-runner :repl-runner] *command-line-args*)}
@@ -102,8 +102,9 @@
 
   gen-index
   {:doc "Regenerate index.mjs (the JS API) from the compiled lib/babashka/fs.mjs"
-   :task (do (shell "npm" "run" "build")
-             (shell "bb" "script/gen_index.clj"))}
+   :task (do (shell "npm" "install")
+             (shell "npm" "run" "build")
+             (shell "npx" "nbb" "script/gen_index.cljs"))}
 
   quickdoc
   {:doc "Invoke quickdoc"
