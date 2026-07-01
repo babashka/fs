@@ -3,9 +3,16 @@
   "version": "0.5.25",
   "description": "File system utilities for Clojure/ClojureScript.",
   "exports": {
-    ".": "./.squint-out/babashka/fs.mjs"
+    ".": "./index.mjs"
   },
+  "files": [
+    "index.mjs",
+    "lib/babashka/fs.mjs",
+    "README.md"
+  ],
   "scripts": {
+    "build": "squint compile --paths src --output-dir lib",
+    "prepack": "npm run build",
     "test": "node_modules/.bin/squint compile && node .squint-out/babashka/run_tests.mjs"
   },
   "dependencies": {

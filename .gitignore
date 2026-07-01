@@ -86,3 +86,4 @@ package-lock.json
 cljs-test-runner-out/
 .shadow-cljs/
 out/
+lib/
