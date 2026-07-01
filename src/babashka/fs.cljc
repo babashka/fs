@@ -1148,10 +1148,8 @@
                               true
                               (catch :default _ false))]
                   (cond
-                    ok (do (if posix-file-permissions
-                             (chmod-umasked result posix-file-permissions)
-                             ;; writeFileSync leaves 0644; JVM createTempFile is 0600
-                             (chmod result 8r600))
+                    ;; writeFileSync leaves 0644; JVM createTempFile defaults to 0600
+                    ok (do (chmod-umasked result (or posix-file-permissions "rw-------"))
                            result)
                     (< tries 100) (recur (inc tries))
                     :else (throw (ex-info (str "Could not create temp file in: " base) {})))))))))
