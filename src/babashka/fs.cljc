@@ -131,15 +131,6 @@
          (.lstatSync node-fs p)
          (.statSync node-fs p)))))
 
-#?(:cljs
-   ;; usable before exists? is defined below: a forward-referenced bare exists?
-   ;; compiles to squint's built-in existence macro instead of this namespace's.
-   ;; see https://github.com/squint-cljs/squint/issues/886
-   (defn- exists?*
-     [path nofollow-links]
-     (try (stat path nofollow-links) true
-          (catch :default _ false))))
-
 #?(:cljs (def ^:private stat-bigint-opts #js {:bigint true}))
 
 #?(:cljs
@@ -181,7 +172,7 @@
 
 #?(:cljs (def ^:private ns-per-ms (js/BigInt 1000000)))
 
-(declare absolutize normalize parent file-name win?)
+(declare absolutize normalize parent file-name win? exists?)
 
 (defn real-path
   "Converts `path` into real path via [Path#toRealPath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toRealPath(java.nio.file.LinkOption...)).
@@ -192,7 +183,7 @@
   ([path {:keys [:nofollow-links]}]
    #?(:clj (.toRealPath (as-path path) (->link-opts nofollow-links))
       :cljs (if nofollow-links
-              (if (exists?* path true)
+              (if (exists? path {:nofollow-links true})
                 (normalize (absolutize path))
                 (throw (ex-info (str "File does not exist: " path) {})))
               (.realpathSync node-fs (str path))))))
@@ -283,7 +274,8 @@
    #?(:clj (try
              (Files/exists (as-path path) (->link-opts nofollow-links))
              (catch Exception _e false))
-      :cljs (exists?* path nofollow-links))))
+      :cljs (try (stat path nofollow-links) true
+                 (catch :default _ false)))))
 
 ;;;; End predicates
 

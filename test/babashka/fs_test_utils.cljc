@@ -105,4 +105,3 @@
   [t]
   #?(:clj (instance? java.nio.file.attribute.FileTime t)
      :cljs (identical? js/BigInt (.-constructor t))))
-

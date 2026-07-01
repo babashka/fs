@@ -17,7 +17,7 @@
     "test:js": "npm run build && node --test test-js/smoke.test.mjs"
   },
   "dependencies": {
-    "squint-cljs": "^0.14.197"
+    "squint-cljs": "^0.14.199"
   },
   "devDependencies": {
     "nbb": "^1.4.208",
