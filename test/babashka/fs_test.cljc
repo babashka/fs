@@ -122,6 +122,12 @@
   (testing "equal paths are the same file without touching the filesystem"
     (is (true? (fs/same-file? "does-not-exist" "does-not-exist")))))
 
+(deftest empty-path-is-cwd-test
+  (testing "empty-string path is the current directory, like the JVM"
+    (is (true? (fs/exists? "")))
+    (is (true? (fs/directory? "")))
+    (is (false? (fs/regular-file? "")))))
+
 (deftest unixify-test
   (is (= "README.md" (fs/unixify "README.md")))
   (let [file "C:\\Users\\Billy\\proj\\foobar\\README.md"]

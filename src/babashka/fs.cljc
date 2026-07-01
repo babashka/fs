@@ -117,10 +117,18 @@
                    (conj LinkOption/NOFOLLOW_LINKS)))))
 
 #?(:cljs
+   (defn- stat-path
+     ;; JVM Path "" is the cwd; Node statSync("") throws ENOENT, so map "" to "."
+     [path]
+     (let [p (str path)]
+       (if (= "" p) "." p))))
+
+#?(:cljs
    (defn- stat [path nofollow-links]
-     (if nofollow-links
-       (.lstatSync node-fs (str path))
-       (.statSync node-fs (str path)))))
+     (let [p (stat-path path)]
+       (if nofollow-links
+         (.lstatSync node-fs p)
+         (.statSync node-fs p)))))
 
 #?(:cljs
    ;; usable before exists? is defined below: a forward-referenced bare exists?
@@ -135,9 +143,10 @@
 
 #?(:cljs
    (defn- stat-ns [path nofollow-links]
-     (if nofollow-links
-       (.lstatSync node-fs (str path) stat-bigint-opts)
-       (.statSync node-fs (str path) stat-bigint-opts))))
+     (let [p (stat-path path)]
+       (if nofollow-links
+         (.lstatSync node-fs p stat-bigint-opts)
+         (.statSync node-fs p stat-bigint-opts)))))
 
 #?(:cljs
    (defn- bigint? [x]
