@@ -1,4 +1,5 @@
 (ns babashka.fs
+  (:refer-clojure :exclude [exists? slurp spit])
   (:require #?@(:shadow [[clojure.string :as str]
                          ["node:fs" :as node-fs]
                          ["node:path" :as node-path]
@@ -121,6 +122,15 @@
        (.lstatSync node-fs (str path))
        (.statSync node-fs (str path)))))
 
+#?(:cljs
+   ;; usable before exists? is defined below: a forward-referenced bare exists?
+   ;; compiles to squint's built-in existence macro instead of this namespace's.
+   ;; see https://github.com/squint-cljs/squint/issues/886
+   (defn- exists?*
+     [path nofollow-links]
+     (try (stat path nofollow-links) true
+          (catch :default _ false))))
+
 #?(:cljs (def ^:private stat-bigint-opts #js {:bigint true}))
 
 #?(:cljs
@@ -172,7 +182,9 @@
   ([path {:keys [:nofollow-links]}]
    #?(:clj (.toRealPath (as-path path) (->link-opts nofollow-links))
       :cljs (if nofollow-links
-              (normalize (absolutize path))
+              (if (exists?* path true)
+                (normalize (absolutize path))
+                (throw (ex-info (str "File does not exist: " path) {})))
               (.realpathSync node-fs (str path))))))
 
 (defn owner
@@ -261,10 +273,7 @@
    #?(:clj (try
              (Files/exists (as-path path) (->link-opts nofollow-links))
              (catch Exception _e false))
-      :cljs (try
-              (stat path nofollow-links)
-              true
-              (catch :default _ false)))))
+      :cljs (exists?* path nofollow-links))))
 
 ;;;; End predicates
 
@@ -539,26 +548,13 @@
                      (filterv #(.test re (file-name %)) entries))
                    (filterv glob-or-accept entries)))))))
 
-#?(:cljs
-   (defn- path-seq-children
-     ;; entry kinds come from the directory listing, so only a symlink costs a stat
-     [dir]
-     (mapcat (fn [^js d]
-               (let [child (.join node-path (str dir) (.-name d))]
-                 (if (if (.isSymbolicLink d) (directory? child) (.isDirectory d))
-                   (cons child (lazy-seq (path-seq-children child)))
-                   (list child))))
-             (.readdirSync node-fs (str dir) #js {:withFileTypes true}))))
-
-(defn- path-seq
-  [path]
-  #?(:clj (tree-seq
-           directory?
-           list-dir
-           (as-path path))
-     :cljs (cons (str path)
-                 (when (directory? path)
-                   (path-seq-children path)))))
+#?(:clj
+   (defn- path-seq
+     [path]
+     (tree-seq
+      directory?
+      list-dir
+      (as-path path))))
 
 #?(:cljs
    (defn- regular-files-children
@@ -2083,6 +2079,27 @@
                               #js {:encoding (->charset charset) :flag (if append "a" "w")})
               (str file)))))
 
+(defn slurp
+  "Reads file as text.
+  Options:
+  * `:charset` - (default `\"utf-8\"`)"
+  ([file] (slurp file nil))
+  ([file {:keys [charset] :or {charset "utf-8"}}]
+   #?(:clj (clojure.core/slurp (as-file file) :encoding charset)
+      :cljs (.readFileSync node-fs (str file) #js {:encoding charset}))))
+
+(defn spit
+  "Writes `content` to `file` as text.
+  Options:
+  * `:charset` - (default `\"utf-8\"`)
+  * `:append` - append to `file` instead of overwriting (default `false`)"
+  ([file content] (spit file content nil))
+  ([file content {:keys [charset append] :or {charset "utf-8"}}]
+   #?(:clj (clojure.core/spit (as-file file) content :encoding charset :append append)
+      :cljs (.writeFileSync node-fs (str file) content
+                            #js {:encoding charset :flag (if append "a" "w")}))
+   file))
+
 (defn update-file
   "Updates the contents of text `file` with result of applying function `f` with old contents and args `xs`.
   Returns the new contents.
@@ -2095,16 +2112,11 @@
                        [f (first xs) (rest xs)]
                        [nil f xs])
          {:keys [charset]
-          :or {charset "utf-8"}} opts]
-     #?(:clj (let [opts [:encoding charset]
-                   old-val (apply slurp (as-file file) opts)
-                   new-val (apply f old-val xs)]
-               (apply spit (as-file file) new-val opts)
-               new-val)
-        :cljs (let [old-val (.readFileSync node-fs (str file) #js {:encoding charset})
-                    new-val (apply f old-val xs)]
-                (.writeFileSync node-fs (str file) new-val #js {:encoding charset})
-                new-val)))))
+          :or {charset "utf-8"}} opts
+         old-val (slurp file {:charset charset})
+         new-val (apply f old-val xs)]
+     (spit file new-val {:charset charset})
+     new-val)))
 
 (defn unixify
   "Returns `path` as string with Unix-style file separators (`/`)."

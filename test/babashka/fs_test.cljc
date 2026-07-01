@@ -228,6 +228,18 @@
         (fs/write-bytes e (string->bytes ""))
         (is (= [] (fs/read-all-lines e)))))))
 
+(deftest slurp-spit-test
+  (fs/with-temp-dir [d]
+    (let [f (fs/path d "f.txt")]
+      (is (= (fs/unixify f) (fs/unixify (fs/spit f "hello\nworld"))))
+      (is (= "hello\nworld" (fs/slurp f)))
+      (fs/spit f "again")
+      (is (= "again" (fs/slurp f)))
+      (testing ":append"
+        (fs/spit f "x")
+        (fs/spit f "y" {:append true})
+        (is (= "xy" (fs/slurp f)))))))
+
 (deftest copy-to-file-test
   (fs/with-temp-dir [d]
     (files d "file" "dest-dir/")
@@ -878,6 +890,14 @@
         (fs/create-sym-link lnk real)
         (is (= (fs/unixify (fs/real-path real))
                (fs/unixify (fs/real-path lnk))))))))
+
+(deftest real-path-missing-throws-test
+  (testing "real-path throws on a missing path, unlike canonicalize"
+    (fs/with-temp-dir [d]
+      (let [caught (atom false)]
+        (try (fs/real-path (fs/path d "nope") {:nofollow-links true})
+             (catch #?(:clj Exception :cljs :default) _ (reset! caught true)))
+        (is (true? @caught))))))
 
 (deftest create-link-test
   (fs/with-temp-dir [d]

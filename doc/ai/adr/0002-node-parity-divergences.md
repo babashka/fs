@@ -116,6 +116,17 @@ every platform, so on Windows Node a dotfile reports as hidden where the JVM
 reports false. This also feeds `:hidden` filtering in `glob`/`match`. Node has no
 direct DOS-attribute API without extra native calls. Unix Node matches the JVM.
 
+## copy-tree does not preserve directory mtimes - not a divergence
+
+`copy-tree` with `:copy-attributes` preserves file mtimes but not directory
+mtimes, on both runtimes. The JVM copies a directory's attributes in
+`preVisitDirectory`, but then writes the directory's children, which bumps its
+mtime, and `postVisitDirectory` only sets permissions. Verified: a source dir
+with mtime 1000 copied with `:copy-attributes true` yields a dest dir with the
+current time, not 1000. So the Node branch, which never sets a directory mtime,
+matches the JVM. Adding a `utimesSync` on the dest dir would make Node preserve
+directory mtimes where the JVM does not.
+
 ## move :atomic-move is ignored on Node - accepted
 
 JVM `move` honors `:atomic-move` through `StandardCopyOption/ATOMIC_MOVE`. The Node
