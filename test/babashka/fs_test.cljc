@@ -178,6 +178,25 @@
       (is (str/ends-with? (fs/file-name f) ".txt"))
       (is (= 1 (count (fs/list-dir d))) "no orphan dir"))))
 
+(deftest create-temp-file-permissions-test
+  (testing "temp file is not group/world readable by default (0600, like the JVM)"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (is (= "rw-------"
+               (fs/posix->str (fs/posix-file-permissions (fs/create-temp-file {:dir d})))))))))
+
+(deftest create-posix-permissions-umask-test
+  (testing ":posix-file-permissions is masked by umask, like the JVM"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        ;; requesting all bits yields the same perms as a default create (both masked)
+        (is (= (fs/posix->str (fs/posix-file-permissions (fs/create-dir (fs/path d "a"))))
+               (fs/posix->str (fs/posix-file-permissions
+                               (fs/create-dir (fs/path d "b") {:posix-file-permissions "rwxrwxrwx"})))))
+        (is (= (fs/posix->str (fs/posix-file-permissions (fs/create-file (fs/path d "c"))))
+               (fs/posix->str (fs/posix-file-permissions
+                               (fs/create-file (fs/path d "e") {:posix-file-permissions "rw-rw-rw-"})))))))))
+
 (deftest create-delete-test
   (fs/with-temp-dir [d]
     (let [f (fs/path d "f.txt")]
@@ -554,6 +573,20 @@
       (fs/move (fs/path d "bad-link1") (fs/path d "bad-link2") {:replace-existing true})
       (is (= ["bad-link2"] (list-tree d)))
       (is (= "bad-target1" (fs/unixify (fs/read-link (fs/path d "bad-link2"))))))))
+
+(deftest move-to-broken-symlink-throws-test
+  (testing "move without :replace-existing throws on a broken-symlink dest (not followed)"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (let [src (fs/path d "src")
+              dest (fs/path d "dest")]
+          (fs/spit src "x")
+          (fs/create-sym-link dest "nonexistent-target")
+          (let [caught (atom false)]
+            (try (fs/move src dest)
+                 (catch #?(:clj Exception :cljs :default) _ (reset! caught true)))
+            (is (true? @caught))
+            (is (fs/sym-link? dest) "broken symlink left in place")))))))
 
 (deftest move-good-link-to-good-link-sym-link-test
   (when-not (fs/windows?)

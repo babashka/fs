@@ -819,6 +819,14 @@
         :else
         s))
 
+#?(:cljs
+   (defn- chmod-umasked
+     ;; JVM passes posix perms as a create-time FileAttribute, so the OS masks
+     ;; them with umask; chmod sets exact bits, mask here to match
+     [path posix-file-permissions]
+     (chmod path (bit-and (->posix-file-permissions posix-file-permissions)
+                          (bit-not (.umask js/process))))))
+
 #?(:clj
    (defn- posix->file-attribute [x]
      (PosixFilePermissions/asFileAttribute x)))
@@ -851,7 +859,7 @@
       :cljs (do
               (.mkdirSync node-fs (str dir))
               (when posix-file-permissions
-                (chmod dir (->posix-file-permissions posix-file-permissions)))
+                (chmod-umasked dir posix-file-permissions))
               (str dir)))))
 
 (defn create-dirs
@@ -873,7 +881,7 @@
       :cljs (do
               (.mkdirSync node-fs (str dir) #js {:recursive true})
               (when posix-file-permissions
-                (chmod dir (->posix-file-permissions posix-file-permissions)))
+                (chmod-umasked dir posix-file-permissions))
               (str dir)))))
 
 (defn set-posix-file-permissions
@@ -1080,7 +1088,7 @@
                   pre (or prefix (.randomUUID node-crypto))
                   result (mkdtemp base pre)]
               (when posix-file-permissions
-                (chmod result (->posix-file-permissions posix-file-permissions)))
+                (chmod-umasked result posix-file-permissions))
               result))))
 
 (defn create-temp-file
@@ -1129,8 +1137,10 @@
                               true
                               (catch :default _ false))]
                   (cond
-                    ok (do (when posix-file-permissions
-                             (chmod result (->posix-file-permissions posix-file-permissions)))
+                    ok (do (if posix-file-permissions
+                             (chmod-umasked result posix-file-permissions)
+                             ;; writeFileSync leaves 0644; JVM createTempFile is 0600
+                             (chmod result 8r600))
                            result)
                     (< tries 100) (recur (inc tries))
                     :else (throw (ex-info (str "Could not create temp file in: " base) {})))))))))
@@ -1253,7 +1263,7 @@
       :cljs (do
               (.writeFileSync node-fs (str file) "" #js {:flag "wx"})
               (when posix-file-permissions
-                (chmod file (->posix-file-permissions posix-file-permissions)))
+                (chmod-umasked file posix-file-permissions))
               (str file)))))
 
 (defn move
@@ -1283,7 +1293,7 @@
                   dest (if (directory? dest {:nofollow-links true})
                          (path dest (file-name source-path))
                          dest)]
-              (when (and (not replace-existing) (exists? dest))
+              (when (and (not replace-existing) (exists? dest {:nofollow-links true}))
                 (throw (ex-info (str "Target already exists: " dest) {})))
               (.renameSync node-fs (str source-path) dest)
               dest))))
