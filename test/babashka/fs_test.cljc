@@ -128,7 +128,9 @@
   (testing "empty-string path is the current directory, like the JVM"
     (is (true? (fs/exists? "")))
     (is (true? (fs/directory? "")))
-    (is (false? (fs/regular-file? "")))))
+    (is (false? (fs/regular-file? ""))))
+  (testing "nil is not treated as the cwd"
+    (is (false? (fs/exists? nil)))))
 
 (deftest unixify-test
   (is (= "README.md" (fs/unixify "README.md")))
@@ -300,6 +302,16 @@
           (is (fs/sym-link? (fs/copy lnk (fs/path d "c1") {:nofollow-links true}))))
         (testing "default follows the link"
           (is (not (fs/sym-link? (fs/copy lnk (fs/path d "c2"))))))))))
+
+(deftest copy-move-same-file-noop-test
+  (testing "copy and move to the same file are no-ops, like the JVM"
+    (fs/with-temp-dir [d]
+      (let [f (fs/path d "f")]
+        (fs/spit f "X")
+        (is (= (fs/unixify f) (fs/unixify (fs/copy f f))))
+        (is (= "X" (fs/slurp f)))
+        (is (= (fs/unixify f) (fs/unixify (fs/move f f))))
+        (is (= "X" (fs/slurp f)))))))
 
 (deftest copy-replaces-dest-symlink-test
   (testing ":replace-existing replaces a symlink dest, it does not follow it"

@@ -118,10 +118,11 @@
 
 #?(:cljs
    (defn- stat-path
-     ;; JVM Path "" is the cwd; Node statSync("") throws ENOENT, so map "" to "."
+     ;; JVM Path "" is the cwd; Node statSync("") throws ENOENT, so map "" to ".".
+     ;; nil stays "" so statSync throws (JVM throws NPE for nil), not treated as cwd
      [path]
      (let [p (str path)]
-       (if (= "" p) "." p))))
+       (if (and (= "" p) (some? path)) "." p))))
 
 #?(:cljs
    (defn- stat [path nofollow-links]
@@ -746,7 +747,7 @@
                    atomic-move (conj StandardCopyOption/ATOMIC_MOVE)
                    nofollow-links (conj LinkOption/NOFOLLOW_LINKS)))))
 
-(declare sym-link? read-link create-sym-link delete-if-exists)
+(declare sym-link? read-link create-sym-link delete-if-exists same-file?)
 
 #?(:cljs
    (defn- copy-one [src dest {:keys [nofollow-links replace-existing copy-attributes]}]
@@ -794,7 +795,9 @@
             dest (if (directory? dest)
                    (path dest (file-name source))
                    dest)]
-        (copy-one source dest opts)
+        ;; JVM Files/copy is a no-op for the same file; copyFileSync would throw
+        (when-not (and (exists? dest) (same-file? source dest))
+          (copy-one source dest opts))
         dest))))
 
 #?(:cljs (def ^:private octal->rwx ["---" "--x" "-w-" "-wx" "r--" "r-x" "rw-" "rwx"]))
@@ -1313,10 +1316,13 @@
                   dest (if (directory? dest {:nofollow-links true})
                          (path dest (file-name source-path))
                          dest)]
-              (when (and (not replace-existing) (exists? dest {:nofollow-links true}))
-                (throw (ex-info (str "Target already exists: " dest) {})))
-              (.renameSync node-fs (str source-path) dest)
-              dest))))
+              (cond
+                ;; JVM Files/move is a no-op for the same file
+                (and (exists? dest) (same-file? source-path dest)) dest
+                (and (not replace-existing) (exists? dest {:nofollow-links true}))
+                (throw (ex-info (str "Target already exists: " dest) {}))
+                :else (do (.renameSync node-fs (str source-path) dest)
+                          dest))))))
 
 (defn parent
   "Returns parent path of `path` via [Path#getParent](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#getParent()).
