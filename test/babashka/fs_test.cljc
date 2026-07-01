@@ -4,7 +4,7 @@
   abstractions in babashka.fs-test-utils. Path comparisons go through
   `fs/unixify` so they hold on Windows too. JVM-only tests live in
   babashka.fs-jvm-test."
-  (:require [babashka.fs :as fs :include-macros true]
+  (:require [babashka.fs :as fs]
             [babashka.fs-test-utils :include-macros true
              :refer [string->bytes bytes->string file-time?
                      files list-tree rel-entries slurp-str caught ex-msg

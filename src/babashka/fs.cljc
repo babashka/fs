@@ -1,9 +1,12 @@
 (ns babashka.fs
+  ;; {:squint/macros true} lets squint extract with-temp-dir from the :clj branch
+  ;; below (see the macro) instead of loading this whole namespace into SCI.
+  {:squint/macros true}
   (:refer-clojure :exclude [exists? slurp spit])
-  ;; squint has no JVM-side macro expansion, so it loads with-temp-dir from the
-  ;; companion macro ns (only that, not this whole namespace). JVM/bb/cljs/shadow
-  ;; use the :clj defmacro below.
-  #?(:squint (:require-macros [babashka.fs.macros :refer [with-temp-dir]]))
+  ;; cljs/shadow self-require this ns's :clj macros so a plain
+  ;; (:require [babashka.fs]) exposes them. squint reads :squint -> nothing here.
+  #?@(:squint []
+      :cljs [(:require-macros [babashka.fs])])
   (:require #?@(:shadow [[clojure.string :as str]
                          ["node:fs" :as node-fs]
                          ["node:path" :as node-path]
@@ -1973,10 +1976,12 @@
 
 ;;;; End gzip
 
-;; squint loads this macro from the babashka.fs.macros companion ns (declared in
-;; the ns form). JVM/bb/cljs/shadow use this :clj definition, whose var is
-;; interned in babashka.fs so `fs/with-temp-dir` resolves.
+;; One definition for every target. JVM/bb/cljs/shadow use this :clj macro (var
+;; interned in babashka.fs so `fs/with-temp-dir` resolves). squint extracts this
+;; ^:squint/macro form from the :clj branch and evals it as babashka.fs, so the
+;; bare create-temp-dir/delete-tree refs resolve, and never loads this whole ns.
 #?(:clj
+   ^:squint/macro
    (defmacro with-temp-dir
      "Evaluates body with `temp-dir` bound to the result of `(create-temp-dir opts)`.
 
