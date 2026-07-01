@@ -439,7 +439,6 @@
                                                   (.isDirectory d))
                                            cr (cond
                                                 (and dir? (< cd max-depth)) (do-walk child cd seen)
-                                                dir? (file-visit-result (visit-file child nil))
                                                 (and sym? follow-links (not (exists? child)))
                                                 (file-visit-result (visit-file-failed child nil))
                                                 :else (file-visit-result (visit-file child nil)))]
@@ -726,7 +725,7 @@
            (create-sym-link dest (read-link src))
            (when copy-attributes
              (let [st (stat src nofollow-links)]
-               (.lutimesSync node-fs (str dest) (.-atime st) (.-mtime st)))))
+               (.lutimesSync node-fs dest (.-atime st) (.-mtime st)))))
        (do
          (copy-file src dest replace-existing)
          (when copy-attributes
