@@ -1,0 +1,108 @@
+(require '[clojure.string :as str])
+
+(def mjs (slurp "lib/babashka/fs.mjs"))
+
+(def names
+  (->> (re-find #"(?s)export \{(.*?)\}" mjs)
+       second
+       (#(str/split % #","))
+       (map str/trim)
+       (remove str/blank?)
+       (remove #{"with_temp_dir"})
+       vec))
+
+(def values #{"file_separator" "path_separator"})
+
+(defn squint->clj [s]
+  (-> s
+      (str/replace "__GT_" "->")
+      (str/replace "_QMARK_" "?")
+      (str/replace "_STAR_" "*")
+      (str/replace "delete$" "delete")
+      (str/replace "_" "-")))
+
+(def overrides
+  {"sym-link?" "isSymlink"
+   "read-attributes*" "readAttributesRaw"
+   "exists?" "exists"
+   "starts-with?" "startsWith"
+   "ends-with?" "endsWith"})
+
+(defn camel [clj]
+  (or (overrides clj)
+      (let [pred (str/ends-with? clj "?")
+            base (-> clj (str/replace "?" "") (str/replace "->" "-to-") (str/replace "*" ""))
+            parts (remove str/blank? (str/split base #"-"))
+            cc (apply str (first parts) (map str/capitalize (rest parts)))]
+        (if pred
+          (str "is" (str/upper-case (subs cc 0 1)) (subs cc 1))
+          cc))))
+
+(def reserved
+  #{"delete" "new" "class" "return" "typeof" "in" "for" "do" "if" "void" "yield"})
+
+(def rows
+  (for [n names
+        :let [c (camel (squint->clj n))]
+        :when (not= n c)]
+    [n c]))
+
+;; reserved words cannot be const bindings, only export aliases (no opts translation)
+(def alias-rows (filter (fn [[_ c]] (reserved c)) rows))
+(def const-rows (remove (fn [[_ c]] (reserved c)) rows))
+
+(def helpers
+  (str "// camelCase (or dashed) option keys are translated to the dashed keyword\n"
+       "// strings the squint-compiled functions read, e.g. {posixFilePermissions}\n"
+       "// and {visitFile} become {'posix-file-permissions'} / {'visit-file'}.\n"
+       "const kebabKey = (k) => k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());\n"
+       "const isPlainObject = (x) =>\n"
+       "  x != null && typeof x === 'object' && Object.getPrototypeOf(x) === Object.prototype;\n"
+       "const kebabizeArg = (x) => {\n"
+       "  if (!isPlainObject(x)) return x;\n"
+       "  const out = {};\n"
+       "  for (const k of Object.keys(x)) out[kebabKey(k)] = x[k];\n"
+       "  return out;\n"
+       "};\n"
+       "const jsFriendly = (fn) => (...args) => fn(...args.map(kebabizeArg));\n"))
+
+(def out
+  (str "// Public JS API for @babashka/fs, compiled from src/babashka/fs.cljc by squint.\n"
+       "// The squint-compiled names (exists_QMARK_, copy_tree, ...) are re-exported for\n"
+       "// direct interop; the friendly camelCase names are the documented JS surface.\n"
+       "import {\n"
+       (str/join ",\n" (map #(str "  " %) names))
+       ",\n} from './lib/babashka/fs.mjs';\n\n"
+       helpers "\n"
+       (str/join "\n"
+                 (map (fn [[n c]]
+                        (if (values n)
+                          (str "const " c " = " n ";")
+                          (str "const " c " = jsFriendly(" n ");")))
+                      const-rows))
+       "\n\n"
+       "export {\n"
+       "  // squint names\n"
+       (str/join ",\n" (map #(str "  " %) names))
+       ",\n  // friendly camelCase aliases\n"
+       (str/join ",\n" (map (fn [[_ c]] (str "  " c)) const-rows))
+       (when (seq alias-rows)
+         (str ",\n  // reserved-word names (no option translation, none needed)\n"
+              (str/join ",\n" (map (fn [[n c]] (str "  " n " as " c)) alias-rows))))
+       ",\n};\n\n"
+       "// with-temp-dir is a compile-time macro; this is the JS-callable equivalent.\n"
+       "// Creates a temp dir, runs `callback(dir)`, then deletes it (unless `opts.keep`).\n"
+       "export function withTempDir(callback, opts) {\n"
+       "  const o = kebabizeArg(opts);\n"
+       "  const dir = create_temp_dir(o);\n"
+       "  try {\n"
+       "    return callback(dir);\n"
+       "  } finally {\n"
+       "    if (!(o && o.keep)) {\n"
+       "      delete_tree(dir, { force: true });\n"
+       "    }\n"
+       "  }\n"
+       "}\n"))
+
+(spit "index.mjs" out)
+(println "wrote index.mjs:" (count names) "exports," (count rows) "aliases")

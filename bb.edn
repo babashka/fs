@@ -100,6 +100,11 @@
              (shell "npx" "shadow-cljs" "compile" "esm-test")
              (shell "bun" "out/esm/test.js"))}
 
+  gen-index
+  {:doc "Regenerate index.mjs (the JS API) from the compiled lib/babashka/fs.mjs"
+   :task (do (shell "npm" "run" "build")
+             (shell "bb" "script/gen_index.clj"))}
+
   quickdoc
   {:doc "Invoke quickdoc"
    :requires ([quickdoc.api :as api])
