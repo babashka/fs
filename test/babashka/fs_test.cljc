@@ -446,6 +446,16 @@
     (is (nil? (fs/delete-tree (fs/path d "foo"))))
     (is (nil? (fs/delete-tree (fs/path d "foo/bar/baz"))))))
 
+(deftest delete-tree-force-read-only-test
+  (testing ":force removes a read-only tree"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (files d "foo/bar/file.txt")
+        (fs/set-posix-file-permissions (fs/path d "foo/bar") "r-xr-xr-x")
+        (fs/set-posix-file-permissions (fs/path d "foo") "r-xr-xr-x")
+        (fs/delete-tree (fs/path d "foo") {:force true})
+        (is (= [] (list-tree d)))))))
+
 (deftest sym-link-test
   ;; symlink creation needs privileges on Windows
   (when-not (fs/windows?)

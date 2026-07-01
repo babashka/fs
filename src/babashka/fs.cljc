@@ -1213,7 +1213,15 @@
                                                 :continue)})
         :cljs (do (if (sym-link? root-path)
                     (delete root-path)
-                    (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)}))
+                    (do
+                      (when (and force (not win?))
+                        ;; rmSync force only ignores missing paths, it does not chmod;
+                        ;; make each dir writable so a read-only tree can be removed
+                        (walk-file-tree root-path
+                                        {:pre-visit-dir (fn [path _]
+                                                          (u+wx path)
+                                                          :continue)}))
+                      (.rmSync node-fs (str root-path) #js {:recursive true :force (boolean force)})))
                   root-path)))))
 
 (defn create-file
