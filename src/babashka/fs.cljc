@@ -1,5 +1,9 @@
 (ns babashka.fs
   (:refer-clojure :exclude [exists? slurp spit])
+  ;; squint has no JVM-side macro expansion, so it loads with-temp-dir from the
+  ;; companion macro ns (only that, not this whole namespace). JVM/bb/cljs/shadow
+  ;; use the :clj defmacro below.
+  #?(:squint (:require-macros [babashka.fs.macros :refer [with-temp-dir]]))
   (:require #?@(:shadow [[clojure.string :as str]
                          ["node:fs" :as node-fs]
                          ["node:path" :as node-path]
@@ -1969,8 +1973,12 @@
 
 ;;;; End gzip
 
-(defmacro with-temp-dir
-  "Evaluates body with `temp-dir` bound to the result of `(create-temp-dir opts)`.
+;; squint loads this macro from the babashka.fs.macros companion ns (declared in
+;; the ns form). JVM/bb/cljs/shadow use this :clj definition, whose var is
+;; interned in babashka.fs so `fs/with-temp-dir` resolves.
+#?(:clj
+   (defmacro with-temp-dir
+     "Evaluates body with `temp-dir` bound to the result of `(create-temp-dir opts)`.
 
   By default, the `temp-dir` will be removed with [[delete-tree]] on exit from the scope.
 
@@ -1988,17 +1996,17 @@
   ;; d no longer exists here
   ```
   "
-  {:arglists '[[[temp-dir] & body]
-               [[temp-dir opts] & body]]}
-  [[temp-dir opts & more] & body]
-  {:pre [(empty? more) (symbol? temp-dir)]}
-  `(let [opts# ~opts
-         ~temp-dir (create-temp-dir opts#)]
-     (try
-       ~@body
-       (finally
-         (when-not (:keep opts#)
-           (delete-tree ~temp-dir {:force true}))))))
+     {:arglists '[[[temp-dir] & body]
+                  [[temp-dir opts] & body]]}
+     [[temp-dir opts & more] & body]
+     {:pre [(empty? more) (symbol? temp-dir)]}
+     `(let [opts# ~opts
+            ~temp-dir (create-temp-dir opts#)]
+        (try
+          ~@body
+          (finally
+            (when-not (:keep opts#)
+              (delete-tree ~temp-dir {:force true})))))))
 
 (def ^:private cached-home-dir
   #?(:clj (delay (path (System/getProperty "user.home")))
