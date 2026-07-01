@@ -295,7 +295,9 @@
   i.e.: split on the [[file-separator]]."
   [path]
   #?(:clj (seq (as-path path))
-     :cljs (seq (remove str/blank? (.split (native-sep path) (.-sep node-path))))))
+     :cljs (if (= "" (str path))
+             '("") ; JVM Path "" has a single empty name component
+             (seq (remove str/blank? (.split (native-sep path) (.-sep node-path)))))))
 
 (defn absolutize
   "Converts `path` into an absolute path via [Path#toAbsolutePath](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Path.html#toAbsolutePath())."
@@ -1384,7 +1386,16 @@
           :or {charset "utf-8"}}]
    #?(:clj (vec (Files/readAllLines (as-path file) (->charset charset)))
       :cljs (let [content (.readFileSync node-fs (str file) #js {:encoding (->charset charset)})]
-              (vec (when (seq content) (str/split-lines content)))))))
+              ;; match Files/readAllLines: strip at most one final terminator,
+              ;; split on \n / \r / \r\n keeping empties; empty file is []
+              (if (= "" content)
+                []
+                (let [content (cond
+                                (str/ends-with? content "\r\n") (subs content 0 (- (count content) 2))
+                                (or (str/ends-with? content "\n")
+                                    (str/ends-with? content "\r")) (subs content 0 (dec (count content)))
+                                :else content)]
+                  (vec (.split content #"\r\n|\r|\n"))))))))
 
 ;;;; Attributes
 

@@ -116,7 +116,9 @@
   (is (= ["foo" "bar" "baz" "bop.txt"] (map str (fs/components "foo/bar/baz/bop.txt"))))
   (testing "keeps . and .. but collapses duplicate and trailing separators"
     (is (= ["a" "." "b" ".." "c"] (map str (fs/components "a/./b/../c"))))
-    (is (= ["a" "b"] (map str (fs/components "a//b/"))))))
+    (is (= ["a" "b"] (map str (fs/components "a//b/")))))
+  (testing "empty string has a single empty component"
+    (is (= [""] (map str (fs/components ""))))))
 
 (deftest same-file?-equal-path-test
   (testing "equal paths are the same file without touching the filesystem"
@@ -251,7 +253,17 @@
     (testing "empty file reads as empty vector"
       (let [e (fs/path d "empty.txt")]
         (fs/write-bytes e (string->bytes ""))
-        (is (= [] (fs/read-all-lines e)))))))
+        (is (= [] (fs/read-all-lines e)))))
+    (testing "trailing blanks and terminators match Files/readAllLines"
+      (let [f (fs/path d "lines.txt")]
+        (doseq [[content expected] [["a\nb\n\n" ["a" "b" ""]]
+                                    ["\n" [""]]
+                                    ["a\nb\n" ["a" "b"]]
+                                    ["a\n\nb" ["a" "" "b"]]
+                                    ["" []]
+                                    ["a\r\nb\r\n\r\n" ["a" "b" ""]]]]
+          (fs/write-bytes f (string->bytes content))
+          (is (= expected (fs/read-all-lines f)) (pr-str content)))))))
 
 (deftest slurp-spit-test
   (fs/with-temp-dir [d]
