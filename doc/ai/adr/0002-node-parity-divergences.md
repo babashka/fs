@@ -98,6 +98,24 @@ branch calls `copyFileSync`, which throws `EISDIR` on a directory. `copy-tree` i
 the directory API; copying a bare directory with `copy` is rare. The divergence
 is accepted rather than guarded.
 
+## delete-tree :force does not clear read-only on Windows Node - accepted
+
+On the JVM `delete-tree` with `:force` clears the read-only attribute per entry,
+on Unix via `u+wx` and on Windows via `setWritable`, so a read-only tree is
+removed on both. The Node branch runs the `u+wx` pass only when not on Windows,
+then calls `rmSync`. `rmSync {force: true}` only ignores missing paths, it does
+not clear read-only. So on Windows Node a read-only tree with `:force` can fail
+where the JVM succeeds. Unix Node matches the JVM. This is a low-frequency Node +
+Windows + read-only edge.
+
+## hidden? on Windows Node treats dotfiles as hidden - accepted
+
+The JVM `hidden?` on Windows checks the DOS hidden attribute, and a leading dot
+does not make a file hidden there. The Node branch tests for a leading dot on
+every platform, so on Windows Node a dotfile reports as hidden where the JVM
+reports false. This also feeds `:hidden` filtering in `glob`/`match`. Node has no
+direct DOS-attribute API without extra native calls. Unix Node matches the JVM.
+
 ## move :atomic-move is ignored on Node - accepted
 
 JVM `move` honors `:atomic-move` through `StandardCopyOption/ATOMIC_MOVE`. The Node

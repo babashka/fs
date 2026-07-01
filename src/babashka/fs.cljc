@@ -408,10 +408,6 @@
            max-depth (or max-depth js/Infinity)
            nofollow (not follow-links)
            root (str path)
-           visit-child (fn [child]
-                         (if (exists? child {:nofollow-links nofollow})
-                           (file-visit-result (visit-file child nil))
-                           (file-visit-result (visit-file-failed child nil))))
            do-walk (fn do-walk [dir depth seen]
                      (let [rp (when follow-links
                                 (try (.realpathSync node-fs (str dir)) (catch :default _ nil)))]
@@ -454,7 +450,7 @@
        (cond
          (and (directory? root {:nofollow-links nofollow}) (< 0 max-depth))
          (do-walk root 0 #{})
-         (exists? root {:nofollow-links nofollow}) (visit-child root)
+         (exists? root {:nofollow-links nofollow}) (file-visit-result (visit-file root nil))
          :else (file-visit-result (visit-file-failed root nil)))
        root)))
 
