@@ -560,6 +560,29 @@
                  (when (directory? path)
                    (path-seq-children path)))))
 
+#?(:cljs
+   (defn- regular-files-children
+     ;; regular files under dir; entry kinds come from readdir, so only a symlink costs a stat
+     [dir]
+     (mapcat (fn [^js d]
+               (let [child (.join node-path (str dir) (.-name d))]
+                 (cond
+                   (.isSymbolicLink d) (if (directory? child)
+                                         (lazy-seq (regular-files-children child))
+                                         (when (regular-file? child) [child]))
+                   (.isDirectory d) (lazy-seq (regular-files-children child))
+                   (.isFile d) [child]
+                   :else nil)))
+             (.readdirSync node-fs (str dir) #js {:withFileTypes true}))))
+
+(defn- regular-files
+  [path]
+  #?(:clj (filter regular-file? (path-seq path))
+     :cljs (cond
+             (directory? path) (regular-files-children path)
+             (regular-file? path) [path]
+             :else nil)))
+
 (def file-separator
   "The system-dependent default path component separator character (as string) via [File/separator](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/io/File.html#separator)."
   #?(:clj File/separator
@@ -1706,14 +1729,14 @@
       (last-modified-1 path)
       (max-filetime
        (map last-modified-1
-            (filter regular-file? (path-seq path)))))
+            (regular-files path))))
     epoch-file-time))
 
 (defn- expand-file-set
   [file-set]
   (if (coll? file-set)
     (mapcat expand-file-set file-set)
-    (filter regular-file? (path-seq file-set))))
+    (regular-files file-set)))
 
 (defn modified-since
   "Returns seq of regular files (non-directories, non-symlinks) from `path-set` that were modified since the `anchor-path`.
