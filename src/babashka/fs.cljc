@@ -1,10 +1,11 @@
 (ns babashka.fs
-  ;; {:squint/macros true} lets squint extract with-temp-dir from the :clj branch
-  ;; below (see the macro) instead of loading this whole namespace into SCI.
-  {:squint/macros true}
+  ;; {:squint/compile-time true} lets squint load only this ns's compile-time
+  ;; part (the with-temp-dir defmacro below), instead of evaluating this whole
+  ;; namespace in SCI.
+  {:squint/compile-time true}
   (:refer-clojure :exclude [exists? slurp spit])
-  ;; cljs/shadow self-require this ns's :clj macros so a plain
-  ;; (:require [babashka.fs]) exposes them. squint reads :squint -> nothing here.
+  ;; cljs/shadow self-require this ns's macros so a plain (:require [babashka.fs])
+  ;; exposes them; squint reads :squint -> nothing here (it uses the flag above).
   #?@(:squint []
       :cljs [(:require-macros [babashka.fs])])
   (:require #?@(:shadow [[clojure.string :as str]
@@ -1976,14 +1977,13 @@
 
 ;;;; End gzip
 
-;; One definition for every target. JVM/bb/cljs/shadow use this :clj macro (var
-;; interned in babashka.fs so `fs/with-temp-dir` resolves). squint extracts this
-;; ^:squint/macro form from the :clj branch and evals it as babashka.fs, so the
-;; bare create-temp-dir/delete-tree refs resolve, and never loads this whole ns.
-#?(:clj
-   ^:squint/macro
-   (defmacro with-temp-dir
-     "Evaluates body with `temp-dir` bound to the result of `(create-temp-dir opts)`.
+;; One definition for every target. JVM/bb/cljs/shadow read this defmacro (its var
+;; interned in babashka.fs so `fs/with-temp-dir` resolves). squint skips emitting
+;; it to JS and, via the ns's {:squint/compile-time true} flag, loads this defmacro
+;; alone as babashka.fs, so the bare create-temp-dir/delete-tree refs resolve,
+;; without evaluating this whole namespace.
+(defmacro with-temp-dir
+  "Evaluates body with `temp-dir` bound to the result of `(create-temp-dir opts)`.
 
   By default, the `temp-dir` will be removed with [[delete-tree]] on exit from the scope.
 
@@ -2001,17 +2001,17 @@
   ;; d no longer exists here
   ```
   "
-     {:arglists '[[[temp-dir] & body]
-                  [[temp-dir opts] & body]]}
-     [[temp-dir opts & more] & body]
-     {:pre [(empty? more) (symbol? temp-dir)]}
-     `(let [opts# ~opts
-            ~temp-dir (create-temp-dir opts#)]
-        (try
-          ~@body
-          (finally
-            (when-not (:keep opts#)
-              (delete-tree ~temp-dir {:force true})))))))
+  {:arglists '[[[temp-dir] & body]
+               [[temp-dir opts] & body]]}
+  [[temp-dir opts & more] & body]
+  {:pre [(empty? more) (symbol? temp-dir)]}
+  `(let [opts# ~opts
+         ~temp-dir (create-temp-dir opts#)]
+     (try
+       ~@body
+       (finally
+         (when-not (:keep opts#)
+           (delete-tree ~temp-dir {:force true}))))))
 
 (def ^:private cached-home-dir
   #?(:clj (delay (path (System/getProperty "user.home")))
