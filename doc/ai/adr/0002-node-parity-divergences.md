@@ -58,11 +58,15 @@ rationale. `copy` with `:copy-attributes` has the same millisecond write limit.
 
 ## write-bytes / write-lines open options - accepted
 
-On the JVM these pass arbitrary `StandardOpenOption` values through to
-`Files/write`. On Node only `:append` is honored, mapped to the `"a"`/`"w"`
-`writeFileSync` flag; other options (e.g. `:truncate-existing false`) are
-ignored. Node's `writeFileSync` has no equivalent for the full option set. The
-common `:append` case is covered; the rest is an accepted port limitation.
+The option map is additive on both platforms: `->open-options` only conjes keys
+with a truthy value, so `{:create false}` and `{:truncate-existing false}` reduce
+to an empty option array and `Files/write` falls back to its default
+CREATE + TRUNCATE_EXISTING + WRITE. On the JVM `{:create false}` still creates a
+missing file and `{:truncate-existing false}` still truncates. Node matches this:
+it honors `:append` (mapped to the `"a"`/`"w"` `writeFileSync` flag) and otherwise
+creates + truncates. So the two keys a reviewer expects to disable behavior are
+no-ops on the reference too, not a Node divergence. The only real gap is passing
+arbitrary extra `StandardOpenOption` values, which `writeFileSync` cannot express.
 
 ## copy takes a path source on Node, not an InputStream - accepted
 

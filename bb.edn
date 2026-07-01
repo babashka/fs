@@ -61,7 +61,8 @@
            (doseq [alias aliases]
              (do
                (println (format "-[Running test for %s]-" alias))
-               (from-scratch-cwd "tests" [alias :test-runner] args))))}
+               (from-scratch-cwd "tests" [alias :test-runner]
+                                 (into ["--dir" "../../test"] args)))))}
 
   dev
   {:doc "Launch an nREPL server"
