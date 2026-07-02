@@ -4,7 +4,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
-## Unreleased
+## 0.5.34 (2026-07-02)
 
 - Add Node.js support via ClojureScript and Squint support.
   - File times are BigInt nanoseconds, preserving sub-millisecond filesystem precision for `modified-since`

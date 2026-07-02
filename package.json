@@ -1,6 +1,6 @@
 {
   "name": "@babashka/fs",
-  "version": "0.5.25",
+  "version": "0.5.34",
   "description": "File system utilities for Clojure/ClojureScript.",
   "exports": {
     ".": "./index.mjs"
