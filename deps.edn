@@ -9,8 +9,12 @@
                                       babashka/process {:mvn/version "0.6.25"}
                                       clj-kondo/clj-kondo {:mvn/version "2026.01.19"}
                                       nubank/matcher-combinators {:mvn/version "3.10.0"}}
-                         :main-opts ["-m" "cognitect.test-runner"
-                                     "--dir" "../.."]}
+                         :main-opts ["-m" "cognitect.test-runner"]}
+
+           :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.1"}
+                                   org.clojure/clojurescript {:mvn/version "1.12.145"}}
+                       :extra-paths ["test" "cljs-test-runner-out/gen"]
+                       :main-opts ["-m" "cljs-test-runner.main" "-d" "test"]}
 
            :repl-runner {:extra-paths ["dev"]
                          :extra-deps {nrepl/nrepl {:mvn/version "1.6.0"}

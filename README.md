@@ -3,7 +3,7 @@
 [![Clojars Project](https://img.shields.io/clojars/v/babashka/fs.svg)](https://clojars.org/babashka/fs) [![ci](https://github.com/babashka/fs/actions/workflows/ci.yml/badge.svg)](https://github.com/babashka/fs/actions/workflows/ci.yml)
 [![bb built-in](https://raw.githubusercontent.com/babashka/babashka/master/logo/built-in-badge.svg)](https://book.babashka.org#badges)
 
-File system utilities. This library can used from:
+File system utilities. This library can be used from:
 - [Clojure on the JVM](https://www.clojure.org/guides/install_clojure) - we support Clojure 1.10.3 and above on Java 11 and above.
 - [babashka](https://github.com/babashka/babashka) - it has been a built-in library since babashka v0.2.9.
 
@@ -25,6 +25,13 @@ The main inspirations for this library are
 See [API.md](API.md).
 
 ## Usage
+
+in JVM Clojure, add this library to your `deps.edn` file. This library is built-in in babashka, so it works out of the box there.
+
+``` clojure
+;; deps.edn
+babashka/fs {:mvn/version "<version>"}
+```
 
 ``` clojure
 (require '[babashka.fs :as fs])
@@ -63,6 +70,51 @@ For convenience, the above use case is also supported using the `which` function
 (str (fs/which "java"))
 "/Users/borkdude/.jenv/versions/11.0/bin/java"
 ```
+
+## Node.js
+
+Babashka.fs is supported on Node.js via [ClojureScript](https://clojurescript.org/), [squint](https://github.com/squint-cljs/squint) and JS directly (via compiled squint).
+The JVM behavior is the leading reference implementation so all operations are synchronous.
+If you need async support then this port is not for you. The intended use case for babashka.fs on Node.js is mainly scripting, e.g. using [nbb](https://github.com/babashka/nbb).
+From ClojureScript and nbb, depend on this library as a regular Clojure dependency and require `babashka.fs` as on the JVM.
+From squint, either require the npm package as a JS library (`(:require ["@babashka/fs" :as fs])`), or use a git dep for the source, which is needed for the `with-temp-dir` macro.
+From JavaScript, use the npm package. The JavaScript API accepts JS objects directly.
+
+In JavaScript you can install this library with:
+
+``` shell
+npm install @babashka/fs
+```
+``` javascript
+import * as fs from '@babashka/fs';
+fs.exists("README.md") //=> true
+```
+
+### JS naming conventions
+
+In JS, `kebab-case` functions are exported under their munged versions (`kebab_case`) as well as their JS-idiomatic `camelCase` counterparts.
+Predicates either drop the question mark or get an `is` prefix. Option maps accept both camelCase and dashed keys.
+
+| Clojure | JavaScript |
+|---------|------------|
+| `(fs/copy-tree src dst)` | `fs.copyTree(src, dst)` |
+| `(fs/directory? p)` | `fs.isDirectory(p)` |
+| `(fs/exists? p)` | `fs.exists(p)` |
+| `(fs/copy src dst {:replace-existing true})` | `fs.copy(src, dst, {replaceExisting: true})` |
+
+### Differences from the JVM
+
+The API usage on Node.js should not be much different from the JVM, except:
+
+- Paths are always strings
+- File times are BigInt nanoseconds
+- `zip`/`unzip` are not supported (due to Node.js not having support for it natively)
+- `set-creation-time` is not supported: Node.js has no API to set a file's creation (birth) time
+- `owner` returns a `uid` instead of a username
+- the `atomic-move` option is ignored
+
+This library is tested via ClojureScript (shadow-cljs), squint and nbb on Node.js.
+The squint and shadow-cljs builds also run on deno and bun, and squint additionally on Windows.
 
 ## Notes
 

@@ -1,7 +1,7 @@
-(ns babashka.fs-test
+(ns babashka.fs-jvm-test
   (:require
    [babashka.fs :as fs]
-   [babashka.fs-test-util :as util]
+   [babashka.fs-jvm-test-util :as util]
    [babashka.process :as process]
    [babashka.test-report]
    [clojure.java.io :as io]
@@ -55,8 +55,8 @@
          sorted (->> pre
                      (map fs/unixify)
                      (map #(if (fs/directory? %)
-                                  (str % "/")
-                                  %))
+                             (str % "/")
+                             %))
                      sort)]
      (if-not collapse
        sorted
@@ -144,9 +144,7 @@
 ;;
 ;; components
 ;;
-(deftest components-test
-  (is (match? ["foo" "bar" "baz" "bop.txt"]
-              (map str (fs/components "foo/bar/baz/bop.txt")))))
+;; components-test -> fs_test.cljc
 
 (deftest components-empty-string-test
   (is (= [""] (mapv util/path->str (fs/components "")))))
@@ -154,26 +152,14 @@
 ;;
 ;; copy
 ;; 
-(deftest copy-to-file-test
-  (files "file" "dest-dir/")
-  (is (= "dest-dir/file" (fs/unixify (fs/copy "file" "dest-dir/file"))))
-  (is (match? ["dest-dir/file"
-               "file"]
-              (list-tree "."))))
-
-(deftest copy-into-dir-test
-  (files "file" "dest-dir/")
-  (is (= "dest-dir/file" (fs/unixify (fs/copy "file" "dest-dir"))))
-  (is (match? ["dest-dir/file"
-               "file"]
-              (list-tree "."))))
+;; copy-to-file-test, copy-into-dir-test -> fs_test.cljc
 
 (deftest copy-input-stream-test
   (files "file" "dest-dir/")
   (is (= "dest-dir/file"
-         (fs/unixify 
-           (with-open [is (io/input-stream (fs/file "file"))]
-             (fs/copy is "dest-dir/file")))))
+         (fs/unixify
+          (with-open [is (io/input-stream (fs/file "file"))]
+            (fs/copy is "dest-dir/file")))))
   (is (match? ["dest-dir/file"
                "file"]
               (list-tree "."))))
@@ -192,50 +178,14 @@
 ;;
 ;; copy-tree
 ;;
-(deftest copy-tree-test
-  (files "src-dir/.foo"
-         "src-dir/a/a.txt"
-         "src-dir/a/b/b.txt"
-         "src-dir/a/b/c"
-         "src-dir/foo.txt")
-  (is (= "dest-dir" (str (fs/copy-tree "src-dir" "dest-dir"))))
-  (is (match? ["dest-dir/.foo"
-               "dest-dir/a/a.txt"
-               "dest-dir/a/b/b.txt"
-               "dest-dir/a/b/c"
-               "dest-dir/foo.txt"]
-              (list-tree "dest-dir"))))
-
-(deftest copy-tree-from-file-throws-test
-  (files "src-dir/dir/file.txt" "dest-dir/")
-  (let [before (util/fsnapshot)]
-    ;; cf. python3 -c 'import shutil; shutil.copytree("foo/bar1", "foo2")'
-    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
-                          (fs/copy-tree "src-dir/dir/file.txt" "dest-dir")))
-    (is (match? before (util/fsnapshot)))))
-
-(deftest copy-tree-to-file-throws-test
-  (files "src-dir/dir/file.txt" "dest-dir/file.txt")
-  (let [before (util/fsnapshot)]
-    (is (thrown-with-msg? IllegalArgumentException #"Not a directory"
-                          (fs/copy-tree "src-dir/dir" "dest-dir/file.txt")))
-    (is (match? before (util/fsnapshot)))))
-
-(deftest copy-tree-creates-missing-dest-dirs-test
-  (files "src-dir/foo/file.txt"
-         "dest-dir/")
-  ;; https://github.com/babashka/fs/issues/42
-  ;; foo2 doesn't exist
-  (is (= "dest-dir/foo2/foo" (fs/unixify (fs/copy-tree "src-dir/foo" "dest-dir/foo2/foo"))))
-  (is (match? ["dest-dir/foo2/foo/file.txt"
-               "src-dir/foo/file.txt"]
-              (list-tree "."))))
+;; copy-tree-test, copy-tree-from-file-throws-test, copy-tree-to-file-throws-test,
+;; copy-tree-creates-missing-dest-dirs-test -> fs_test.cljc
 
 (deftest copy-tree-nested-ro-dir-test
   (files "src-dir/foo/bar/")
   ;; https://github.com/babashka/fs/issues/122
   (.setReadOnly (fs/file "src-dir" "foo"))
-  (is (= "dest-dir" (str (fs/copy-tree  "src-dir" "dest-dir"))))
+  (is (= "dest-dir" (str (fs/copy-tree "src-dir" "dest-dir"))))
   (is (match? ["dest-dir/foo/bar/"
                "src-dir/foo/bar/"]
               (list-tree ".")))
@@ -244,21 +194,7 @@
     ;; https://answers.microsoft.com/en-us/windows/forum/all/all-folders-are-now-read-only-windows-10/0ca1880f-e997-46af-bd85-042a53fc078e
     (is (not (fs/writable? "dest-dir/foo")))))
 
-(deftest copy-tree-fails-on-parent-to-child-test
-  (files "foo/bar/baz/somefile.txt")
-  (let [before (util/fsnapshot)]
-    (is (= "foo" (str (fs/copy-tree "foo" "foo")))
-        "copy to self is allowed and a no-op")
-    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo.new-dir"
-                          (fs/copy-tree "foo" "foo/new-dir"))
-        "copy to new dir under self throws")
-    (is (thrown-with-msg? Exception #"Cannot copy src directory: foo, under itself to dest: foo.bar"
-                          (fs/copy-tree "foo" "foo/bar"))
-        "copy to existing dir under self throws")
-    (is (= before (util/fsnapshot))
-        "files/dirs are unchanged")
-    (is (= "foobar" (str (fs/copy-tree "foo" "foobar"))))
-    (is (fs/exists? "foobar/bar/baz/somefile.txt"))))
+;; copy-tree-fails-on-parent-to-child-test -> fs_test.cljc
 
 (deftest copy-tree-ok-on-child-to-existing-parent-test
   (files "foo/bar/baz/somefile.txt")
@@ -301,48 +237,14 @@
   (is (thrown-with-msg? java.lang.IllegalArgumentException #"Not a directory.*" (fs/copy-tree "" "f1.ext")))
   (is (thrown-with-msg? Exception #"Cannot copy.*under itself" (fs/copy-tree "" "da1"))))
 
-(deftest copy-tree-nofollow-src-link-throws-sym-link-test
-  (files "src-dir/bar/baz/somefile.txt")
-  (fs/create-sym-link "link-src-dir" "src-dir")
-  (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-src-dir"
-                        (fs/copy-tree "link-src-dir" "dest-dir" {:nofollow-links true}))))
-
-(deftest copy-tree-nofollow-dest-link-throws-sym-link-test
-  (files "src-dir/bar/baz/somefile.txt")
-  (fs/create-sym-link "link-dest-dir" "dest-dir")
-  (is (thrown-with-msg? IllegalArgumentException #"Not a directory: link-dest-dir"
-                        (fs/copy-tree "src-dir" "link-dest-dir" {:nofollow-links true}))))
-
-(deftest copy-tree-follow-src-dest-links-sym-link-test
-  (files "src-dir/src-bar/src-baz/src-file.txt"
-         "dest-dir/dest-bar/dest-baz/dest-file.txt")
-  (fs/create-sym-link "link-src-dir" "src-dir")
-  (fs/create-sym-link "link-dest-dir" "dest-dir")
-  (is (= "link-dest-dir" (fs/unixify (fs/copy-tree "link-src-dir" "link-dest-dir"))))
-  (is (match? ["dest-dir/dest-bar/dest-baz/dest-file.txt"
-               "dest-dir/src-bar/src-baz/src-file.txt"
-               "link-dest-dir/"
-               "link-src-dir/"
-               "src-dir/src-bar/src-baz/src-file.txt"]
-              (list-tree "."))))
-
-(deftest copy-tree-follow-src-link-new-dest-sym-link-test
-  (files "src-dir/bar/baz/somefile.txt")
-  (fs/create-sym-link "link-src-dir" "src-dir")
-  (is (= "new-dest-dir" (str (fs/copy-tree "link-src-dir" "new-dest-dir"))))
-  (is (match? ["link-src-dir/"
-               "new-dest-dir/bar/baz/somefile.txt"
-               "src-dir/bar/baz/somefile.txt"]
-              (list-tree "."))))
+;; copy-tree-nofollow-src-link-throws / copy-tree-nofollow-dest-link-throws /
+;; copy-tree-follow-src-dest-links / copy-tree-follow-src-link-new-dest sym-link
+;; -> fs_test.cljc
 
 ;;
 ;; create-dir
 ;;
-(deftest create-dir-test
-  (is (fs/create-dir "foo"))
-  (is (match? ["foo/"] (normalized
-                         (fs/glob "." "**"))))
-  (is (fs/directory? "foo")))
+;; create-dir-test -> fs_test.cljc
 
 (deftest create-dir-empty-string-test
   (is (thrown? java.nio.file.FileAlreadyExistsException (fs/create-dir ""))))
@@ -383,11 +285,11 @@
         "no changes expected for no-ops and throws"))
 
   ;; creates dirs with symlinks in parent path
-  (doseq [[create-path                 expected-new-path]
-          [["link-dir1/new1"           "dir1/new1"]
-           ["dir1/link-dir2/new2"      "dir1/dir2/new2"]
+  (doseq [[create-path expected-new-path]
+          [["link-dir1/new1" "dir1/new1"]
+           ["dir1/link-dir2/new2" "dir1/dir2/new2"]
            ["link-dir1/link-dir2/new3" "dir1/dir2/new3"]
-           ["link-dir1/dir2/new4"      "dir1/dir2/new4"]]]
+           ["link-dir1/dir2/new4" "dir1/dir2/new4"]]]
     (is (= create-path (fs/unixify (fs/create-dirs create-path)))
         "creates new dir when parent path has sym-links to dirs")
     (is (= true (fs/exists? expected-new-path))
@@ -399,8 +301,7 @@
 ;; create-file
 ;;
 
-(deftest create-file-test
-  (is (= "new-file" (str (fs/create-file "new-file")))))
+;; create-file-test -> fs_test.cljc
 
 (deftest create-file-empty-string-test
   ;; NOTE:
@@ -411,20 +312,12 @@
 ;;
 ;; create-link
 ;;
-(deftest create-link-test
-  (files "dudette.txt")
-  (let [link (fs/create-link "hard-link.txt" "dudette.txt")]
-    (is (= "hard-link.txt" (str link)))
-    (is (match? ["dudette.txt"
-                 "hard-link.txt"]
-                (list-tree ".")))
-    (when (not windows?)
-      ;; an attribute check is not available on Windows
-      (is (= 2 (fs/get-attribute link "unix:nlink"))))
-    (is (= true (fs/same-file? "dudette.txt" "hard-link.txt")))
-    (is (= false (fs/sym-link? "hard-link.txt")))
-    (is (= (slurp "hard-link.txt")
-           (slurp "dudette.txt")))))
+(deftest create-link-nlink-test
+  ;; an attribute check is not available on Windows
+  (when (not windows?)
+    (files "dudette.txt")
+    (let [link (fs/create-link "hard-link.txt" "dudette.txt")]
+      (is (= 2 (fs/get-attribute link "unix:nlink"))))))
 
 (deftest create-link-empty-string-test
   (is (thrown? java.nio.file.FileSystemException (fs/create-link "" "")))
@@ -444,7 +337,7 @@
   ;; a bit of different behaviour depending on OS
   (if (not= :mac (util/os))
     ;; linux/windows bug? inconsistent: if "" is cwd, should be equivalent to (fs/create-sym-link "symlink1" ".") but throws:
-    (is (thrown? Exception  (fs/create-sym-link "symlink1" "")))
+    (is (thrown? Exception (fs/create-sym-link "symlink1" "")))
     (do (is (= "symlink1" (str (fs/create-sym-link "symlink1" ""))))
         ;; link is created
         (is (= true (fs/sym-link? "symlink1")))
@@ -459,7 +352,7 @@
   (is (= true (fs/sym-link? "symlink2")))
   (is (match? ["da1/da2/da3/da4/f2.txt"
                "symlink2/"]
-              (list-tree "."))) 
+              (list-tree ".")))
   (is (fs/exists? "symlink2/da1/da2/da3/da4/f2.txt")))
 
 ;;
@@ -562,11 +455,6 @@
 ;;
 ;; delete-if-exists
 ;;
-(deftest delete-if-exists-test
-  (files "dude")
-  (is (= true (fs/delete-if-exists "dude")))
-  (is (= false (fs/delete-if-exists "dude"))))
-
 (deftest delete-if-exists-empty-string-test
   (files "foo/bar/baz/boop.txt" "bop.txt")
   (let [before (util/fsnapshot)]
@@ -587,32 +475,10 @@
 ;;
 ;; delete-tree
 ;;
-(deftest delete-tree-test
-  (files "foo/bar/baz/file.txt")
-  (is (= "foo" (str (fs/delete-tree "foo"))))
-  (is (match? [] (fs/glob "." "**"))))
+;; delete-tree-test, delete-tree-nested-test, delete-tree-ok-if-dir-missing-test
+;; -> fs_test.cljc
 
-(deftest delete-tree-nested-test
-  (files "foo/bar/baz/file.txt")
-  (is (= "foo/bar/baz" (fs/unixify (fs/delete-tree "foo/bar/baz"))))
-  (is (match? ["foo/bar/"]
-              (list-tree "."))))
-
-(deftest delete-tree-ok-if-dir-missing-test
-  (is (= nil (fs/delete-tree "foo")))
-  (is (= nil (fs/delete-tree "foo/bar/baz"))))
-
-(deftest delete-tree-does-not-follow-symlink-test
-  (files "dir1/"
-         "dir2/foo")
-  (fs/create-sym-link "dir1/link-to-dir2" "../dir2")
-  (is (= true (fs/same-file? "dir1/link-to-dir2" "dir2")) "precondition: link")
-  (is (match? ["dir1/link-to-dir2/"
-               "dir2/foo"]
-              (list-tree ".")) "precondition: files")
-  (is (= "dir1" (str (fs/delete-tree "dir1"))))
-  (is (match? ["dir2/foo"]
-              (list-tree "."))))
+;; delete-tree-does-not-follow-symlink-test -> fs_test.cljc
 
 (deftest delete-tree-force-deletes-ro-dirs-and-files-test
   (files "dir1/file1.txt"
@@ -638,19 +504,7 @@
   (is (thrown? java.nio.file.FileSystemException (fs/delete-tree "")))
   (is (match? [] (list-tree "."))))
 
-(deftest delete-tree-good-sym-link-root-sym-link-test
-  (files "foo/bar/baz/")
-  (fs/create-sym-link "good-link" "foo")
-  (is (= "good-link" (str (fs/delete-tree "good-link"))))
-  (is (match? ["foo/bar/baz/"]
-              (list-tree "."))
-      "link was deleted, dir was not"))
-
-(deftest delete-tree-bad-sym-link-root-sym-link-test
-  (fs/create-sym-link "bad-link" "bad-target")
-  (is (= "bad-link" (str (fs/delete-tree "bad-link"))))
-  (is (match? [] (list-tree "."))
-      "bad link was deleted"))
+;; delete-tree-good-sym-link-root / delete-tree-bad-sym-link-root -> fs_test.cljc
 
 ;;
 ;; directory?
@@ -662,16 +516,7 @@
   (is (= false (fs/directory? "idontexist")))
   (is (= false (fs/directory? (fs/path "dir" "idontexist")))))
 
-(deftest directory?-sym-link-test
-  (files "dir/")
-  (fs/create-sym-link "dir-link" "dir")
-  (is (= true
-         (fs/directory? "dir-link")
-         (fs/directory? "dir-link" {:nofollow-links false}))
-      "following links")
-  (is (= false
-         (fs/directory? "file-link" {:nofollow-links true}))
-      "not following links"))
+;; directory?-sym-link-test -> fs_test.cljc
 
 (deftest directory?-empty-string-test
   (is (= true (fs/directory? ""))))
@@ -679,11 +524,7 @@
 ;;
 ;; ends-with?
 ;;
-(deftest ends-with?-test
-  (is (= true (fs/ends-with? "one/two/three" "three")))
-  (is (= true (fs/ends-with? "one/two/three" "two/three")))
-  (is (= true (fs/ends-with? "one/two/three" "one/two/three")))
-  (is (= false (fs/ends-with? "one/two/three" "one/three"))))
+;; ends-with?-test -> fs_test.cljc
 
 (deftest ends-with?-empty-string-test
   (is (= true (fs/ends-with? "" ""))))
@@ -704,16 +545,11 @@
     ;; throw.
     (is (false? (fs/exists? "c:/123:456")))))
 
-(deftest exists?-sym-link-test
-  (fs/create-sym-link "link" "non-existent-target")
-  (is (= false (fs/exists? "link") (fs/exists? {:nofollow-links false}))
-      "following link (to non existent target)")
-  (is (= true (fs/exists? "link" {:nofollow-links true}))
-      "not following link (link exists)"))
+;; exists?-sym-link-test -> fs_test.cljc
 
 (deftest exists?-empty-string-test
   (is (= true (fs/exists? ""))))
- 
+
 ;;
 ;; expand-home
 ;;
@@ -770,13 +606,7 @@
 ;;
 ;; extension
 ;;
-(deftest extension-test
-  (is (= "clj" (fs/extension "file-name.clj")))
-  (is (= "template" (fs/extension "file-name.html.template")))
-  (is (nil? (fs/extension ".dotfile")))
-  (is (nil? (fs/extension "foo/.dotfile")))
-  (is (nil? (fs/extension "/home/.zshrc")))
-  (is (nil? (fs/extension "bin/something"))))
+;; extension-test -> fs_test.cljc
 
 (deftest extension-empty-string-test
   (is (nil? (fs/extension ""))))
@@ -795,11 +625,7 @@
 ;;
 ;; file-name
 ;;
-(deftest file-name-test
-  (let [f "some-dir/foo.ext"]
-    (is (= "foo.ext" (fs/file-name f)))
-    (is (= "foo.ext" (fs/file-name (fs/file f))))
-    (is (= "foo.ext" (fs/file-name (fs/path f))))))
+;; file-name-test -> fs_test.cljc
 
 (deftest file-name-empty-string-test
   (is (= "" (fs/file-name ""))))
@@ -872,19 +698,19 @@
                  "dira2/dirb1/test.cljc"
                  "project.clj"]
                 (normalized
-                  (fs/glob "." "**.{clj,cljc}")))))
+                 (fs/glob "." "**.{clj,cljc}")))))
   (testing "glob also matches directories and doesn't return the specified root directory"
     (is (match? ["dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
                  "dira1/dirb1/source.clj"]
                 (normalized
-                  (fs/glob "dira1/dirb1" "**"))))
+                 (fs/glob "dira1/dirb1" "**"))))
     (is (match? ["dira1/dirb1/"
                  "dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
                  "dira1/dirb1/source.clj"]
                 (normalized
-                  (fs/glob "dira1" "dirb1**")))))
+                 (fs/glob "dira1" "dirb1**")))))
   (testing "symlink as root path"
     (let [sym-link (fs/create-sym-link "sym-link" "dira1")]
       (is (match? [] (fs/glob sym-link "*")))
@@ -898,20 +724,20 @@
     (testing "hidden files"
       (testing "are not matched by default"
         (is (match? [] (normalized
-                         (fs/glob "." "*git*")))))
+                        (fs/glob "." "*git*")))))
       (testing "matched when :hidden option specified"
         (is (match? [".gitignore"]
                     (normalized
-                      (fs/glob "." "*git*" {:hidden true})))))
+                     (fs/glob "." "*git*" {:hidden true})))))
       (testing "automatically matched when pattern starts with a dot"
         (is (match? [".gitignore"]
                     (normalized
-                      (fs/glob "." ".gitig*"))))))))
+                     (fs/glob "." ".gitig*"))))))))
 
 (deftest glob-unicode-test
-  (let [test-files [{:name "dir/📷 photography.md"        :has-variant-selector false}
-                    {:name "dir/🗞️ article.md"            :has-variant-selector true}
-                    {:name "dir/🗣️ talk.md"               :has-variant-selector true}
+  (let [test-files [{:name "dir/📷 photography.md" :has-variant-selector false}
+                    {:name "dir/🗞️ article.md" :has-variant-selector true}
+                    {:name "dir/🗣️ talk.md" :has-variant-selector true}
                     {:name "dir/🤔 interesting things.md" :has-variant-selector false}]]
     ;; sanity test our data
     (doseq [{:keys [name has-variant-selector]} test-files]
@@ -944,12 +770,12 @@
   (is (match? ["foo/bar/baz/dude.clj"
                "foo/bar/baz/dude2.clj"]
               (normalized
-                (fs/glob "." "foo/bar/baz/*.clj")))))
+               (fs/glob "." "foo/bar/baz/*.clj")))))
 
 (deftest glob-returns-directories-test
   (files "foo/")
   (is (match? ["foo/"] (normalized
-                         (fs/glob "." "*" {:max-depth 1})))))
+                        (fs/glob "." "*" {:max-depth 1})))))
 
 (deftest glob-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
@@ -975,9 +801,9 @@
         (is (= expected-gz-file (fs/gzip input-file))
             "gzip returns created gz in same dir as input file")
         (is (match? (normalized
-                      [input-file
-                       expected-gz-file]
-                      {:relativize "."})
+                     [input-file
+                      expected-gz-file]
+                     {:relativize "."})
                     (list-tree "."))
             "both input file and output file exist")
         (spit input-file "some\nnew\ncontent\n")
@@ -987,9 +813,9 @@
         ;; NOTE: we must specify the `dest` when specifying options, specify `nil` for default
         (is (= input-file (str (fs/gunzip expected-gz-file nil {:replace-existing true}))))
         (is (match? (normalized
-                      [input-file
-                       expected-gz-file]
-                      {:relativize "."})
+                     [input-file
+                      expected-gz-file]
+                     {:relativize "."})
                     (list-tree "."))
             "both input file and output file exist after output file overwrite")
         (is (= input-content (slurp input-file))
@@ -1030,7 +856,7 @@
                          (fs/gunzip expected-gz-file out-dir))
                 "throws on attempted overwrite")
             (spit expected-ungz-file "some\nnew\ncontent\n")
-            (is (= (fs/unixify (fs/path out-dir "README.md")) 
+            (is (= (fs/unixify (fs/path out-dir "README.md"))
                    (fs/unixify (fs/gunzip expected-gz-file out-dir {:replace-existing true})))
                 "does not throw on overwrite")
             (is (match? (normalized
@@ -1043,12 +869,12 @@
             "gunzipped content matches gzipped content")))))
 
 (deftest gzip-out-file-test
-  (doseq [[expected-gz source-file opts] [["boop"             "foo.txt"    {:out-file "boop"}]
-                                          ["foo.txt.gz"       "foo.txt"    {:out-file "foo.txt.gz"}]
-                                          ["a/b/c/foo.gz"     "a/b/c/foo"  {:out-file "foo.gz"}]
-                                          ["d/e/f/foo.gz"     "a/b/c/foo"  {:out-file "foo.gz" :dir "d/e/f"}]
-                                          ["a/b/c/y/z/foo.gz" "a/b/c/foo"  {:out-file "y/z/foo.gz"}]
-                                          ["out/y/z/foo.gz"   "a/b/c/foo"  {:out-file "y/z/foo.gz" :dir "out"}]]]
+  (doseq [[expected-gz source-file opts] [["boop" "foo.txt" {:out-file "boop"}]
+                                          ["foo.txt.gz" "foo.txt" {:out-file "foo.txt.gz"}]
+                                          ["a/b/c/foo.gz" "a/b/c/foo" {:out-file "foo.gz"}]
+                                          ["d/e/f/foo.gz" "a/b/c/foo" {:out-file "foo.gz" :dir "d/e/f"}]
+                                          ["a/b/c/y/z/foo.gz" "a/b/c/foo" {:out-file "y/z/foo.gz"}]
+                                          ["out/y/z/foo.gz" "a/b/c/foo" {:out-file "y/z/foo.gz" :dir "out"}]]]
     (testing (str "source-file: " source-file " opts: " opts)
       (util/clean-cwd)
       (files source-file)
@@ -1114,22 +940,7 @@
 ;;
 ;; last-modified-time
 ;;
-(deftest last-modified-time-sym-link-test
-  (files "file")
-  (let [lmt-file (file-time "2024-01-01T00:00:00.00Z")
-        lmt-link (file-time "2025-01-01T00:00:00.00Z")
-        nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (fs/create-sym-link "link" "file")
-    ;; use JVM API to set precondition (when we can)
-    (Files/setAttribute (fs/path "file") "basic:lastModifiedTime" lmt-file nofollow-opts)
-    (if cant-set-last-modified-time-on-sym-link?
-      (process/shell "touch -h -d" (str lmt-link) "link")
-      (Files/setAttribute (fs/path "link") "basic:lastModifiedTime" lmt-link nofollow-opts))
-    (is (= lmt-file
-           (fs/last-modified-time "link")
-           (fs/last-modified-time "link" {:nofollow-links false})))
-    (is (= lmt-link
-           (fs/last-modified-time "link" {:nofollow-links true})))))
+;; last-modified-time-sym-link-test -> fs_test.cljc
 
 (deftest last-modified-time-empty-string-test
   (let [dir-last-modified-time (fs/last-modified-time ".")]
@@ -1138,25 +949,7 @@
 ;;
 ;; list-dir 
 ;;
-(deftest list-dir-test
-  (files "dir1/"
-         "dir2/foo.txt"
-         "file.txt"
-         "source1.clj"
-         "source2.clj")
-  (is (match? ["./dir1/"
-               "./dir2/"
-               "./file.txt"
-               "./source1.clj"
-               "./source2.clj"]
-              (normalized (fs/list-dir "."))))
-  (is (match? ["./dir1/"
-               "./dir2/"]
-              (normalized (fs/list-dir "." (fn accept [x] (fs/directory? x))))))
-  (is (match? [] (fs/list-dir "." (fn accept [_] false))))
-  (is (match? ["./source1.clj"
-               "./source2.clj"]
-              (normalized (fs/list-dir "." "*.clj")))))
+;; list-dir-test -> fs_test.cljc
 
 (deftest list-dir-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
@@ -1284,13 +1077,13 @@
                  "dira2/dirb1/test.cljc"
                  "project.clj"]
                 (normalized
-                  (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
+                 (fs/match "." "regex:.*\\.cljc?" {:recursive true})))))
   (testing "match also matches directories and doesn't return the root directory"
     (is (match? ["dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
                  "dira1/dirb1/source.clj"]
                 (normalized
-                  (fs/match "dira1/dirb1" "regex:.*" {:recursive true}))))
+                 (fs/match "dira1/dirb1" "regex:.*" {:recursive true}))))
     (is (match? ["dira1/dirb1/"
                  "dira1/dirb1/README.md"
                  "dira1/dirb1/dirc1/"
@@ -1300,7 +1093,7 @@
   (testing "symlink as root path"
     (let [sym-link (fs/create-sym-link "sym-link" "dira1")
           target (fs/read-link sym-link)]
-      (is (= (str target) "dira1"))
+      (is (= "dira1" (str target)))
       (is (match? [] (fs/match sym-link "regex:.*")))
       (is (match? ["sym-link/foo.txt"]
                   (normalized (fs/match sym-link "regex:.*" {:follow-links true}))))
@@ -1386,25 +1179,7 @@
 ;;
 ;; move
 ;;
-(deftest move-to-file-test
-  (files "src-dir/foo.txt"
-         "dest-dir/")
-  (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
-    (fs/move "src-dir/foo.txt" "dest-dir/foo.txt")
-    (is (match? ["dest-dir/foo.txt"
-                 "src-dir/"]
-                (list-tree ".")))
-    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt"))))))
-
-(deftest move-to-dir-test
-  (files "src-dir/foo.txt"
-         "dest-dir/")
-  (let [foo-content (str/trim (slurp "src-dir/foo.txt"))]
-    (fs/move "src-dir/foo.txt" "dest-dir")
-    (is (match? ["dest-dir/foo.txt"
-                 "src-dir/"]
-                (list-tree ".")))
-    (is (= foo-content (str/trim (slurp "dest-dir/foo.txt"))))))
+;; move-to-file-test, move-to-dir-test -> fs_test.cljc
 
 (deftest move-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
@@ -1430,82 +1205,12 @@
                "f1.ext"]
               (list-tree "."))))
 
-(deftest move-bad-link-to-bad-link-sym-link-test
-  (fs/create-sym-link "bad-link1" "bad-target1")
-  (fs/create-sym-link "bad-link2" "bad-target2")
-  (fs/move "bad-link1" "bad-link2" {:replace-existing true})
-  (is (match? ["bad-link2"] (list-tree ".")))
-  (is (= (fs/path "bad-target1") (fs/read-link "bad-link2"))))
-
-(deftest move-good-link-to-good-link-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/create-sym-link "good-link2" "dir2")
-  (fs/move "good-link1" "good-link2" {:replace-existing true})
-  (is (match? ["dir1/"
-               "dir2/"
-               "good-link2/"]
-              (list-tree ".")))
-  (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
-
-(deftest move-good-link-to-good-link-no-replace-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/create-sym-link "good-link2" "dir2")
-  (is (thrown? FileAlreadyExistsException
-               (fs/move "good-link1" "good-link2" {:replace-existing false}))))
-
-(deftest move-good-link-under-dir-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "good-link1" "dir2")
-  (is (match? ["dir1/"
-               "dir2/good-link1"] ;; notice link is not a dir anymore, it is broken
-              (list-tree ".")))
-  (is (= (fs/path "dir1") (fs/read-link (fs/path "dir2" "good-link1")))))
-
-(deftest move-file-to-to-good-link-sym-link-test
-  (files "file1.txt" "dir1/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "file1.txt" "good-link1" {:replace-existing true})
-  (is (match? ["dir1/"
-               "good-link1"]
-              (list-tree ".")))
-  (is (= false (fs/sym-link? "good-link1"))))
-
-(deftest move-good-link-to-file-sym-link-test
-  (files "file1.txt" "dir1/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "good-link1" "file1.txt" {:replace-existing true})
-  (is (match? ["dir1/"
-               "file1.txt/"]
-              (list-tree ".")))
-  (is (= true (fs/sym-link? "file1.txt"))))
-
-(deftest rename-good-link-sym-link-test
-  (files "dir1/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/move "good-link1" "good-link2")
-  (is (match? ["dir1/"
-               "good-link2/"]
-              (list-tree ".")))
-  (is (= true (fs/sym-link? "good-link2")))
-  (is (= (fs/path "dir1") (fs/read-link "good-link2"))))
-
-(deftest move-link-without-replace-sym-link-test
-  (files "dir1/" "dir2/")
-  (fs/create-sym-link "good-link1" "dir1")
-  (fs/create-sym-link "good-link2" "dir2")
-
-  (is (thrown-with-msg? FileAlreadyExistsException #"good-link2"
-                        (fs/move "good-link1" "good-link2"))))
+;; move-*-sym-link / rename-good-link-sym-link tests -> fs_test.cljc
 
 ;;
 ;; normalize
 ;;
-(deftest normalize-test
-  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "foo/bar/baz"))))
-  (is (= "foo/bar/baz" (fs/unixify (fs/normalize "./foo/./bing/./boop/.././../bar/./baz/.")))))
+;; normalize-test -> fs_test.cljc
 
 (deftest normalize-empty-string-test
   (is (= "" (util/path->str (fs/normalize "")))))
@@ -1513,20 +1218,7 @@
 ;;
 ;; owner
 ;;
-(deftest file-owner-test
-  (files "dir/file")
-  (is (= (str (fs/owner "dir")) (str (fs/owner "dir/file")))))
-
-(deftest file-owner-sym-link-test
-  ;; This test assumes that the owner of "/" will be different than the owner of a link created in the cwd
-  (files "file")
-  (fs/create-sym-link "my-link" "/")
-  (is (not= (fs/owner "file") (fs/owner "/"))
-      "sanity test: owners are different for root dir and file in cwd")
-  (is (= (fs/owner "/") (fs/owner "my-link") (fs/owner "my-link" {:nofollow-links false}))
-      "following link")
-  (is (= (fs/owner "file") (fs/owner "my-link" {:nofollow-links true}))
-      "not following link"))
+;; file-owner-test, file-owner-sym-link-test -> fs_test.cljc
 
 (deftest owner-empty-string-test
   (files "f1.ext")
@@ -1535,9 +1227,7 @@
 ;;
 ;; parent
 ;;
-(deftest parent-test
-  (is (= (fs/path "dir") (fs/parent "dir/foo")))
-  (is (= nil (fs/parent "foo"))))
+;; parent-test -> fs_test.cljc
 
 (deftest parent-empty-string-test
   ;; reminder: parent in path, not parent in filesystem
@@ -1599,7 +1289,7 @@
     (let [nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])
           orig-link-permissions (fs/posix->str (Files/getPosixFilePermissions (fs/path "link") nofollow-opts))]
       ;; cycle through some variations so we know we'll have at least one that does not match perms at create time
-      (doseq [[target  set-permissions]
+      (doseq [[target set-permissions]
               [["file" "rw-rw-rw-"]
                ["file" "rwxrwxrwx"]
                ["link" "rw-rw-rw-"]
@@ -1641,11 +1331,7 @@
 ;;
 ;; read-all-bytes
 ;;
-(deftest read-all-bytes-test
-  (spit "README.md" "some\ncontent\nhere")
-  (let [bs (fs/read-all-bytes "README.md")]
-    (is (bytes? bs))
-    (is (= (fs/size "README.md") (count bs)))))
+;; read-all-bytes-test -> fs_test.cljc
 
 (deftest read-all-bytes-empty-string-test
   (is (thrown? java.io.IOException (fs/read-all-bytes ""))))
@@ -1653,11 +1339,7 @@
 ;;
 ;; read-all-lines
 ;;
-(deftest read-all-lines-test
-  (spit "README.md" "some\ncontent\nhere")
-  (let [ls (with-open [rdr (io/reader (fs/file "README.md"))]
-             (doall (line-seq rdr)))]
-    (is (= ls (fs/read-all-lines "README.md")))))
+;; read-all-lines-test -> fs_test.cljc
 
 (deftest read-all-lines-8859-test
   (spit "iso-8859.txt" "áéíóú\nEspaña" :encoding "ISO-8859-1")
@@ -1778,16 +1460,7 @@
   (is (= false (fs/regular-file? "idontexist")))
   (is (= false (fs/regular-file? (fs/path "dir" "idontexist")))))
 
-(deftest regular-file?-sym-link-test
-  (files "file")
-  (fs/create-sym-link "file-link" "file")
-  (is (= true
-         (fs/regular-file? "file-link")
-         (fs/regular-file? "file-link" {:nofollow-links false}))
-      "following links (file is a regular file)")
-  (is (= false
-         (fs/regular-file? "file-link" {:nofollow-links true}))
-      "not following links (file-link is not a regular file)"))
+;; regular-file?-sym-link-test -> fs_test.cljc
 
 (deftest regular-file?-empty-string-test
   (is (= false (fs/regular-file? ""))))
@@ -1808,15 +1481,15 @@
 ;; root
 ;;
 (deftest root-test
-  (doseq [[path                      expected   expected-windows]
-          [[""                       nil        nil]
-           ["foo"                    nil        nil]
-           ["foo/bar"                nil        nil]
-           ["/foo/bar"               "/"        "/"]
-           ["C:/foo/bar"             nil        "C:/"]
-           ["C:foo/bar"              nil        "C:"]
-           ["//./PIPE/name/foo/bar"  "/"        "//./PIPE/"]
-           ["//server/share/foo/bar" "/"        "//server/share/"]]]
+  (doseq [[path expected expected-windows]
+          [["" nil nil]
+           ["foo" nil nil]
+           ["foo/bar" nil nil]
+           ["/foo/bar" "/" "/"]
+           ["C:/foo/bar" nil "C:/"]
+           ["C:foo/bar" nil "C:"]
+           ["//./PIPE/name/foo/bar" "/" "//./PIPE/"]
+           ["//server/share/foo/bar" "/" "//server/share/"]]]
     (if windows?
       (is (= expected-windows (some-> (fs/root path) fs/unixify))
           (str "windows: " path))
@@ -1849,22 +1522,19 @@
 ;;
 ;; set-attribute
 ;;
-(deftest set-attribute-test
-  (files "afile")
-  (is (= 100 (-> (fs/set-attribute "afile" "basic:lastModifiedTime" (fs/millis->file-time 100))
-                 (fs/read-attributes "*") :lastModifiedTime fs/file-time->millis))))
+;; set-attribute-test -> fs_test.cljc
 
 (deftest set-attribute-sym-link-test
   (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
         lmt-link (file-time "2022-01-01T00:00:00.00Z")
         lmt-new (file-time "2023-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
-            [[nil                       lmt-link           lmt-new            nil]
-             [{:nofollow-links false}   lmt-link           lmt-new            nil]
+    (doseq [[opts expected-lmt-link expected-lmt-file expected-exception]
+            [[nil lmt-link lmt-new nil]
+             [{:nofollow-links false} lmt-link lmt-new nil]
              (if cant-set-last-modified-time-on-sym-link?
-               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
-               [{:nofollow-links true}  lmt-new            lmt-file           nil])]]
+               [{:nofollow-links true} lmt-link lmt-file FileSystemException]
+               [{:nofollow-links true} lmt-new lmt-file nil])]]
       (testing (str "opts: " (pr-str opts))
         (util/clean-cwd)
         (files "file")
@@ -1925,10 +1595,10 @@
           ct-link (file-time "2022-01-01T00:00:00.00Z")
           ct-new (file-time "2023-01-01T00:00:00.00Z")
           nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-      (doseq [[opts                     expected-ct-link expected-ct-file]
-              [[nil                     ct-link          ct-new]
-               [{:nofollow-links false} ct-link          ct-new]
-               [{:nofollow-links true}  ct-new           ct-file]]]
+      (doseq [[opts expected-ct-link expected-ct-file]
+              [[nil ct-link ct-new]
+               [{:nofollow-links false} ct-link ct-new]
+               [{:nofollow-links true} ct-new ct-file]]]
         (testing (str "opts: " (pr-str opts))
           (util/clean-cwd)
           (files "file")
@@ -1954,7 +1624,7 @@
   (let [old-create-time (fs/creation-time "")
         new-create-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:01.00Z"))
         new-modify-time (fs/instant->file-time (java.time.Instant/parse "2025-11-10T01:02:10.00Z"))]
-    (is (= "" (util/path->str (fs/set-creation-time "" new-create-time)))) 
+    (is (= "" (util/path->str (fs/set-creation-time "" new-create-time))))
     (fs/set-last-modified-time "" new-modify-time)
     (cond
       ;; quite a storied history here
@@ -1972,23 +1642,19 @@
 ;;
 ;; set-last-modified-time
 ;;
-(deftest set-last-modified-time-test
-  (files "dir/")
-  (is (= "dir" (str (fs/set-last-modified-time "dir" 0))))
-  (is (= 0 (-> (fs/last-modified-time "dir")
-               (fs/file-time->millis)))))
+;; set-last-modified-time-test -> fs_test.cljc
 
 (deftest set-last-modified-time-sym-link-test
   (let [lmt-file (file-time "2021-01-01T00:00:00.00Z")
         lmt-link (file-time "2022-01-01T00:00:00.00Z")
         lmt-new (file-time "2023-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
-            [[nil                       lmt-link           lmt-new            nil]
-             [{:nofollow-links false}   lmt-link           lmt-new            nil]
+    (doseq [[opts expected-lmt-link expected-lmt-file expected-exception]
+            [[nil lmt-link lmt-new nil]
+             [{:nofollow-links false} lmt-link lmt-new nil]
              (if cant-set-last-modified-time-on-sym-link?
-               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
-               [{:nofollow-links true}  lmt-new            lmt-file           nil])]]
+               [{:nofollow-links true} lmt-link lmt-file FileSystemException]
+               [{:nofollow-links true} lmt-new lmt-file nil])]]
       (testing (str "opts: " (pr-str opts))
         (util/clean-cwd)
         (files "file")
@@ -2022,12 +1688,7 @@
 ;;
 ;; size
 ;;
-(deftest size-test
-  (files "dir/")
-  (spit "file" "hello")
-  (is (= 5 (fs/size "file")))
-  (is (not (neg? (fs/size "dir")))
-      "size of dirs is unspecified by underlying API"))
+;; size-test -> fs_test.cljc
 
 (deftest size-empty-string-test
   ;; non-obvious, but size works on directories, per javadocs:
@@ -2037,19 +1698,7 @@
 ;;
 ;; split-ext
 ;;
-(deftest split-ext-test
-  (testing "strings"
-    (is (= ["name" "clj"] (fs/split-ext "name.clj")))
-    (is (= ["/path/to/file" "ext"] (fs/split-ext "/path/to/file.ext")))
-    (is (= ["some/path/hi.tar" "gz"] (fs/split-ext "some/path/hi.tar.gz")))
-    (is (= [".dotfile" nil] (fs/split-ext ".dotfile")))
-    (is (= ["foo/.dotfile" nil] (fs/split-ext "foo/.dotfile")))
-    (is (= ["/home/.zshrc" nil] (fs/split-ext "/home/.zshrc")))
-    (is (= ["name" nil] (fs/split-ext "name"))))
-
-  (testing "coerces paths and files"
-    (is (= ["name" "clj"] (fs/split-ext (fs/file "name.clj"))))
-    (is (= ["name" "clj"] (fs/split-ext (fs/path "name.clj"))))))
+;; split-ext-test -> fs_test.cljc
 
 (deftest split-ext-empty-string-test
   (is (= ["" nil] (fs/split-ext ""))))
@@ -2069,18 +1718,7 @@
 ;;
 ;; strip-ext
 ;;
-(deftest strip-ext-test
-  (is (= "file-name" (fs/strip-ext "file-name.clj")))
-  (is (= "file-name.html" (fs/strip-ext "file-name.html.template")))
-  (is (= "file-name" (fs/strip-ext "file-name.html.template" {:ext "html.template"})))
-  (is (= "file-name.html.template" (fs/strip-ext "file-name.html.template" {:ext "html"})))
-  (is (= "/path/to/file-name.html" (fs/strip-ext "/path/to/file-name.html.template")))
-  (is (= "path/to/file-name" (fs/strip-ext "path/to/file-name.html.template" {:ext "html.template"})))
-  (is (= "/path/to/file-name.html.template" (fs/strip-ext "/path/to/file-name.html.template" {:ext "html"})))
-  (is (= ".dotfile" (fs/strip-ext ".dotfile")))
-  (is (= ".dotfile" (fs/strip-ext ".dotfile" {:ext "dotfile"})))
-  (is (= "bin/something" (fs/strip-ext "bin/something")))
-  (is (= "test-resources/dir.dot/no-ext" (fs/strip-ext "test-resources/dir.dot/no-ext"))))
+;; strip-ext-test -> fs_test.cljc
 
 (deftest strip-ext-empty-string-test
   (is (= "" (fs/strip-ext ""))))
@@ -2115,7 +1753,7 @@
 
 (deftest touch-updates-existing-dir-test
   (let [lmt-dir (file-time "2024-01-01T00:00:00.00Z")
-        lmt-new (file-time "2026-01-01T00:00:00.00Z") 
+        lmt-new (file-time "2026-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
     (files "dir/")
     ;; use JVM API to set precondition 
@@ -2134,9 +1772,9 @@
 (deftest touch-creates-new-file-with-current-time-test
   (is (= "file" (str (fs/touch "file"))))
   (let [ft (fs/last-modified-time "file")
-          recent-time (file-time-recently)]
+        recent-time (file-time-recently)]
     (is (pos? (compare ft recent-time))
-          (format "file time %s on/after very recent time %s" ft recent-time))))
+        (format "file time %s on/after very recent time %s" ft recent-time))))
 
 (deftest touch-creates-new-file-with-specific-time-test
   (let [lmt-new (file-time "2024-01-01T00:00:00.00Z")]
@@ -2145,7 +1783,7 @@
         "file time touched (with specified time)")))
 
 (deftest touch-fails-fast-on-invalid-time-test
-  (is (thrown? Exception  (fs/touch "file" {:time "notvalid"})))
+  (is (thrown? Exception (fs/touch "file" {:time "notvalid"})))
   (is (match? [] (list-tree "."))
       "no file created"))
 
@@ -2155,12 +1793,12 @@
         lmt-link (file-time "2022-01-01T00:00:00.00Z")
         lmt-new (file-time "2023-01-01T00:00:00.00Z")
         nofollow-opts (into-array [LinkOption/NOFOLLOW_LINKS])]
-    (doseq [[opts                       expected-lmt-link  expected-lmt-file  expected-exception]
-            [[nil                       lmt-link           lmt-new            nil]
-             [{:nofollow-links false}   lmt-link           lmt-new            nil]
+    (doseq [[opts expected-lmt-link expected-lmt-file expected-exception]
+            [[nil lmt-link lmt-new nil]
+             [{:nofollow-links false} lmt-link lmt-new nil]
              (if cant-set-last-modified-time-on-sym-link?
-               [{:nofollow-links true}  lmt-link           lmt-file           FileSystemException]
-               [{:nofollow-links true}  lmt-new            lmt-file           nil])]]
+               [{:nofollow-links true} lmt-link lmt-file FileSystemException]
+               [{:nofollow-links true} lmt-new lmt-file nil])]]
       (testing (str "opts: " (pr-str opts))
         (util/clean-cwd)
         (files "file")
@@ -2187,12 +1825,7 @@
 ;;
 ;; unixify
 ;;
-(deftest unixify-test
-  (is (= "README.md" (fs/unixify "README.md")))
-  (let [file "C:\\Users\\Billy\\proj\\foobar\\README.md"]
-    (if windows?
-      (is (= "C:/Users/Billy/proj/foobar/README.md" (fs/unixify file)))
-      (is (= file (fs/unixify file))))))
+;; unixify-test -> fs_test.cljc
 
 (deftest unixify-empty-string-test
   (is (= "" (fs/unixify ""))))
@@ -2314,11 +1947,11 @@
   (is (= "foo/zippy.zip" (fs/unixify (fs/zip "foo/zippy.zip" "foo"))))
   (is (= "zip-out" (str (fs/unzip "foo/zippy.zip" "zip-out"))))
   (is (match?
-        ["foo/bar"
-         "foo/bar/baz"
-         "foo/bar/baz/somefile.txt"
-         "foo/zippy.zip"]
-        (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
+       ["foo/bar"
+        "foo/bar/baz"
+        "foo/bar/baz/somefile.txt"
+        "foo/zippy.zip"]
+       (->> (fs/glob "foo" "**") (mapv fs/unixify) sort))
       "sources and created zip file present")
   (is (not (fs/exists? "zip-out/foo/zippy.zip"))
       "zip file was not zipped")
@@ -2497,15 +2130,7 @@
 ;;
 ;; write-bytes 
 ;;
-(deftest write-bytes-test
-  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "foo"))))))
-  (is (= "foo" (String. (fs/read-all-bytes "file.bin"))))
-  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "bar"))))))
-  (is (= "bar" (String. (fs/read-all-bytes "file.bin")))
-      "existing file overwritten")
-  (is (= "file.bin" (str (fs/write-bytes "file.bin" (.getBytes (String. "baz")) {:append true}))))
-  (is (= "barbaz" (String. (fs/read-all-bytes "file.bin")))
-      "existing file appended to"))
+;; write-bytes-test -> fs_test.cljc
 
 (deftest write-bytes-empty-string-test
   (is (thrown? FileSystemException (fs/write-bytes "" (.getBytes (String. "foo"))))))
@@ -2513,16 +2138,7 @@
 ;;
 ;; write-lines
 ;;
-(deftest write-lines-test
-  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "foo")))))
-  (is (= (repeat 3 "foo") (fs/read-all-lines "file.txt")))
-  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "bar")))))
-  (is (= (repeat 3 "bar") (fs/read-all-lines "file.txt"))
-      "existing file overwritten")
-  (is (= "file.txt" (str (fs/write-lines "file.txt" (repeat 3 "baz") {:append true}))))
-  (is (= (into (vec (repeat 3 "bar")) (repeat 3 "baz"))
-         (fs/read-all-lines "file.txt"))
-      "existing file appended to"))
+;; write-lines-test -> fs_test.cljc
 
 (deftest write-lines-empty-string-test
   (is (thrown? FileSystemException (fs/write-lines "" ["foo"]))))

@@ -1,0 +1,31 @@
+{
+  "name": "@babashka/fs",
+  "version": "0.5.25",
+  "description": "File system utilities for Clojure/ClojureScript.",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "lib/babashka/fs.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "squint compile --paths src --output-dir lib",
+    "prepack": "npm run build",
+    "test": "squint compile && node .squint-out/babashka/run_tests.mjs",
+    "test:js": "npm run build && node --test test-js/smoke.test.mjs"
+  },
+  "dependencies": {
+    "squint-cljs": "^0.14.200"
+  },
+  "devDependencies": {
+    "nbb": "^1.4.208",
+    "shadow-cljs": "^3.4.11"
+  },
+  "license": "EPL-1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/babashka/fs.git"
+  }
+}

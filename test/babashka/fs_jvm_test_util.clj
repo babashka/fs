@@ -1,4 +1,4 @@
-(ns babashka.fs-test-util
+(ns babashka.fs-jvm-test-util
   (:require [babashka.fs :as fs]
             [babashka.process :as process]
             [clojure.string :as str])
@@ -6,9 +6,9 @@
 
 (defn clean-cwd []
   (when-not (str/ends-with? (System/getProperty "user.dir") (str "target" fs/file-separator "test-cwd"))
-      (throw (ex-info "tests mutate cwd, must run tests via: bb test-cwd" {})))
-    (doseq [f (fs/list-dir ".")]
-      (fs/delete-tree f {:force true})))
+    (throw (ex-info "tests mutate cwd, must run tests via: bb test-cwd" {})))
+  (doseq [f (fs/list-dir ".")]
+    (fs/delete-tree f {:force true})))
 
 (defn path->str
   "Converts x to string unless x is nil"
@@ -45,10 +45,10 @@
 (defn- umask->rwx [umask]
   (reduce (fn [acc n]
             (str acc (let [n (Long/parseLong (str n))]
-                       (str 
-                         (if (zero? (bit-and n 4)) "-" "r")
-                         (if (zero? (bit-and n 2)) "-" "w")
-                         (if (zero? (bit-and n 1)) "-" "x")))))
+                       (str
+                        (if (zero? (bit-and n 4)) "-" "r")
+                        (if (zero? (bit-and n 2)) "-" "w")
+                        (if (zero? (bit-and n 1)) "-" "x")))))
           ""
           (subs umask 1)))
 
@@ -63,7 +63,7 @@
                                     last)
                          ;; on macos, we only have umask
                          :mac (-> (process/shell {:out :string}
-                                                 "sh -c umask" )
+                                                 "sh -c umask")
                                   :out
                                   str/trim)
                          nil)

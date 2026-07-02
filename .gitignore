@@ -78,3 +78,12 @@ flycheck_*.el
 # imported via config-paths
 .clj-kondo/babashka/fs
 on-path
+
+# Node/squint build artifacts
+node_modules/
+package-lock.json
+.squint-out/
+cljs-test-runner-out/
+.shadow-cljs/
+out/
+lib/

@@ -6,13 +6,21 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
+- Add Node.js support via ClojureScript and Squint support.
+  - File times are BigInt nanoseconds, preserving sub-millisecond filesystem precision for `modified-since`
+  - Most functions are supported. Only those functions that require very specific JVM APIs are not.
+  - The behavior of babashka.fs on the JVM was taken as the reference implementation. This means all operations are synchronous.
+  - Glob syntax is implemented from scratch to match the JVM glob syntax.
+  - `zip` support was left out as Node.js doesn't have support for it natively.
+- Add `spit` and `slurp` in both JVM and Node.js
+- `exec-paths` returns `[]` when the `PATH` environment variable is unset or blank, instead of throwing
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
-- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: define/document undefined return values: 
+- [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: define/document undefined return values:
   - `copy` returns copied target file (and fixed for case when `source` is input stream)
   - `copy-tree` now explicitly returns `target-dir` (previously `source-dir`)
-  - `delete-tree` existing return value now documented 
+  - `delete-tree` existing return value now documented
   - `gunzip` now explicitly returns the extracted file (previously `nil`)
-  - `set-attribute` document that `path` is return 
+  - `set-attribute` document that `path` is return
   - `set-creation-time` document that `path` is return
   - `set-last-modified-time` document that `path` is return
   - `set-posix-file-permissions` document that `path` is return
