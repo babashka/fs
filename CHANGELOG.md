@@ -6,7 +6,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## 0.5.34 (2026-07-02)
 
-- Add Node.js support via ClojureScript and Squint support.
+- Add Node.js support via ClojureScript and Squint support. See [Node.js docs](README.md#nodejs).
   - File times are BigInt nanoseconds, preserving sub-millisecond filesystem precision for `modified-since`
   - Most functions are supported. Only those functions that require very specific JVM APIs are not.
   - The behavior of babashka.fs on the JVM was taken as the reference implementation. This means all operations are synchronous.

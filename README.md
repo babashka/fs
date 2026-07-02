@@ -1,6 +1,6 @@
 # babashka.fs
 
-[![Clojars Project](https://img.shields.io/clojars/v/babashka/fs.svg)](https://clojars.org/babashka/fs) [![ci](https://github.com/babashka/fs/actions/workflows/ci.yml/badge.svg)](https://github.com/babashka/fs/actions/workflows/ci.yml)
+[![Clojars Project](https://img.shields.io/clojars/v/babashka/fs.svg)](https://clojars.org/babashka/fs) [![npm](https://img.shields.io/npm/v/%40babashka%2Ffs.svg)](https://www.npmjs.com/package/@babashka/fs) [![ci](https://github.com/babashka/fs/actions/workflows/ci.yml/badge.svg)](https://github.com/babashka/fs/actions/workflows/ci.yml)
 [![bb built-in](https://raw.githubusercontent.com/babashka/babashka/master/logo/built-in-badge.svg)](https://book.babashka.org#badges)
 
 File system utilities. This library can be used from:
