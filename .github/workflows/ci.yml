@@ -255,6 +255,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@13.5.3
+        with:
+          bb: latest
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -265,3 +270,8 @@ jobs:
 
       - name: Run JS smoke tests
         run: npm run test:js
+
+      - name: index.mjs is in sync with fs.cljc
+        run: |
+          bb gen-index
+          git diff --exit-code index.mjs

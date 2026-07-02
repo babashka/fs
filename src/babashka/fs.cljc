@@ -2060,7 +2060,10 @@
 
   See also: [[home]]"
   [path]
-  (let [path-str (str (as-path path))]
+  ;; the JVM Path normalizes / to \ on Windows; Node paths are strings, so
+  ;; normalize explicitly or the file-separator lookup below misses
+  (let [path-str #?(:clj (str (as-path path))
+                    :cljs (native-sep path))]
     (if (.startsWith path-str "~")
       (let [sep (.indexOf path-str ^String file-separator)]
         (if (neg? sep)
