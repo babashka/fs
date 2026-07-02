@@ -197,10 +197,9 @@
               (.realpathSync node-fs (str path))))))
 
 (defn owner
-  "Returns the owner of `path` via [Files/getOwner](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getOwner(java.nio.file.Path,java.nio.file.LinkOption...)).
-  On the JVM, returns a `UserPrincipal`. Call `str` on it to get the owner name.
-  On Node.js, returns the numeric `uid` from `stat`. Node has no built-in way to
-  resolve a uid to a user name for an arbitrary path.
+  "Returns the owner of `path` via [Files/getOwner](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/Files.html#getOwner(java.nio.file.Path,java.nio.file.LinkOption...)):
+  a `UserPrincipal` on the JVM (call `str` on it to get the owner name), the
+  numeric `uid` on Node.js, which cannot resolve it to a name.
 
   Options:
   * [`:nofollow-links`](/README.md#nofollow-links)"
@@ -514,7 +513,9 @@
                    out
                    (let [c (.charAt seg i)]
                      (cond
-                       (= "\\" c) (recur (+ i 2) (str out (esc (.charAt seg (inc i)))))
+                       (= "\\" c) (if (>= (inc i) n)
+                                    (throw (ex-info (str "No character to escape in glob pattern: " pattern) {}))
+                                    (recur (+ i 2) (str out (esc (.charAt seg (inc i))))))
                        (= "*" c) (recur (inc i) (str out sep-class "*"))
                        (= "?" c) (recur (inc i) (str out sep-class))
                        (= "[" c) (let [end (.indexOf seg "]" (inc i))]
@@ -924,8 +925,8 @@
              (str path))))
 
 (defn posix-file-permissions
-  "Returns POSIX permissions for `path`. On JVM, returns a set of `PosixFilePermission`.
-  On Node.js, returns the permission bits as an octal integer (e.g. `0755`).
+  "Returns POSIX permissions for `path`: a set of `PosixFilePermission` on the
+  JVM, the permission bits as an integer (e.g. `0755`) on Node.js.
   Use [[posix->str]] to convert to a string.
 
   Options:
@@ -1163,8 +1164,11 @@
                               true
                               (catch :default _ false))]
                   (cond
-                    ;; writeFileSync leaves 0644; JVM createTempFile defaults to 0600
-                    ok (do (chmod-umasked result (or posix-file-permissions "rw-------"))
+                    ;; writeFileSync leaves 0644; JVM createTempFile defaults to
+                    ;; an exact 0600, unaffected by umask
+                    ok (do (if posix-file-permissions
+                             (chmod-umasked result posix-file-permissions)
+                             (chmod result 8r600))
                            result)
                     (< tries 100) (recur (inc tries))
                     :else (throw (ex-info (str "Could not create temp file in: " base) {})))))))))
@@ -1501,25 +1505,30 @@
               path))))
 
 (defn file-time->instant
-  "Converts a file time to an instant. On JVM: `FileTime` to `Instant`. On Node.js: returns the value as-is (BigInt nanoseconds)."
+  "Converts file time `ft` (`FileTime` on the JVM, BigInt nanoseconds on Node.js)
+  to an [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
+  Node.js has no instant type, so there `ft` is returned as-is."
   [ft]
   #?(:clj (.toInstant ^FileTime ft)
      :cljs ft))
 
 (defn instant->file-time
-  "Converts an instant to a file time. On JVM: `Instant` to `FileTime`. On Node.js: returns the value as-is (BigInt nanoseconds)."
+  "Converts `instant` to a file time (`FileTime` on the JVM, BigInt nanoseconds on
+  Node.js). Node.js has no instant type, so there `instant` is returned as-is."
   [instant]
   #?(:clj (FileTime/from instant)
      :cljs instant))
 
 (defn file-time->millis
-  "Converts a file time to epoch milliseconds. On JVM: `FileTime` to long. On Node.js: BigInt nanoseconds to number."
+  "Converts file time `ft` (`FileTime` on the JVM, BigInt nanoseconds on Node.js)
+  to epoch milliseconds."
   [ft]
   #?(:clj (.toMillis ^FileTime ft)
      :cljs (js/Number (/ ft ns-per-ms))))
 
 (defn millis->file-time
-  "Converts epoch milliseconds to a file time. On JVM: long to `FileTime`. On Node.js: number to BigInt nanoseconds."
+  "Converts epoch milliseconds to a file time (`FileTime` on the JVM, BigInt
+  nanoseconds on Node.js)."
   [millis]
   #?(:clj (FileTime/fromMillis millis)
      :cljs (* (js/BigInt millis) ns-per-ms)))
@@ -1571,10 +1580,18 @@
 
 (defn set-creation-time
   "Sets creation `time` of `path`.
+  `time` can be `epoch milliseconds` (long),
+  [FileTime](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/attribute/FileTime.html),
+  or [Instant](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html).
 
   Not supported on Node.js.
 
   Returns `path`.
+
+  Options:
+  * [`:nofollow-links`](/README.md#nofollow-links)
+
+  See [README notes](/README.md#set-creation-time) for some details on behaviour.
 
   See also: [[creation-time]]"
   ([path time]

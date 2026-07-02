@@ -179,6 +179,14 @@ and stringifies before comparing. A plain `statSync` returns these as JS numbers
 which lose precision above 2^53 and could report two distinct files as the same.
 The BigInt read is exact.
 
+## gzip and gunzip buffer the whole file in memory - accepted
+
+The cljs branches read the entire source file and pass it through
+`gzipSync`/`gunzipSync`, where the JVM streams through
+`GZIPInputStream`/`GZIPOutputStream`. Same results, but peak memory on Node is
+proportional to file size. Streaming would need the async zlib API, and this
+port is synchronous by design.
+
 ## Consequences
 
 - These items are settled. New reviews should consult this ADR before flagging

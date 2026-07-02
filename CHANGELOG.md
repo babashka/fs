@@ -13,6 +13,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
   - Glob syntax is implemented from scratch to match the JVM glob syntax.
   - `zip` support was left out as Node.js doesn't have support for it natively.
 - Add `spit` and `slurp` in both JVM and Node.js
+- `exec-paths` returns `[]` when the `PATH` environment variable is unset or blank, instead of throwing
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 2: add missing links to JavaDocs ([@lread](https://github.com/lread))
 - [#197](https://github.com/babashka/fs/issues/197): docstring review - step 3: define/document undefined return values:
   - `copy` returns copied target file (and fixed for case when `source` is input stream)
