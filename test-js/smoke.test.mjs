@@ -98,3 +98,16 @@ test('array and Date option values are passed through, not mangled', () => {
     assert.deepEqual([...fs.readAllLines(f)], ['one', 'two', 'three']);
   });
 });
+
+test('munged squint-interop exports exist and take dashed option keys', () => {
+  fs.withTempDir((d) => {
+    assert.equal(fs.exists_QMARK_(String(d)), true);
+    const f = fs.path(String(d), 'x.txt');
+    fs.createFile(f);
+    fs.copy(f, fs.path(String(d), 'y.txt'));
+    fs.copy(f, fs.path(String(d), 'y.txt'), { replaceExisting: true });
+    fs.copy_tree(String(d), fs.path(String(d), '..', fs.fileName(String(d)) + '-copy'), { 'replace-existing': true });
+    assert.equal(fs.exists(fs.path(String(d), '..', fs.fileName(String(d)) + '-copy', 'x.txt')), true);
+    fs.deleteTree(fs.path(String(d), '..', fs.fileName(String(d)) + '-copy'));
+  });
+});

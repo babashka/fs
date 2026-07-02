@@ -1,8 +1,10 @@
 // Public JS API for @babashka/fs, compiled from src/babashka/fs.cljc by squint.
 // Every function is exported under a friendly camelCase name; option maps accept
-// camelCase (or dashed) keys.
+// camelCase (or dashed) keys. The munged names (copy_tree, exists_QMARK_) are
+// re-exported as-is for squint interop.
 // Generated from script/index.template.mjs by script/gen_index.cljs (bb gen-index).
 import * as raw from './lib/babashka/fs.mjs';
+export * from './lib/babashka/fs.mjs';
 
 // camelCase (or dashed) option keys are translated to the dashed keyword
 // strings the squint-compiled functions read, e.g. {posixFilePermissions}

@@ -77,6 +77,14 @@
    :task (do (shell "npm" "install")
              (shell "npm" "test"))}
 
+  nbb-test
+  {:doc "Run the shared test suite under nbb, from source (the scripting use case)"
+   :task (shell "npx" "nbb" "--classpath" "src:test" "-e"
+                (str "(require '[clojure.test :as t] '[babashka.fs-test])"
+                     "(require '[babashka.fs] :reload)"
+                     "(let [{:keys [fail error]} (t/run-tests 'babashka.fs-test)]"
+                     "  (when (pos? (+ fail error)) (js/process.exit 1)))"))}
+
   deno-squint-test
   {:doc "Run squint tests on Deno (uses node: prefixed imports)"
    :task (do (shell "npm" "install")
