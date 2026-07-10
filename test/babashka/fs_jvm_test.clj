@@ -1902,6 +1902,24 @@
                "out-dir/foo/bar/boop.txt"]
               (list-tree "out-dir"))))
 
+(deftest zip-unzip-absolute-source-with-root-test
+  ;; absolute source path is allowed as long as :root maps entries to relative ones
+  (let [src (fs/create-temp-dir)]
+    (files (str (fs/path src "foo/bar/baz.txt"))
+           (str (fs/path src "foo/bar/boop.txt")))
+    (is (= "foo.zip" (str (fs/zip "foo.zip" src {:root (fs/unixify src)}))))
+    (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir"))))
+    (is (match? ["out-dir/foo/bar/baz.txt"
+                 "out-dir/foo/bar/boop.txt"]
+                (list-tree "out-dir")))))
+
+(deftest zip-absolute-source-without-root-throws-test
+  ;; absolute source without :root/:path-fn produces absolute entries, which is rejected
+  (let [src (fs/create-temp-dir)]
+    (files (str (fs/path src "a.txt")))
+    (is (thrown-with-msg? AssertionError #"Zip entry must be relative"
+                          (fs/zip "foo.zip" src)))))
+
 (deftest zip-unzip-extract-fn-name-key-test
   (files "README.md"
          "src/foo/bar/baz.clj"

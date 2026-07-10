@@ -1886,13 +1886,19 @@
                      fpath (str/replace fpath \\ \/)
                      fpath (path-fn fpath)]
                  (when-not (str/blank? fpath)
+                   (assert (relative? fpath)
+                           (str "Zip entry must be relative: " fpath))
                    (add-zip-entry jos f fpath))))
              files))))
 
 (defn zip
   "Zips `path-or-paths` into `zip-file`. A path may be a file or
   directory. Directories are included recursively and their names are
-  preserved in the zip file. Currently only accepts relative paths.
+  preserved in the zip file.
+
+  Zip entries must be relative. Absolute source paths are allowed as
+  long as `:root` or `:path-fn` maps them to relative entries, e.g.:
+  `(fs/zip \"/tmp/out.zip\" \"/tmp/src\" {:root \"/tmp/src\"})`.
 
   Returns created `zip-file`.
 
@@ -1915,8 +1921,6 @@
                              (when-let [root (:root opts)]
                                #(str/replace % (re-pattern (str "^" (java.util.regex.Pattern/quote root) "/")) ""))
                              identity)]
-             (assert (every? relative? entries)
-                     "All entries must be relative")
              (with-open [zos (ZipOutputStream.
                               (FileOutputStream. (file zip-file)))]
                (doseq [zpath entries]
