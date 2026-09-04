@@ -640,7 +640,7 @@
   See also: [[glob]]"
   ([root-dir pattern] (match root-dir pattern nil))
   ([root-dir pattern {:keys [hidden follow-links max-depth recursive]}]
-   (let [[prefix pattern] (str/split pattern #":")
+   (let [[prefix pattern] (str/split pattern #":" 2)
          base-path (-> root-dir absolutize normalize str)
          escaped-base-path (case prefix
                              "glob" (escape-glob-chars base-path)
