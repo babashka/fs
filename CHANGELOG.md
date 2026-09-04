@@ -4,6 +4,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 Babashka [fs](https://github.com/babashka/fs): file system utility library for Clojure
 
+## Unreleased
+
+- [#269](https://github.com/babashka/fs/issues/269): `match` and `glob` no longer drop pattern text after a 2nd colon on Unix
+
 ## 0.5.34 (2026-07-02)
 
 - Add Node.js support via ClojureScript and Squint support. See [Node.js docs](README.md#nodejs).

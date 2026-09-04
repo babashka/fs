@@ -968,6 +968,14 @@
       (files d "a" "b" "^")
       (is (= ["^" "a"] (rel-entries d (fs/glob d "[^a]")))))))
 
+(deftest glob-colon-in-pattern-test
+  (testing "a colon in the pattern is not a syntax separator"
+    (when-not (fs/windows?)
+      (fs/with-temp-dir [d]
+        (files d "a:b.txt" "other.txt")
+        (is (= ["a:b.txt"] (rel-entries d (fs/glob d "*:b.txt"))))
+        (is (= ["a:b.txt"] (rel-entries d (fs/match d "regex:.*:b\\.txt"))))))))
+
 (deftest list-dirs-test
   (fs/with-temp-dir [d]
     (files d "d1/a.clj" "d2/b.clj")
