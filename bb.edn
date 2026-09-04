@@ -79,9 +79,12 @@
 
   nbb-test
   {:doc "Run the shared test suite under nbb, from source (the scripting use case)"
+   ;; nbb 1.5+ ships babashka.fs as a built-in and ignores :reload for it, so
+   ;; load the source file directly before the tests require the namespace
    :task (shell "npx" "nbb" "--classpath" "src:test" "-e"
-                (str "(require '[clojure.test :as t] '[babashka.fs-test])"
-                     "(require '[babashka.fs] :reload)"
+                (str "(require '[nbb.core :as nbb])"
+                     "(nbb/load-file \"src/babashka/fs.cljc\")"
+                     "(require '[clojure.test :as t] '[babashka.fs-test])"
                      "(let [{:keys [fail error]} (t/run-tests 'babashka.fs-test)]"
                      "  (when (pos? (+ fail error)) (js/process.exit 1)))"))}
 
