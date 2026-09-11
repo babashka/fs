@@ -1913,6 +1913,18 @@
                  "out-dir/foo/bar/boop.txt"]
                 (list-tree "out-dir")))))
 
+(deftest zip-unzip-absolute-source-with-native-root-test
+  (testing "a :root given as a path or a native path string matches the entries"
+    (doseq [root-fn [identity str]]
+      (let [src (fs/create-temp-dir)]
+        (files (str (fs/path src "foo/bar/baz.txt")))
+        (fs/delete-if-exists "foo.zip")
+        (fs/delete-tree "out-dir")
+        (is (= "foo.zip" (str (fs/zip "foo.zip" src {:root (root-fn src)}))))
+        (is (= "out-dir" (str (fs/unzip "foo.zip" "out-dir"))))
+        (is (match? ["out-dir/foo/bar/baz.txt"]
+                    (list-tree "out-dir")))))))
+
 (deftest zip-absolute-source-without-root-throws-test
   ;; absolute source without :root/:path-fn produces absolute entries, which is rejected
   (let [src (fs/create-temp-dir)]

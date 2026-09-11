@@ -1919,7 +1919,9 @@
                            path-or-paths)
                  path-fn (or (:path-fn opts)
                              (when-let [root (:root opts)]
-                               #(str/replace % (re-pattern (str "^" (java.util.regex.Pattern/quote root) "/")) ""))
+                               ;; entries are unixified in copy-to-zip, so the root must be too
+                               (let [root (str/replace (str root) \\ \/)]
+                                 #(str/replace % (re-pattern (str "^" (java.util.regex.Pattern/quote root) "/")) "")))
                              identity)]
              (with-open [zos (ZipOutputStream.
                               (FileOutputStream. (file zip-file)))]
