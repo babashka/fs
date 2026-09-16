@@ -20,7 +20,7 @@ jobs:
       # It is important to install java before installing clojure tools which needs java
       # exclusions: babashka, clj-kondo and cljstyle
       - name: Prepare java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.java }}
@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Prepare java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'zulu'
           java-version: 21
@@ -170,7 +170,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Prepare java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'zulu'
           java-version: 21
@@ -226,7 +226,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Prepare java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'zulu'
           java-version: 21
