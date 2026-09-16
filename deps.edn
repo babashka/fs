@@ -18,7 +18,7 @@
 
            :repl-runner {:extra-paths ["dev"]
                          :extra-deps {nrepl/nrepl {:mvn/version "1.7.0"}
-                                      refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
+                                      refactor-nrepl/refactor-nrepl {:mvn/version "3.14.0"}
                                       cider/cider-nrepl {:mvn/version "0.62.2"}}
                          :jvm-opts ["-XX:-OmitStackTraceInFastThrow" "-Djdk.attach.allowAttachSelf"]
                          :main-opts  ["-m" "babashka.fs.nrepl"
