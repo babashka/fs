@@ -8,6 +8,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 - [#272](https://github.com/babashka/fs/issues/272): fix `zip` matching of `:root` containing backslashes or supplied as a `Path` or `File`
 - [#269](https://github.com/babashka/fs/issues/269): `match` and `glob` no longer drop pattern text after a 2nd colon on Unix
+- [#275](https://github.com/babashka/fs/issues/275): add missing type hint on `file` function signature ([@lread](https://github.com/lread))
 
 ## 0.5.34 (2026-07-02)
 
