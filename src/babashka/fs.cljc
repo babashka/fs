@@ -113,7 +113,7 @@
   Multiple-arg versions treat the first argument as parent and subsequent args
   as children relative to the parent."
   (^File [path] (as-file path))
-  ([path & paths]
+  (^File [path & paths]
    #?(:clj (apply io/file (map as-file (cons path paths)))
       :cljs (reduce path* (path* path) paths))))
 
