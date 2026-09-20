@@ -1,13 +1,13 @@
 {:deps {}
  :aliases {:clj-1.11 {:extra-deps {org.clojure/clojure {:mvn/version "1.11.4"}}}
-           :clj-1.12 {:extra-deps {org.clojure/clojure {:mvn/version "1.12.4"}}}
+           :clj-1.12 {:extra-deps {org.clojure/clojure {:mvn/version "1.12.6"}}}
 
            :test-runner {:extra-paths ["test"]
                          :extra-deps {io.github.cognitect-labs/test-runner
                                       {:git/tag "v0.5.1" :git/sha "dfb30dd"}
                                       babashka/process {:mvn/version "0.6.25"}
-                                      clj-kondo/clj-kondo {:mvn/version "2026.01.19"}
-                                      nubank/matcher-combinators {:mvn/version "3.10.0"}}
+                                      clj-kondo/clj-kondo {:mvn/version "2026.08.04"}
+                                      nubank/matcher-combinators {:mvn/version "3.11.0"}}
                          :main-opts ["-m" "cognitect.test-runner"]}
 
            :cljs-test {:extra-deps {olical/cljs-test-runner {:mvn/version "3.8.1"}
@@ -16,9 +16,9 @@
                        :main-opts ["-m" "cljs-test-runner.main" "-d" "test"]}
 
            :repl-runner {:extra-paths ["dev"]
-                         :extra-deps {nrepl/nrepl {:mvn/version "1.6.0"}
-                                      refactor-nrepl/refactor-nrepl {:mvn/version "3.11.0"}
-                                      cider/cider-nrepl {:mvn/version "0.58.0"}}
+                         :extra-deps {nrepl/nrepl {:mvn/version "1.7.0"}
+                                      refactor-nrepl/refactor-nrepl {:mvn/version "3.14.0"}
+                                      cider/cider-nrepl {:mvn/version "0.62.2"}}
                          :jvm-opts ["-XX:-OmitStackTraceInFastThrow" "-Djdk.attach.allowAttachSelf"]
                          :main-opts  ["-m" "babashka.fs.nrepl"
                                       "--middleware" "[refactor-nrepl.middleware/wrap-refactor cider.nrepl/cider-middleware]"

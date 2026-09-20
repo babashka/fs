@@ -23,7 +23,7 @@
     "squint-cljs": "^0.14.200"
   },
   "devDependencies": {
-    "nbb": "^1.4.208",
+    "nbb": "^1.6.213",
     "shadow-cljs": "^3.4.11"
   },
   "license": "EPL-1.0",
