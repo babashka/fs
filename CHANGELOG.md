@@ -6,6 +6,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
+- [#279](https://github.com/babashka/fs/issues/279): minimum supported version of Clojure is now 1.11 ([@lread](https://github.com/lread))
 - [#274](https://github.com/babashka/fs/issues/274): test: bump to JDK 27 in CI test matrix ([@lread](https://github.com/lread))
 - [#272](https://github.com/babashka/fs/issues/272): fix `zip` matching of `:root` containing backslashes or supplied as a `Path` or `File`
 - [#269](https://github.com/babashka/fs/issues/269): `match` and `glob` no longer drop pattern text after a 2nd colon on Unix
