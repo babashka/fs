@@ -56,7 +56,7 @@
                      "-M" (into main-opts args)))))
 
   test
-  {:doc "Run tests, optionally specify: clj-version as first arg (ex :clj-1.10, :clj-1.11, :clj-1.12 (default) or :clj-all) and/or cognitect test-runner cli args"
+  {:doc "Run tests, optionally specify: clj-version as first arg (ex :clj-1.11, :clj-1.12 (default) or :clj-all) and/or cognitect test-runner cli args"
    :task (let [[aliases args] (parse-clj-version)]
            (doseq [alias aliases]
              (do

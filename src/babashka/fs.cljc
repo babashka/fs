@@ -113,7 +113,7 @@
   Multiple-arg versions treat the first argument as parent and subsequent args
   as children relative to the parent."
   (^File [path] (as-file path))
-  ([path & paths]
+  (^File [path & paths]
    #?(:clj (apply io/file (map as-file (cons path paths)))
       :cljs (reduce path* (path* path) paths))))
 
@@ -380,7 +380,7 @@
 
   Options:
   * [`:follow-links`](/README.md#follow-links)
-  * `:max-depth` - maximum directory depth to walk, defaults is unlimited
+  * `:max-depth` - maximum directory depth to walk, default is unlimited
   * Override default visitor functions via:
     * `:pre-visit-dir` - args `[dir attrs]`
     * `:post-visit-dir` - args `[dir ex]`
@@ -2185,7 +2185,7 @@
   Returns the new contents.
 
   Options:
-  * `:charset` - charset of file, default to \"utf-8\""
+  * `:charset` - charset of file, defaults to \"utf-8\""
   {:arglists '([file f & xs] [file opts f & xs])}
   ([file f & xs]
    (let [[opts f xs] (if (map? f)
