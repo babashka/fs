@@ -831,13 +831,22 @@
     (testing "glob also matches directories and doesn't return the specified root directory"
       (is (= ["dira1/dirb1/README.md" "dira1/dirb1/dirc1/" "dira1/dirb1/source.clj"]
              (rel-entries d (fs/glob (fs/path d "dira1/dirb1") "**")))))
+    (testing "non-recursive glob matches immediate child directories"
+      (is (= ["dira1/dirb1/dirc1/"]
+             (rel-entries d (fs/glob (fs/path d "dira1/dirb1") "dirc1"))))
+      (is (= ["dira1/" "dira2/"]
+             (rel-entries d (fs/glob d "dira*")))))
     (when-not (fs/windows?)
       (testing "hidden files are not matched by default"
         (is (= [] (rel-entries d (fs/glob d "*git*")))))
       (testing "hidden files matched when :hidden option specified"
         (is (= [".gitignore"] (rel-entries d (fs/glob d "*git*" {:hidden true})))))
       (testing "hidden files automatically matched when pattern starts with a dot"
-        (is (= [".gitignore"] (rel-entries d (fs/glob d ".gitig*"))))))))
+        (is (= [".gitignore"] (rel-entries d (fs/glob d ".gitig*")))))
+      (testing "non-recursive glob skips hidden child directories unless :hidden"
+        (fs/create-dirs (fs/path d ".hid"))
+        (is (= [] (rel-entries d (fs/glob d "*hid*"))))
+        (is (= [".hid/"] (rel-entries d (fs/glob d "*hid*" {:hidden true}))))))))
 
 (deftest walk-file-tree-semantics-test
   (testing "a file root is visited via visit-file, no dir callbacks"
