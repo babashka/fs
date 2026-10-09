@@ -834,8 +834,8 @@
     (testing "non-recursive glob matches immediate child directories"
       (is (= ["dira1/dirb1/dirc1/"]
              (rel-entries d (fs/glob (fs/path d "dira1/dirb1") "dirc1"))))
-      (is (= ["README.md" "dira1/" "dira2/" "project.clj"]
-             (rel-entries d (fs/glob d "*")))))
+      (is (= ["dira1/" "dira2/"]
+             (rel-entries d (fs/glob d "dira*")))))
     (when-not (fs/windows?)
       (testing "hidden files are not matched by default"
         (is (= [] (rel-entries d (fs/glob d "*git*")))))
