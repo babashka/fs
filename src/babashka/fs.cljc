@@ -677,15 +677,17 @@
                  nil)]
      (walk-file-tree
       base-path
-      {:max-depth max-depth
+      {:max-depth (if recursive max-depth 1)
        :follow-links follow-links
        :pre-visit-dir (fn [dir _attrs]
-                        (cond
-                          (not @past-root?) (do (vreset! past-root? true)
-                                                :continue)
-                          (and skip-hidden? (hidden? dir)) :skip-subtree
-                          :else (do (match dir)
-                                    (if recursive :continue :skip-subtree))))
+                        (if (and @past-root?
+                                 skip-hidden?
+                                 (hidden? dir))
+                          :skip-subtree
+                          (do
+                            (if @past-root? (match dir)
+                                (vreset! past-root? true))
+                            :continue)))
        :visit-file (fn [path _attrs]
                      (when-not (and skip-hidden?
                                     (hidden? path))
