@@ -6,7 +6,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
-- [#284](https://github.com/babashka/fs/issues/284): non-recursive `match` and `glob` now match immediate child directories
+- [#284](https://github.com/babashka/fs/issues/284): non-recursive `match` and `glob` now return immediate child directories, not only files
 - [#272](https://github.com/babashka/fs/issues/272): fix `zip` matching of `:root` containing backslashes or supplied as a `Path` or `File`
 - [#269](https://github.com/babashka/fs/issues/269): `match` and `glob` no longer drop pattern text after a 2nd colon on Unix
 

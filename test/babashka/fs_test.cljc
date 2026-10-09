@@ -842,7 +842,11 @@
       (testing "hidden files matched when :hidden option specified"
         (is (= [".gitignore"] (rel-entries d (fs/glob d "*git*" {:hidden true})))))
       (testing "hidden files automatically matched when pattern starts with a dot"
-        (is (= [".gitignore"] (rel-entries d (fs/glob d ".gitig*"))))))))
+        (is (= [".gitignore"] (rel-entries d (fs/glob d ".gitig*")))))
+      (testing "non-recursive glob skips hidden child directories unless :hidden"
+        (fs/create-dirs (fs/path d ".hid"))
+        (is (= [] (rel-entries d (fs/glob d "*hid*"))))
+        (is (= [".hid/"] (rel-entries d (fs/glob d "*hid*" {:hidden true}))))))))
 
 (deftest walk-file-tree-semantics-test
   (testing "a file root is visited via visit-file, no dir callbacks"

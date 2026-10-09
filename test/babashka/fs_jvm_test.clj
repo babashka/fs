@@ -775,7 +775,7 @@
 (deftest glob-returns-directories-test
   (files "foo/")
   (is (match? ["foo/"] (normalized
-                        (fs/glob "." "*" {:max-depth 1})))))
+                        (fs/glob "." "*")))))
 
 (deftest glob-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
