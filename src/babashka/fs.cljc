@@ -680,15 +680,12 @@
       {:max-depth max-depth
        :follow-links follow-links
        :pre-visit-dir (fn [dir _attrs]
-                        (if (and @past-root?
-                                 (or (not recursive)
-                                     (and skip-hidden?
-                                          (hidden? dir))))
-                          :skip-subtree
-                          (do
-                            (if @past-root? (match dir)
-                                (vreset! past-root? true))
-                            :continue)))
+                        (cond
+                          (not @past-root?) (do (vreset! past-root? true)
+                                                :continue)
+                          (and skip-hidden? (hidden? dir)) :skip-subtree
+                          :else (do (match dir)
+                                    (if recursive :continue :skip-subtree))))
        :visit-file (fn [path _attrs]
                      (when-not (and skip-hidden?
                                     (hidden? path))

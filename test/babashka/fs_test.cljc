@@ -831,6 +831,11 @@
     (testing "glob also matches directories and doesn't return the specified root directory"
       (is (= ["dira1/dirb1/README.md" "dira1/dirb1/dirc1/" "dira1/dirb1/source.clj"]
              (rel-entries d (fs/glob (fs/path d "dira1/dirb1") "**")))))
+    (testing "non-recursive glob matches immediate child directories"
+      (is (= ["dira1/dirb1/dirc1/"]
+             (rel-entries d (fs/glob (fs/path d "dira1/dirb1") "dirc1"))))
+      (is (= ["README.md" "dira1/" "dira2/" "project.clj"]
+             (rel-entries d (fs/glob d "*")))))
     (when-not (fs/windows?)
       (testing "hidden files are not matched by default"
         (is (= [] (rel-entries d (fs/glob d "*git*")))))
