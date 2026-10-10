@@ -2141,6 +2141,24 @@
       (is (not (fs/exists? @capture-dir))))))
 
 ;;
+;; with-temp-files
+;;
+(deftest with-temp-files-test
+  (let [capture-files (volatile! [])]
+    (testing "with-temp-files"
+      (fs/with-temp-files [f1 "f1.txt"
+                           f2 "f2.txt"]
+        (vreset! capture-files [f1 f2])
+        (testing "creates a file"
+          (is (fs/exists? f1))
+          (is (fs/exists? f2))
+          (is (str/includes? (str f1) "f1"))
+          (is (str/includes? (str f2) "f2"))))
+      (testing "deletes all files on scope exit"
+        (is (not (fs/exists? (first @capture-files))))
+        (is (not (fs/exists? (last @capture-files))))))))
+
+;;
 ;; writable?
 ;;
 (deftest writable?-test

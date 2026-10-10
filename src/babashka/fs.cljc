@@ -2036,6 +2036,40 @@
          (when-not (:keep opts#)
            (delete-tree ~temp-dir {:force true}))))))
 
+(defmacro with-temp-files
+  "Initialize a temp directory with given files, bind the files to the given
+  symbols, execute the body with those bound, then delete the directory.
+  file-binds are pairs of simple-symbols and strings. The symbols will be
+  available in the body, and the strings will be interpreted as file paths
+  (with optionally specified parent directories).
+
+  Example:
+  ```clojure
+  (with-temp-files
+    [core \"src/noahtheduke/core.clj\"]
+    (spit core \"(ns noahtheduke.core)\"))
+  ```
+  "
+  [file-binds & body]
+  (let [paths (take-nth 2 (drop 1 file-binds))
+        temp-dir (gensym)
+        temp-files (map
+                     (fn [path]
+                       [(gensym)
+                        `(let [f# (fs/file (str ~temp-dir) ~path)]
+                           (fs/create-dirs (fs/path (fs/file (fs/parent f#))))
+                           (fs/create-file (fs/path f#)))])
+                     paths)
+        binds (mapcat vector
+                (take-nth 2 file-binds)
+                (map (fn [[path _]] `(fs/file (str ~path)))
+                  temp-files))]
+    `(fs/with-temp-dir [~temp-dir]
+       (let [~@(apply concat temp-files)
+               ~@binds
+               res# (do ~@body)]
+           res#))))
+
 (def ^:private cached-home-dir
   #?(:clj (delay (path (System/getProperty "user.home")))
      :cljs (delay (.homedir node-os))))
