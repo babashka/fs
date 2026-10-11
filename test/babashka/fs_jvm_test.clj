@@ -714,10 +714,10 @@
   (testing "symlink as root path"
     (let [sym-link (fs/create-sym-link "sym-link" "dira1")]
       (is (match? [] (fs/glob sym-link "*")))
-      (is (match? ["sym-link/foo.txt"]
+      (is (match? ["sym-link/dirb1/" "sym-link/foo.txt"]
                   (normalized
                    (fs/glob sym-link "*" {:follow-links true}))))
-      (is (match? ["dira1/foo.txt"]
+      (is (match? ["dira1/dirb1/" "dira1/foo.txt"]
                   (normalized
                    (fs/glob (fs/read-link sym-link) "*"))))))
   (when-not windows?
@@ -775,7 +775,7 @@
 (deftest glob-returns-directories-test
   (files "foo/")
   (is (match? ["foo/"] (normalized
-                        (fs/glob "." "*" {:max-depth 1})))))
+                        (fs/glob "." "*")))))
 
 (deftest glob-empty-string-test
   (files "da1/da2/da3/da4/f2.ext" "f1.ext")
@@ -1095,9 +1095,9 @@
           target (fs/read-link sym-link)]
       (is (= "dira1" (str target)))
       (is (match? [] (fs/match sym-link "regex:.*")))
-      (is (match? ["sym-link/foo.txt"]
+      (is (match? ["sym-link/dirb1/" "sym-link/foo.txt"]
                   (normalized (fs/match sym-link "regex:.*" {:follow-links true}))))
-      (is (match? ["dira1/foo.txt"]
+      (is (match? ["dira1/dirb1/" "dira1/foo.txt"]
                   (normalized (fs/match (fs/read-link sym-link) "regex:.*")))))))
 
 (deftest match-at-specific-depth-test

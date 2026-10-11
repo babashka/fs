@@ -6,6 +6,7 @@ Babashka [fs](https://github.com/babashka/fs): file system utility library for C
 
 ## Unreleased
 
+- [#284](https://github.com/babashka/fs/issues/284): non-recursive `match` and `glob` now return immediate child directories, not only files
 - [#279](https://github.com/babashka/fs/issues/279): minimum supported version of Clojure is now 1.11 ([@lread](https://github.com/lread))
 - [#274](https://github.com/babashka/fs/issues/274): test: bump to JDK 27 in CI test matrix ([@lread](https://github.com/lread))
 - [#272](https://github.com/babashka/fs/issues/272): fix `zip` matching of `:root` containing backslashes or supplied as a `Path` or `File`
