@@ -2037,38 +2037,32 @@
            (delete-tree ~temp-dir {:force true}))))))
 
 (defmacro with-temp-files
-  "Initialize a temp directory with given files, bind the files to the given
-  symbols, execute the body with those bound, then delete the directory.
-  file-binds are pairs of simple-symbols and strings. The symbols will be
-  available in the body, and the strings will be interpreted as file paths
-  (with optionally specified parent directories).
+  "Evaluates body after creating one or more `file`s, binding them to symbols
+  with `let` semantics. The `file`s are placed in a directory created with
+  [[with-temp-dir]], so the directory and all listed files will be deleted
+  on exit from the scope.
 
   Example:
   ```clojure
-  (with-temp-files
-    [core \"src/noahtheduke/core.clj\"]
-    (spit core \"(ns noahtheduke.core)\"))
+  (with-temp-files [core \"src/example/core.clj\"
+                    core-test (file \"test/example/core_test.clj\")]
+    (spit core \"(ns noahtheduke.core)\")
+    (is (true? (exists? core-test))))
   ```
   "
   [file-binds & body]
-  (let [paths (take-nth 2 (drop 1 file-binds))
-        temp-dir (gensym)
+  (let [temp-dir (gensym)
         temp-files (map
-                     (fn [path]
-                       [(gensym)
-                        `(let [f# (fs/file (str ~temp-dir) ~path)]
-                           (fs/create-dirs (fs/path (fs/file (fs/parent f#))))
-                           (fs/create-file (fs/path f#)))])
-                     paths)
-        binds (mapcat vector
-                (take-nth 2 file-binds)
-                (map (fn [[path _]] `(fs/file (str ~path)))
-                  temp-files))]
+                     (fn [[bind path]]
+                       [bind
+                        `(let [f# (fs/file ~temp-dir ~path)]
+                           (fs/create-dirs (fs/parent f#))
+                           (fs/create-file f#))])
+                     (partition 2 file-binds))]
     `(fs/with-temp-dir [~temp-dir]
        (let [~@(apply concat temp-files)
-               ~@binds
-               res# (do ~@body)]
-           res#))))
+             res# (do ~@body)]
+         res#))))
 
 (def ^:private cached-home-dir
   #?(:clj (delay (path (System/getProperty "user.home")))

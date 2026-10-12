@@ -2147,16 +2147,18 @@
   (let [capture-files (volatile! [])]
     (testing "with-temp-files"
       (fs/with-temp-files [f1 "f1.txt"
-                           f2 "f2.txt"]
-        (vreset! capture-files [f1 f2])
+                           f2 "nested/f2.txt"
+                           f3 (fs/file "works/with/fs/file/f3.txt")]
+        (vreset! capture-files [f1 f2 f3])
         (testing "creates a file"
           (is (fs/exists? f1))
           (is (fs/exists? f2))
-          (is (str/includes? (str f1) "f1"))
-          (is (str/includes? (str f2) "f2"))))
+          (is (fs/exists? f3))
+          (is (str/includes? (str f1) "f1.txt"))
+          (is (str/includes? (str f2) "nested/f2.txt"))
+          (is (str/includes? (str f3) "works/with/fs/file/f3.txt"))))
       (testing "deletes all files on scope exit"
-        (is (not (fs/exists? (first @capture-files))))
-        (is (not (fs/exists? (last @capture-files))))))))
+        (is (= [false false false] (mapv fs/exists? @capture-files)))))))
 
 ;;
 ;; writable?
