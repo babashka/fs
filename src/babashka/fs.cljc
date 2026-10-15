@@ -33,7 +33,7 @@
       :default [(:import [java.io File InputStream BufferedInputStream FileInputStream FileOutputStream]
                          [java.net URI]
                          [java.nio.file StandardOpenOption CopyOption
-                          #?@(:bb [] :clj [DirectoryStream DirectoryStream$Filter])
+                          #?@(:bb [] :clj [DirectoryStream DirectoryStream$Filter FileSystemLoopException])
                           Files
                           FileSystems
                           FileVisitOption
@@ -988,6 +988,7 @@
 
   Options:
   * same as [[copy]]
+  * [`:nofollow-links`](/README.md#nofollow-links) - copies symbolic links as links. By default, copies the contents of linked files and directories.
   * `:posix-file-permissions` - string format unix-like system permissions passed to [[create-dirs]] when creating `target-dir`."
   ([source-dir target-dir] (copy-tree source-dir target-dir nil))
   ([source-dir target-dir {:keys [:replace-existing
@@ -1012,7 +1013,13 @@
                   link-options (->link-opts nofollow-links)
                   from (real-path source-dir {:nofollow-links nofollow-links})
                   to (canonicalize target-dir {:nofollow-links nofollow-links})]
-              (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+              (walk-file-tree from {:follow-links (not nofollow-links)
+                                    :visit-file-failed (fn [_path ex]
+                                                         (if #?(:bb (= "java.nio.file.FileSystemLoopException" (.getName (class ex)))
+                                                                :clj (instance? FileSystemLoopException ex))
+                                                           (throw ex)
+                                                           :continue))
+                                    :pre-visit-dir (fn [dir _attrs]
                                                      (let [rel (relativize from dir)
                                                            to-dir (path to rel)]
                                                        (when-not (Files/exists to-dir link-options)
@@ -1054,7 +1061,13 @@
             (create-dirs dst opts)
             (let [from (real-path src {:nofollow-links nofollow-links})]
               (walk-file-tree from
-                              {:pre-visit-dir (fn [dir _]
+                              {:follow-links (not nofollow-links)
+                               :visit-file-failed (fn [f _]
+                                                    (throw (ex-info (str (if (directory? f)
+                                                                           "File system loop: "
+                                                                           "No such file: ")
+                                                                         f) {})))
+                               :pre-visit-dir (fn [dir _]
                                                 (let [rel (relativize from dir)
                                                       to-dir (path dst rel)]
                                                   (when-not (exists? to-dir)
