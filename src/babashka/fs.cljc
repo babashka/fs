@@ -432,7 +432,7 @@
                      (let [rp (when follow-links
                                 (try (.realpathSync node-fs (str dir)) (catch :default _ nil)))]
                        (if (and rp (contains? seen rp))
-                         (file-visit-result (visit-file-failed dir nil))
+                         (file-visit-result (visit-file-failed dir (ex-info (str "File system loop: " dir) {:path (str dir)})))
                          (let [seen (if rp (conj seen rp) seen)
                                pre (file-visit-result (pre-visit-dir dir nil))]
                            (cond
@@ -454,13 +454,16 @@
                                            sym? (.isSymbolicLink d)
                                            ;; Dirent is lstat-based: a symlink under follow-links
                                            ;; needs a real stat to know if its target is a directory
+                                           [st stat-err] (if (and sym? follow-links)
+                                                           (try [(stat child false) nil]
+                                                                (catch :default e [nil e]))
+                                                           [nil nil])
                                            dir? (if sym?
-                                                  (and follow-links (directory? child))
+                                                  (boolean (and st (.isDirectory ^js st)))
                                                   (.isDirectory d))
                                            cr (cond
                                                 (and dir? (< cd max-depth)) (do-walk child cd seen)
-                                                (and sym? follow-links (not (exists? child)))
-                                                (file-visit-result (visit-file-failed child nil))
+                                                stat-err (file-visit-result (visit-file-failed child stat-err))
                                                 :else (file-visit-result (visit-file child nil)))]
                                        (cond
                                          (= :terminate cr) :terminate
@@ -469,8 +472,11 @@
        (cond
          (and (directory? root {:nofollow-links nofollow}) (< 0 max-depth))
          (do-walk root 0 #{})
-         (exists? root {:nofollow-links nofollow}) (file-visit-result (visit-file root nil))
-         :else (file-visit-result (visit-file-failed root nil)))
+         :else (let [err (try (stat root nofollow) nil
+                              (catch :default e e))]
+                 (file-visit-result (if err
+                                      (visit-file-failed root err)
+                                      (visit-file root nil)))))
        root)))
 
 #?(:bb nil :clj
@@ -1061,11 +1067,8 @@
             (let [from (real-path src {:nofollow-links nofollow-links})]
               (walk-file-tree from
                               {:follow-links (not nofollow-links)
-                               :visit-file-failed (fn [f _]
-                                                    (throw (ex-info (str (if (directory? f)
-                                                                           "File system loop: "
-                                                                           "No such file: ")
-                                                                         f) {})))
+                               :visit-file-failed (fn [_ ex]
+                                                    (throw ex))
                                :pre-visit-dir (fn [dir _]
                                                 (let [rel (relativize from dir)
                                                       to-dir (path dst rel)]

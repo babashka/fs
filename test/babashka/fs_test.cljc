@@ -942,6 +942,26 @@
                             :visit-file-failed (fn [p _] (swap! failed conj (fs/file-name p)) :continue)})
         (is (contains? @failed "loop"))))))
 
+(deftest walk-file-tree-passes-error-to-visit-file-failed-test
+  (when-not (fs/windows?)
+    (fs/with-temp-dir [d]
+      (fs/create-dirs (fs/path d "a"))
+      (fs/create-sym-link (fs/path d "a" "loop") (str (fs/path d "a")))
+      (fs/create-sym-link (fs/path d "a" "broken") "missing")
+      (let [failed (atom {})]
+        (fs/walk-file-tree (fs/path d "a")
+                           {:follow-links true
+                            :visit-file-failed (fn [p ex] (swap! failed assoc (fs/file-name p) ex) :continue)})
+        (testing "symlink loop passes an error"
+          (is (some? (get @failed "loop"))))
+        #?(:cljs
+           (testing "broken symlink passes an error"
+             (is (some? (get @failed "broken")))))
+        (fs/walk-file-tree (fs/path d "missing")
+                           {:visit-file-failed (fn [p ex] (swap! failed assoc (fs/file-name p) ex) :continue)})
+        (testing "missing root passes an error"
+          (is (some? (get @failed "missing"))))))))
+
 (deftest walk-file-tree-propagates-visit-file-exception-test
   (testing "an exception thrown by visit-file propagates, it is not swallowed as a failure"
     (fs/with-temp-dir [d]
