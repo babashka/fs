@@ -1055,7 +1055,8 @@
             (create-dirs dst opts)
             (let [from (real-path src {:nofollow-links nofollow-links})]
               (walk-file-tree from
-                              {:pre-visit-dir (fn [dir _]
+                              {:follow-links (not nofollow-links)
+                               :pre-visit-dir (fn [dir _]
                                                 (let [rel (relativize from dir)
                                                       to-dir (path dst rel)]
                                                   (when-not (exists? to-dir)
