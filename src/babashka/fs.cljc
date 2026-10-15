@@ -33,7 +33,7 @@
       :default [(:import [java.io File InputStream BufferedInputStream FileInputStream FileOutputStream]
                          [java.net URI]
                          [java.nio.file StandardOpenOption CopyOption
-                          #?@(:bb [] :clj [DirectoryStream DirectoryStream$Filter FileSystemLoopException])
+                          #?@(:bb [] :clj [DirectoryStream DirectoryStream$Filter])
                           Files
                           FileSystems
                           FileVisitOption
@@ -1015,10 +1015,7 @@
                   to (canonicalize target-dir {:nofollow-links nofollow-links})]
               (walk-file-tree from {:follow-links (not nofollow-links)
                                     :visit-file-failed (fn [_path ex]
-                                                         (if #?(:bb (= "java.nio.file.FileSystemLoopException" (.getName (class ex)))
-                                                                :clj (instance? FileSystemLoopException ex))
-                                                           (throw ex)
-                                                           :continue))
+                                                         (throw ex))
                                     :pre-visit-dir (fn [dir _attrs]
                                                      (let [rel (relativize from dir)
                                                            to-dir (path to rel)]
@@ -1037,7 +1034,9 @@
                                                                 copy-options)
                                                     :continue)
                                                   :continue)
-                                    :post-visit-dir (fn [dir _ex]
+                                    :post-visit-dir (fn [dir ex]
+                                                      (when ex
+                                                        (throw ex))
                                                       (let [rel (relativize from dir)
                                                             to-dir (path to rel)]
                                                         (when-not win?
@@ -1078,7 +1077,9 @@
                                :visit-file (fn [f _]
                                              (copy-one f (path dst (relativize from f)) opts)
                                              :continue)
-                               :post-visit-dir (fn [dir _]
+                               :post-visit-dir (fn [dir err]
+                                                 (when err
+                                                   (throw err))
                                                  (when-not win?
                                                    (let [mode (posix-file-permissions dir)]
                                                      (chmod (path dst (relativize from dir)) mode)))

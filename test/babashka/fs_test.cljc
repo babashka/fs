@@ -374,6 +374,16 @@
         (is (= "rwx------"
                (fs/posix->str (fs/posix-file-permissions (fs/path d "dst/sub")))))))))
 
+(deftest copy-tree-unreadable-dir-throws-test
+  (when-not (fs/windows?)
+    (fs/with-temp-dir [d]
+      (files d "src-dir/locked/file.txt" "src-dir/ok.txt")
+      (fs/set-posix-file-permissions (fs/path d "src-dir/locked") "---------")
+      (try
+        (is (some? (caught #(fs/copy-tree (fs/path d "src-dir") (fs/path d "dest-dir")))))
+        (finally
+          (fs/set-posix-file-permissions (fs/path d "src-dir/locked") "rwx------"))))))
+
 (deftest copy-tree-attributes-test
   (testing ":copy-attributes preserves file modification time"
     (fs/with-temp-dir [d]
