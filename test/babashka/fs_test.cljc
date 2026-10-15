@@ -485,6 +485,40 @@
               "src-dir/bar/baz/somefile.txt"]
              (list-tree d))))))
 
+(deftest copy-tree-follow-links-copies-linked-dir-contents-test
+  (when-not (fs/windows?)
+    (fs/with-temp-dir [d]
+      (files d "src-dir/bar/baz/somefile.txt")
+      (fs/create-sym-link (fs/path d "src-dir" "link-bar") "bar")
+      ;; by default copy-tree follows links, so the contents of a symlinked
+      ;; sub-directory are copied, like `cp -r --dereference`
+      ;; https://github.com/babashka/fs/issues/187
+      (fs/copy-tree (fs/path d "src-dir") (fs/path d "dst"))
+      (is (= ["bar/baz/somefile.txt" "link-bar/baz/somefile.txt"]
+             (list-tree (fs/path d "dst"))))
+      (is (= "src-dir/bar/baz/somefile.txt"
+             (slurp-str (fs/path d "dst" "link-bar" "baz" "somefile.txt"))))
+      ;; explicit :follow-links true behaves the same
+      (fs/copy-tree (fs/path d "src-dir") (fs/path d "dst2") {:follow-links true})
+      (is (= ["bar/baz/somefile.txt" "link-bar/baz/somefile.txt"]
+             (list-tree (fs/path d "dst2"))))
+      ;; a symlinked directory used as the source copies its contents too
+      (fs/create-sym-link (fs/path d "link-src") "src-dir")
+      (fs/copy-tree (fs/path d "link-src") (fs/path d "dst3"))
+      (is (= ["bar/baz/somefile.txt" "link-bar/baz/somefile.txt"]
+             (list-tree (fs/path d "dst3")))))))
+
+(deftest copy-tree-nofollow-preserves-linked-dir-test
+  (when-not (fs/windows?)
+    (fs/with-temp-dir [d]
+      (files d "src-dir/bar/baz/somefile.txt")
+      (fs/create-sym-link (fs/path d "src-dir" "link-bar") "bar")
+      (fs/copy-tree (fs/path d "src-dir") (fs/path d "dst") {:nofollow-links true})
+      ;; with nofollow the link itself is preserved as a link
+      (is (fs/sym-link? (fs/path d "dst" "link-bar")))
+      (is (= "bar" (str (fs/read-link (fs/path d "dst" "link-bar")))))
+      (is (fs/regular-file? (fs/path d "dst" "bar" "baz" "somefile.txt"))))))
+
 (deftest move-to-file-test
   (fs/with-temp-dir [d]
     (files d "src-dir/foo.txt" "dest-dir/")
