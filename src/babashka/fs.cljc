@@ -1012,7 +1012,8 @@
                   link-options (->link-opts nofollow-links)
                   from (real-path source-dir {:nofollow-links nofollow-links})
                   to (canonicalize target-dir {:nofollow-links nofollow-links})]
-              (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+              (walk-file-tree from {:follow-links (not nofollow-links)
+                                    :pre-visit-dir (fn [dir _attrs]
                                                      (let [rel (relativize from dir)
                                                            to-dir (path to rel)]
                                                        (when-not (Files/exists to-dir link-options)
@@ -1054,7 +1055,8 @@
             (create-dirs dst opts)
             (let [from (real-path src {:nofollow-links nofollow-links})]
               (walk-file-tree from
-                              {:pre-visit-dir (fn [dir _]
+                              {:follow-links (not nofollow-links)
+                               :pre-visit-dir (fn [dir _]
                                                 (let [rel (relativize from dir)
                                                       to-dir (path dst rel)]
                                                   (when-not (exists? to-dir)
