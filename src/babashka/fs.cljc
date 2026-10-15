@@ -459,8 +459,6 @@
                                                   (.isDirectory d))
                                            cr (cond
                                                 (and dir? (< cd max-depth)) (do-walk child cd seen)
-                                                (and sym? follow-links (not (exists? child)))
-                                                (file-visit-result (visit-file-failed child nil))
                                                 :else (file-visit-result (visit-file child nil)))]
                                        (cond
                                          (= :terminate cr) :terminate
@@ -1012,7 +1010,8 @@
                   link-options (->link-opts nofollow-links)
                   from (real-path source-dir {:nofollow-links nofollow-links})
                   to (canonicalize target-dir {:nofollow-links nofollow-links})]
-              (walk-file-tree from {:pre-visit-dir (fn [dir _attrs]
+              (walk-file-tree from {:follow-links (not nofollow-links)
+                                    :pre-visit-dir (fn [dir _attrs]
                                                      (let [rel (relativize from dir)
                                                            to-dir (path to rel)]
                                                        (when-not (Files/exists to-dir link-options)
@@ -1054,7 +1053,8 @@
             (create-dirs dst opts)
             (let [from (real-path src {:nofollow-links nofollow-links})]
               (walk-file-tree from
-                              {:pre-visit-dir (fn [dir _]
+                              {:follow-links (not nofollow-links)
+                               :pre-visit-dir (fn [dir _]
                                                 (let [rel (relativize from dir)
                                                       to-dir (path dst rel)]
                                                   (when-not (exists? to-dir)

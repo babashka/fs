@@ -485,6 +485,28 @@
               "src-dir/bar/baz/somefile.txt"]
              (list-tree d))))))
 
+(deftest copy-tree-follow-inner-dir-link-sym-link-test
+  (when-not (fs/windows?)
+    (fs/with-temp-dir [d]
+      (files d "src-dir/bar/baz/somefile.txt")
+      (fs/create-sym-link (fs/path d "src-dir/link-bar") "bar")
+      (testing "default copies linked dir contents"
+        (fs/copy-tree (fs/path d "src-dir") (fs/path d "dest-dir"))
+        (is (= ["bar/baz/somefile.txt" "link-bar/baz/somefile.txt"]
+               (list-tree (fs/path d "dest-dir"))))
+        (is (not (fs/sym-link? (fs/path d "dest-dir/link-bar")))))
+      (testing ":nofollow-links copies link"
+        (fs/copy-tree (fs/path d "src-dir") (fs/path d "dest-dir-nf") {:nofollow-links true})
+        (is (fs/sym-link? (fs/path d "dest-dir-nf/link-bar")))
+        (is (= "bar" (fs/unixify (fs/read-link (fs/path d "dest-dir-nf/link-bar")))))))))
+
+(deftest copy-tree-follow-broken-link-throws-sym-link-test
+  (when-not (fs/windows?)
+    (fs/with-temp-dir [d]
+      (files d "src-dir/")
+      (fs/create-sym-link (fs/path d "src-dir/broken") "missing")
+      (is (some? (caught #(fs/copy-tree (fs/path d "src-dir") (fs/path d "dest-dir"))))))))
+
 (deftest move-to-file-test
   (fs/with-temp-dir [d]
     (files d "src-dir/foo.txt" "dest-dir/")
